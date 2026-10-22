@@ -52,7 +52,6 @@ private final class OceanSurface: NSObject, WKNavigationDelegate {
 
         let view = WKWebView(frame: NSRect(origin: .zero, size: screen.frame.size),
                              configuration: config)
-        view.setValue(false, forKey: "drawsBackground")
         view.autoresizingMask = [.width, .height]
         view.allowsBackForwardNavigationGestures = false
         self.webView = view
