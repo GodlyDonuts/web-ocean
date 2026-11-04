@@ -71,5 +71,10 @@ fragment fsOutput fs(
         metal::float3 halo=iceHalo(ray,metal::normalize(F[41].xyz),F[18].z);
         color+=_e4.xyz*halo*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
     }
+    float bowRain=metal::smoothstep(0.03,0.3,F[47].y)*(1.0-0.75*F[47].x)*(1.0-(F[40].w>0.5 ? F[40].z : 0.0));
+    if (bowRain>0.001 && volume<0.999 && ray.y>0.0) {
+        metal::float3 bow=rainbow(ray,metal::normalize(F[42].xyz),bowRain);
+        color=metal::max(color+_e4.xyz*bow*(1.0-volume),metal::float3(0.0));
+    }
     return fsOutput { metal::float4(color,1.0) };
 }
