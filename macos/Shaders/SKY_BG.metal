@@ -707,7 +707,11 @@ metal::float3 sunDisk(
     float mu_4 = metal::sqrt(metal::max(1.0 - (x_1 * x_1), 0.0));
     metal::float3 limb = metal::float3(1.0) - (metal::float3(0.397, 0.503, 0.652) * (1.0 - mu_4));
     // Surface brightness is unchanged in an eclipse; only the uncovered area shrinks.
-    float _e61 = F.celestial.w>0.5 ? F.sunDir.w/metal::max(F.eclipse.w,0.0015) : F.sunDir.w;
+    // A 0.01 degree margin of totality is far below a pixel, so fade the disk out
+    // with the CPU's exact uncovered fraction instead of relying on the moon mask.
+    float _e61 = F.celestial.w>0.5
+        ? F.sunDir.w/metal::max(F.eclipse.w,0.0015)*metal::smoothstep(0.002,0.03,F.eclipse.w)
+        : F.sunDir.w;
     float rad = _e61 / 0.00006866147;
     float moonAng = metal::sqrt(metal::max(2.0*(1.0-metal::dot(dir_5,F.moonDir.xyz)),0.0));
     float cover = F.celestial.w>0.5 ? metal::smoothstep(F.celestial.y-pix,F.celestial.y+pix,moonAng) : 1.0;
@@ -732,11 +736,11 @@ metal::float3 eclipseCorona(metal::float3 dir, constant Frame& F) {
     float streamers=0.35+0.65*metal::pow(metal::abs(metal::cos(pa-0.4)),4.0)
         +0.3*metal::pow(0.5+0.5*metal::sin(pa*11.0+1.3),6.0)
         +0.2*metal::pow(0.5+0.5*metal::sin(pa*5.0-0.7),4.0);
-    float glow=0.35*metal::exp(-x*3.2)+0.09*streamers*metal::exp(-x*0.8);
+    float glow=1.0*metal::exp(-x*2.0)+0.3*streamers*metal::exp(-x*0.5);
     float q=(ang-r*1.015)/(r*0.012);
     float rim=metal::exp(-q*q)*metal::pow(0.5+0.5*metal::sin(pa*23.0+2.0),6.0);
     float inside=metal::smoothstep(r*0.98,r,ang);
-    return total*inside*(metal::float3(0.92,0.96,1.0)*glow+metal::float3(1.0,0.3,0.42)*rim*1.2);
+    return total*inside*(metal::float3(0.92,0.96,1.0)*glow+metal::float3(1.0,0.3,0.42)*rim*3.0);
 }
 
 metal::float3 skyRadiance(

@@ -796,7 +796,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         if state.sunAltitude > -1 {
             vectors[41]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),Float(14*sunlight))
         } else {
-            let brightness=0.12*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,state.moon.y)*(1-0.97*state.lunarUmbra)
+            let brightness=0.12*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,state.moon.y)*(1-0.999*state.lunarUmbra)
             vectors[41]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(brightness))
         }
         compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)*Float(1+3*dark)
