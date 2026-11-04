@@ -13,3 +13,5 @@ The camera sampling dispatch shares the existing compute encoder. There are no a
 Run `python3 macos/Tests/verify_night_water.py` after `zsh macos/build.sh`. It checks six storm phases, raised crests, foam, rain, clear weather, daytime, portrait, and synthetic low-eye-height submerged views under Metal API/shader validation. These runs create no windows, make no location/network requests and write no user astronomy cache. The existing coverage suite also checks narrow, portrait, ultrawide and extreme-height targets.
 
 [Before/after](night-water-comparison.png) · [Regression evidence](night-water-report-2026-10-30.json) · [Performance samples](night-water-performance-2026-10-30.json).
+
+The regression now runs on a fresh checkout without local before captures. It creates a before/after montage only if optional historical before images exist; absence of those images does not skip any current rendering assertions.
