@@ -354,6 +354,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let next = PerformancePolicy.decide(input)
         let budgetChanged = next.pixelBudget != decision.pixelBudget
         decision = next
+        renderer?.governor = "\(next.framesPerSecond) FPS, \(next.reason), visible \(Int((input.visibleFraction*100).rounded()))%"
         if budgetChanged { renderer?.pixelBudget = next.pixelBudget; sizeSecondaryDrawables() }
         updatePlayback()
         // Poll faster while throttled so a revealed desktop resumes promptly.

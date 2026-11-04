@@ -1040,9 +1040,10 @@ fragment fsOutput fs(
         // Bioluminescent plankton: breaking, freshly sheared water flashes
         // cyan; sparkles drift with the surface instead of the screen.
         float spark=foamTex.sample(sampR,xz_2*0.37+metal::float2(F.nightFx.y*0.0021,0.0)).y;
-        float flash=foamMask*(0.35+1.65*freshK)*(0.45+1.1*spark*spark);
+        float glints=metal::smoothstep(0.62,0.92,foamTex.sample(sampR,xz_2*1.31-metal::float2(0.0,F.nightFx.y*0.0017)).x);
+        float flash=foamMask*(0.35+1.65*freshK)*(0.45+1.1*spark*spark)+freshK*0.35+glints*metal::clamp(cover,0.0,1.0)*0.6;
         float dark=F.celestial.z*F.celestial.z;
-        col+=metal::float3(0.015,0.42,0.95)*(flash*F.nightFx.w*dark*0.11);
+        col+=metal::float3(0.015,0.42,0.95)*(flash*F.nightFx.w*dark*0.22);
     }
     metal::float4 _e1101 = F.fogExt;
     float _e1106 = F.fogExt.w;

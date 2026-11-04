@@ -32,6 +32,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     private var specializedSkyAAMask = 3
     private var lastSkyAAMask = 3
     private(set) var nightEffects = NightEffects.Levels()
+    var governor = ""
     private var oceanGuardPipeline: MTLRenderPipelineState!
     private var oceanPipeline: MTLRenderPipelineState!
     private var skyPipeline: MTLRenderPipelineState!
@@ -1311,7 +1312,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let fps = Double(frames-diagnosticFrames)/max(0.001,now-diagnosticTime)
         diagnosticFrames = frames; diagnosticTime = now
         let data: [String: Any] = ["physicalGuard":width*2 < height && options["legacyGuard"] != "1","guardBoundsVerified":verifiedGuardBounds,"renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"offscreen":OceanRunMode.offscreen,"windowCount":NSApp.windows.count,"activationPolicy":NSApp.activationPolicy().rawValue,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps,"mipmapRounding":mipmapRounding.rawValue,"dayNightActive":celestialState != nil,"solarCalculations":celestialCycle.calculationCount,"solarCacheWrites":celestialCycle.cacheWriteCount,"galaxyAtlasWidth":galaxyAtlas.width,"galaxyAtlasHeight":galaxyAtlas.height,"starCount":starCount,"starAtlasWidth":starAtlas.width,"starAtlasHeight":starAtlas.height,"sunAltitude":celestialState?.sunAltitude ?? Double(value("sunElev",2.6)),"moonIllumination":celestialState?.moonIllumination ?? 0,"weatherActive":weatherActive,"aurora":nightEffects.aurora,"meteorRate":nightEffects.meteors,"bioluminescence":nightEffects.bioluminescence,"weatherDetailPhase":(60..<63).map { frameBuffer.contents().assumingMemoryBound(to:Float.self)[$0] },"rain":weatherDynamics.current.rain,"weatherCloud":weatherDynamics.current.cloud,"weatherWind":weatherDynamics.current.wind,"weatherSeverity":weatherDynamics.current.severity,"weatherThunder":weatherDynamics.current.thunder,"seaSettling":seaSettling,"volumetricClouds":options["volumetricClouds"] != "0","cloudNoiseBytes":CloudNoise.size*CloudNoise.size*CloudNoise.size*4,"cloudCacheWidth":cachedSky.width,"cloudCacheHeight":cachedSky.height,"renderer":"Metal", "device":device.name, "fps":(fps*10).rounded()/10,
-            "gpuMs":(gpuMilliseconds*100).rounded()/100, "frames":frames, "paused":isPaused,
+            "gpuMs":(gpuMilliseconds*100).rounded()/100, "frames":frames, "paused":isPaused, "governor":governor,
             "width":width, "height":height, "triangles":triangleCount,"indexBits":indexType == .uint16 ? 16 : 32,"indexBytes":indexBuffer?.length ?? 0, "errors":errors, "gpuStagesMs":profiler?.averageMilliseconds ?? [:]]
         if let encoded = try? JSONSerialization.data(withJSONObject: data, options: .sortedKeys), let text = String(data: encoded, encoding: .utf8) {
             print("Ocean diagnostics: \(text)"); fflush(stdout)
