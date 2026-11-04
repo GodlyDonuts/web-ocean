@@ -37,21 +37,22 @@ inline float3 auroraRadiance(float3 dir, float4 fx, float night, int steps, floa
                    + 0.006 * (fxRing(az, 9.0, float2(t * 0.012, fk * 3.3)) - 0.5);
         float above = el - base;
         if (above < -0.012) continue;
-        float height = (0.05 + 0.55 * e0) * (0.8 + 0.6 * seed);
+        float height = (0.035 + 0.4 * e0) * (0.7 + 0.6 * seed);
         float lower = metal::smoothstep(-0.007, 0.003, above);
         float a = metal::max(above, 0.0);
         float green = metal::exp(-a / height) * lower;
-        float red = metal::smoothstep(0.2, 1.2, a / height) * metal::exp(-a / (height * 2.8));
-        float rays = 0.3 + 0.7 * fxRing(az, 38.0 + 9.0 * seed, float2(t * 0.035, fk * 11.0));
+        float red = metal::smoothstep(0.3, 1.4, a / height) * metal::exp(-a / (height * 2.2));
+        float rays = 0.15 + 0.85 * fxRing(az, 38.0 + 9.0 * seed, float2(t * 0.035, fk * 11.0));
+        rays *= rays;
         rays *= 0.55 + 0.45 * fxRing(az, 120.0, float2(fk * 5.0, -t * 0.08));
-        float extent = metal::smoothstep(0.25, 0.7, fxRing(az, 1.1, float2(fk * 13.0 + t * 0.002, 2.0)));
+        float extent = metal::smoothstep(0.42, 0.78, fxRing(az, 1.4, float2(fk * 13.0 + t * 0.002, 2.0)));
         float pulse = 0.3 + 0.7 * metal::smoothstep(0.15, 0.85, fxNoise(float2(fk * 3.3 + seed, t * 0.01)));
         float3 g = float3(0.10, 1.00, 0.42), r = float3(1.0, 0.13, 0.42) * (0.6 + 0.6 * seed);
         float edgeGlow = metal::exp(-a * a / (0.0002 + 0.0006 * seed)) * lower;  // bright crisp base
         sum += (g * (green + 0.6 * edgeGlow) + r * red * 0.8) * rays * extent * pulse;
     }
     float horizon = metal::smoothstep(0.002, 0.03, dir.y);
-    return sum * strength * horizon * 0.16;
+    return sum * strength * horizon * 0.085;
 }
 
 // Up to six meteors in flight, each on a short randomized schedule.
