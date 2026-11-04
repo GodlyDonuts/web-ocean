@@ -61,7 +61,8 @@ fragment float4 fs(VSOut in [[stage_in]],
     }
     float2 d = (in.uv - sun) * float2(aspect, 1.0);
     float reach = exp(-length(d) * 1.4);
-    float below = in.uv.y > horizon ? 0.45 : 1.0;
+    // Over the sea the beams are only thin haze near the horizon, not floodlights on the water.
+    float below = in.uv.y > horizon ? 0.3 * exp(-(in.uv.y - horizon) * 14.0) : 1.0;
     float beams = mix(1.0, shaftBeams(atan2(d.y, d.x), S.shape.w), smoothstep(0.015, 0.12, length(d)));
     return float4(sum * (S.sun.z / float(taps)) * reach * below * beams, 0.0);
 }
