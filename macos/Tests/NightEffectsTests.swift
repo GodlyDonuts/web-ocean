@@ -27,7 +27,21 @@ struct NightEffectsTests {
         check(bio > 450 && bio < 750, "bioluminescence frequency \(bio)")
         check(NightEffects.showerRate(dayOfYear: 348) > 7 && NightEffects.showerRate(dayOfYear: 180) < 1.1, "Geminids peak, quiet midsummer")
         check(abs(NightEffects.showerRate(dayOfYear: 1) - NightEffects.showerRate(dayOfYear: 366.25)) < 1e-9, "year wraps")
+        check(Wildlife.flock(time: 0, sunAltitude: 30, severity: 0, override: 0) == nil, "birds=0 disables flocks")
+        check(Wildlife.flock(time: 0, sunAltitude: -30, severity: 1, override: 0.5)?.crossSeconds == 0, "forced flock is mid-view")
+        var dusk = 0, day = 0, night = 0, storm = 0
+        for n in 0..<20000 {
+            let time = 1793502000 + Double(n) * 7
+            if Wildlife.flock(time: time, sunAltitude: 3, severity: 0) != nil { dusk += 1 }
+            if Wildlife.flock(time: time, sunAltitude: 40, severity: 0) != nil { day += 1 }
+            if Wildlife.flock(time: time, sunAltitude: -20, severity: 0) != nil { night += 1 }
+            if Wildlife.flock(time: time, sunAltitude: 3, severity: 0.8) != nil { storm += 1 }
+        }
+        check(dusk > 4000 && dusk < 7500 && day > 1200 && day < dusk, "flock frequency dusk \(dusk) day \(day)")
+        check(night == 0 && storm == 0, "no flocks at night or in storms")
+        let a = Wildlife.flock(time: 1793502000, sunAltitude: 3, severity: 0), b = Wildlife.flock(time: 1793502000, sunAltitude: 3, severity: 0)
+        check(a == b, "flocks deterministic")
         if failures > 0 { exit(1) }
-        print("PASS: nightly aurora/meteor/bioluminescence schedule, overrides, latitude frequencies, shower calendar.")
+        print("PASS: nightly aurora/meteor/bioluminescence schedule, overrides, latitude frequencies, shower calendar, seabird flocks.")
     }
 }

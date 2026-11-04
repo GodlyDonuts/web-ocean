@@ -106,5 +106,9 @@
   "SHAFTS": [
     "vs",
     "fs"
+  ],
+  "BIRDS": [
+    "vs",
+    "fs"
   ]
 }

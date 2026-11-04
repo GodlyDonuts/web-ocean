@@ -39,6 +39,8 @@ scenes = {
     'rainbow': {'storm': 0.3, 'sunElev': 10, 'sunAzim': 184, 'clouds': 0.45},
     'rainbow_low_sun': {'storm': 0.22, 'sunElev': 4, 'sunAzim': 200, 'clouds': 0.35},
     'moonbow': {**ny, 'utc': utc('2026-10-31T02:10:00Z'), 'heading': 240.0059176808, 'storm': 0.25, 'clouds': 0.3},
+    'seabirds_sunset': {**ny, 'utc': utc('2026-10-30T21:35:00Z'), 'heading': 250, 'birds': 0.5},
+    'seabirds_day': {'sunElev': 25, 'clouds': 0.3, 'birds': 0.42},
     'everything_night': {'dayNight': 1, 'latitude': 66.0, 'longitude': -18.0, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-14T02:00:00Z'), 'heading': 20, 'clouds': 0.1, 'windSpeed': 12, 'aurora': 1.6, 'meteors': 60, 'bio': 1.2},
 }
 selected = sys.argv[1:] or list(scenes)
@@ -67,7 +69,7 @@ if pngs:
     for i, t in enumerate(thumbs): sheet.paste(t, ((i % cols)*640, (i//cols)*400))
     sheet.save(out/'contact.png')
 night = {k: v for k, v in scenes['everything_night'].items() if k != 'time'}
-benchmarks = {'default': {}, 'night_effects_off': {**night, 'aurora': 0, 'meteors': 0, 'bio': 0}, 'night_effects_on': night, 'shafts_off': {**scenes['sun_shafts'], 'shafts': 0}, 'shafts_on': scenes['sun_shafts']}
+benchmarks = {'default': {}, 'night_effects_off': {**night, 'aurora': 0, 'meteors': 0, 'bio': 0}, 'night_effects_on': night, 'shafts_off': {**scenes['sun_shafts'], 'shafts': 0}, 'shafts_on': scenes['sun_shafts'], 'birds_on': {'birds': 0.5}}
 bench_results = {}
 for label, extra in benchmarks.items():
     bench = out/f'benchmark-{label}.json'

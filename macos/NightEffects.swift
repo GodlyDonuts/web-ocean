@@ -54,3 +54,31 @@ enum NightEffects {
                       bioluminescence: clamp(bioluminescence, 4) ?? (bloom < 0.3 ? 0.6 + 0.4*hash(night, 0xB2) : 0))
     }
 }
+
+/// Deterministic seabird flock schedule: 150 s windows, most often around sunrise and sunset.
+enum Wildlife {
+    struct Flock: Equatable {
+        var crossSeconds: Double
+        var seed: Double
+        var direction: Double
+        var count: Int
+    }
+    static let window = 150.0, duration = 70.0
+
+    static func flock(time: Double, sunAltitude: Double, severity: Double, override: Double? = nil) -> Flock? {
+        if let forced = override, forced.isFinite {
+            guard forced > 0 else { return nil }
+            return Flock(crossSeconds: (min(forced, 1) - 0.5) * duration, seed: 0.37, direction: 1, count: 40)
+        }
+        guard time.isFinite, severity < 0.6, sunAltitude > -5 else { return nil }
+        let chance = sunAltitude < 12 ? 0.6 : 0.25
+        let index = Int64((time / window).rounded(.down))
+        guard NightEffects.hash(index, 0xB1D5) < chance else { return nil }
+        let start = NightEffects.hash(index, 0xB1D6) * (window - duration)
+        let local = time - Double(index) * window - start
+        guard local >= 0, local <= duration else { return nil }
+        return Flock(crossSeconds: local - duration / 2, seed: NightEffects.hash(index, 0xB1D7) * 97,
+                     direction: NightEffects.hash(index, 0xB1D8) < 0.5 ? -1 : 1,
+                     count: 18 + Int(NightEffects.hash(index, 0xB1D9) * 40))
+    }
+}
