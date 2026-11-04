@@ -532,7 +532,8 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         guard fade > 0.001 else { return nil }
         shaftsActive = true
         // Bloom reaches the image as bloom*0.125*mix weight; undo that so strength is in scene units.
-        let gain = strength * fade / max(0.125 * max(value("bloom", 0.1), 0.02), 1e-3) * 2.2
+        let uncovered: Float = v[40].w > 0.5 ? min(1, v[49].w * 20) : 1
+        let gain = strength * fade * uncovered / max(0.125 * max(value("bloom", 0.1), 0.02), 1e-3) * 2.2
         return [su, sv, gain, horizonUV, Float(width) / Float(max(height, 1)), value("shaftThreshold", 0.9), 0.965, v[48].y]
     }
 
@@ -789,7 +790,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let dark=max(state.night,0.9*CelestialMath.smooth(0.985,1,state.solarObscuration))
         vectors[49]=SIMD4(Float(state.lunarShadow.x),Float(state.lunarShadow.y),Float(state.lunarShadow.z),Float(sunlight))
         vectors[8]=SIMD4(Float(state.sun.x),Float(state.sun.y),Float(state.sun.z),Float(14*sunlight))
-        vectors[39]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(state.moonIllumination))
+        vectors[39]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(state.moonIllumination*(1-0.97*state.lunarUmbra)))
         vectors[40]=SIMD4(Float(state.sunRadius),Float(state.moonRadius),Float(dark),1)
         vectors[42]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),Float(state.sunRadius))
         if state.sunAltitude > -1 {
