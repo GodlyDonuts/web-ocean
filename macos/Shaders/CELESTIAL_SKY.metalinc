@@ -53,7 +53,7 @@ metal::float3 moonDisk(metal::float3 dir, float pixAng, constant Frame& F, metal
         float umbra=1.0-metal::smoothstep(umbraR-radius*0.08,umbraR+radius*0.08,shadowAng);
         float depth=metal::clamp((umbraR-shadowAng)/umbraR,0.0,1.0);
         float q=(shadowAng-umbraR)/(radius*0.15);
-        metal::float3 blood=metal::float3(0.9,0.3,0.12)*metal::mix(0.12,0.04,depth)
+        metal::float3 blood=metal::float3(0.9,0.3,0.12)*metal::mix(0.3,0.12,depth)
             +metal::float3(0.08,0.2,0.26)*metal::exp(-q*q)*0.25;
         lit=metal::mix(lit*(1.0-0.8*pen*pen),blood,umbra);
     }

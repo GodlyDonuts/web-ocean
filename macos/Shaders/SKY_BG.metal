@@ -732,11 +732,11 @@ metal::float3 eclipseCorona(metal::float3 dir, constant Frame& F) {
     float streamers=0.35+0.65*metal::pow(metal::abs(metal::cos(pa-0.4)),4.0)
         +0.3*metal::pow(0.5+0.5*metal::sin(pa*11.0+1.3),6.0)
         +0.2*metal::pow(0.5+0.5*metal::sin(pa*5.0-0.7),4.0);
-    float glow=3.0*metal::exp(-x*3.2)+0.7*streamers*metal::exp(-x*0.8);
+    float glow=0.35*metal::exp(-x*3.2)+0.09*streamers*metal::exp(-x*0.8);
     float q=(ang-r*1.015)/(r*0.012);
     float rim=metal::exp(-q*q)*metal::pow(0.5+0.5*metal::sin(pa*23.0+2.0),6.0);
     float inside=metal::smoothstep(r*0.98,r,ang);
-    return total*inside*(metal::float3(0.92,0.96,1.0)*glow+metal::float3(1.0,0.3,0.42)*rim*8.0);
+    return total*inside*(metal::float3(0.92,0.96,1.0)*glow+metal::float3(1.0,0.3,0.42)*rim*1.2);
 }
 
 metal::float3 skyRadiance(
