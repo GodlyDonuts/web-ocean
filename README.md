@@ -23,6 +23,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Aurora arcs, meteor showers (real annual calendar) and bioluminescent surf, scheduled per local night | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`NightEffects.swift`](macos/NightEffects.swift) |
 | Crepuscular sun rays, 22° ice halos and sun dogs in cirrus (sun and moon), primary/secondary rainbows (moonbows at night) in sunlit rain | Implemented; see [`SHAFTS.metal`](macos/Shaders/SHAFTS.metal), [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc) |
 | Real solar and lunar eclipses on their actual dates and places (Meeus lunar terms): Moon covers the Sun, corona at totality, copper umbra | Implemented; see [`CelestialCycle.swift`](macos/CelestialCycle.swift), [`SKY_BG.metal`](macos/Shaders/SKY_BG.metal) |
+| Great comets: rare two-week apparitions with coma, curved dust tail and blue ion tail pointing away from the Sun | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`NightEffects.swift`](macos/NightEffects.swift) |
 | Noctilucent clouds (summer twilight, 50–70° latitude) and the green flash on the last solar limb | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`SKY_BG.metal`](macos/Shaders/SKY_BG.metal) |
 | Gull flocks at dawn/dusk (vertex-generated, flapping/gliding) and storm waterspouts, both on deterministic schedules | Implemented; see [`BIRDS.metal`](macos/Shaders/BIRDS.metal), [`NightEffects.swift`](macos/NightEffects.swift) |
 | Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
@@ -43,7 +44,7 @@ open macos/build/Ocean.app
 
 No npm packages, Python, Rust, development server or downloaded assets are required for the native build. Swift builds the app bundle; packaged Metal sources compile into retained pipeline states at startup. The included galaxy asset is ready to use. See its [credits and provenance](macos/Assets/Galaxy/CREDITS.md).
 
-The app runs as a wallpaper with a menu bar (wave) icon: pause, daylight/weather, frame rate (Adaptive/60/30/20/15), quality budget, displays and Open at Login. `macos/build/Ocean.app/Contents/MacOS/Ocean --preview` opens the resizable development window instead. The camera remains fixed. Night events can be forced for previews with `--query=aurora=2&meteors=40&bio=1` (0 disables); `shafts=0` disables sun rays; `birds=0.5` / `spout=1` force a gull flock or waterspout (0 disables); `nlc=1` forces noctilucent clouds in deep twilight.
+The app runs as a wallpaper with a menu bar (wave) icon: pause, daylight/weather, frame rate (Adaptive/60/30/20/15), quality budget, displays and Open at Login. `macos/build/Ocean.app/Contents/MacOS/Ocean --preview` opens the resizable development window instead. The camera remains fixed. Night events can be forced for previews with `--query=aurora=2&meteors=40&bio=1` (0 disables); `shafts=0` disables sun rays; `birds=0.5` / `spout=1` force a gull flock or waterspout (0 disables); `nlc=1` forces noctilucent clouds in deep twilight; `comet=1` forces a comet apparition.
 
 `python3 macos/Tests/render_gallery.py` renders a windowless scene gallery plus day/night-effects GPU benchmarks; the `GPU gallery` workflow runs it, the unit tests and a live wallpaper smoke test on GitHub's macOS runner on every push.
 

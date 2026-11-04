@@ -48,6 +48,7 @@ scenes = {
                         'utc': utc('2026-08-12T18:21:00Z'), 'heading': 282.0, 'clouds': 0.15},
     'noctilucent': {'dayNight': 1, 'latitude': 55.95, 'longitude': -3.19, 'timeZone': 'Europe/London',
                     'utc': utc('2026-06-25T00:15:00Z'), 'heading': 0, 'clouds': 0.08, 'veil': 0.05, 'aurora': 0, 'nlc': 1},
+    'comet': {**ny, 'utc': utc('2026-10-30T23:05:00Z'), 'heading': 245, 'clouds': 0.1, 'veil': 0.05, 'aurora': 0, 'meteors': 0, 'comet': 1},
     'green_flash': {'sunElev': -0.19, 'clouds': 0.1, 'veil': 0.05},
     'lunar_eclipse': {'dayNight': 1, 'latitude': 39.10, 'longitude': -94.58, 'timeZone': 'America/Chicago',
                       'utc': utc('2026-03-03T11:35:00Z'), 'heading': 266.4, 'clouds': 0.1},

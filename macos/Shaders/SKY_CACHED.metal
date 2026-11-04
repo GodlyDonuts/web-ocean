@@ -64,7 +64,8 @@ fragment fsOutput fs(
         // view-ray cloud transmission, so clouds occlude curtains and meteors.
         float jitter=fxHash(pos.xy+metal::float2(metal::fmod(F[17].z,64.0)*7.31,0.0));
         float pixAng=2.0*metal::length(F[6].xyz)*F[9].w;
-        metal::float3 fx=auroraRadiance(ray,F[48],night,16,jitter)+meteorRadiance(ray,F[48],night,pixAng,F[7].xyz);
+        metal::float3 fx=auroraRadiance(ray,F[48],night,16,jitter)+meteorRadiance(ray,F[48],night,pixAng,F[7].xyz)
+            +cometRadiance(ray,F[50],F[51],metal::normalize(F[42].xyz));
         color+=fx*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
     }
     if (F[18].z>0.05 && volume<0.999 && ray.y>0.0) {

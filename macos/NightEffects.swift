@@ -1,4 +1,5 @@
 import Foundation
+import simd
 
 // Nightly sky events. Each local night draws its own deterministic activity so
 // the wallpaper differs night to night while restarts within a night agree.
@@ -127,5 +128,44 @@ enum Noctilucent {
 
     private static func smooth(_ a: Double, _ b: Double, _ x: Double) -> Double {
         let t = max(0, min(1, (x - a)/(b - a))); return t*t*(3 - 2*t)
+    }
+}
+
+/// Great comets: about one 40-night window in four has an apparition that brightens
+/// and fades over two weeks. The head sits 30-44 degrees from the Sun with its tails
+/// pointing away from it, so it hangs in evening and morning twilight like real comets.
+enum Comets {
+    struct Apparition: Equatable {
+        var brightness: Double
+        var elongation: Double
+        var tilt: Double
+        var tailLength: Double
+        var curl: Double
+    }
+    static let window: Int64 = 40
+
+    static func apparition(night: Int64, override: Double? = nil) -> Apparition? {
+        if let override, override.isFinite {
+            return override > 0 ? Apparition(brightness: min(override, 3), elongation: 0.56, tilt: 0.25, tailLength: 0.32, curl: 0.6) : nil
+        }
+        let w = Int64((Double(night)/Double(window)).rounded(.down))
+        guard NightEffects.hash(w, 0xD1) < 0.25 else { return nil }
+        let peak = w*window + 8 + Int64(NightEffects.hash(w, 0xD2)*24)
+        let d = Double(night - peak)
+        guard abs(d) <= 8 else { return nil }
+        return Apparition(brightness: (0.45 + 0.55*NightEffects.hash(w, 0xD3))*exp(-0.5*(d/4)*(d/4)),
+                          elongation: (30 + 14*NightEffects.hash(w, 0xD4))*Double.pi/180,
+                          tilt: (NightEffects.hash(w, 0xD5) - 0.5)*1.2,
+                          tailLength: 0.18 + 0.22*NightEffects.hash(w, 0xD6),
+                          curl: NightEffects.hash(w, 0xD7) < 0.5 ? -0.8 : 0.8)
+    }
+
+    /// Head direction from the apparent Sun: along the great circle toward the zenith, tilted sideways.
+    static func head(sun: SIMD3<Double>, _ a: Apparition) -> SIMD3<Double> {
+        var up = SIMD3<Double>(0, 1, 0) - sun*sun.y
+        up = simd_length(up) > 1e-6 ? simd_normalize(up) : SIMD3(1, 0, 0)
+        let side = simd_cross(sun, up)
+        let dir = up*cos(a.tilt) + side*sin(a.tilt)
+        return simd_normalize(sun*cos(a.elongation) + dir*sin(a.elongation))
     }
 }

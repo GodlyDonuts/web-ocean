@@ -1,4 +1,5 @@
 import Foundation
+import simd
 
 @main
 struct NightEffectsTests {
@@ -60,7 +61,14 @@ struct NightEffectsTests {
             if Noctilucent.strength(date: july, zone: london, latitude: 15, sunAltitude: -10) > 0.01 { tropics += 1 }
         }
         check(summer > 8 && summer < 35 && winter == 0 && tropics == 0, "noctilucent season summer \(summer) winter \(winter) tropics \(tropics)")
+        check(Comets.apparition(night: 5, override: 0) == nil && Comets.apparition(night: 5, override: 1) != nil, "comet override")
+        var cometNights = 0
+        for night in Int64(20000)..<Int64(24000) where Comets.apparition(night: night) != nil { cometNights += 1 }
+        check(cometNights > 250 && cometNights < 800, "comet frequency \(cometNights)")
+        check(Comets.apparition(night: 20123) == Comets.apparition(night: 20123), "comet deterministic")
+        let sun = simd_normalize(SIMD3<Double>(0.9, -0.2, 0.1)), head = Comets.head(sun: sun, Comets.Apparition(brightness: 1, elongation: 0.6, tilt: 0.3, tailLength: 0.3, curl: 0.8))
+        check(abs(acos(simd_dot(sun, head)) - 0.6) < 1e-9 && head.y > sun.y, "comet head elongation")
         if failures > 0 { exit(1) }
-        print("PASS: nightly aurora/meteor/bioluminescence schedule, overrides, latitude frequencies, shower calendar, seabird flocks, waterspouts, noctilucent clouds.")
+        print("PASS: nightly aurora/meteor/bioluminescence schedule, overrides, latitude frequencies, shower calendar, seabird flocks, waterspouts, noctilucent clouds, comets.")
     }
 }

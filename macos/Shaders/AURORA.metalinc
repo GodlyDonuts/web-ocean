@@ -199,3 +199,34 @@ inline float noctilucent(float3 ray, float3 sun, float t) {
     float vertical = metal::smoothstep(0.01, 0.035, el) * (1.0 - metal::smoothstep(0.12, 0.32, el));
     return tex * spread * vertical;
 }
+
+// Great comet: a bright coma, a broad curved yellow dust tail and a narrow straight
+// blue ion tail, both pointing away from the Sun.
+inline float3 cometRadiance(float3 ray, float4 head, float4 shape, float3 sun) {
+    if (head.w < 0.001) return float3(0.0);
+    float3 h = head.xyz;
+    float c = metal::dot(ray, h);
+    float len = shape.x;
+    if (c < metal::cos(len * 1.15 + 0.02)) return float3(0.0);
+    float3 axis = h * metal::dot(h, sun) - sun;
+    axis = metal::normalize(axis + float3(0.0, 1e-5, 0.0));
+    float3 side = metal::cross(h, axis);
+    float3 d = ray - h * c;
+    float along = metal::dot(d, axis), across = metal::dot(d, side);
+    float r2 = along * along + across * across;
+    float coma = metal::exp(-r2 / (0.0018 * 0.0018)) * 6.0 + metal::exp(-metal::sqrt(r2) / 0.01) * 0.5;
+    float3 color = float3(0.75, 0.95, 0.85) * coma;
+    if (along > 0.0) {
+        float u = along / len;
+        float dustCenter = shape.y * 0.35 * along * u;
+        float dw = 0.003 + 0.16 * along;
+        float dx = (across - dustCenter) / dw;
+        float dust = metal::exp(-dx * dx) * metal::exp(-u * 2.6) * (1.0 - metal::smoothstep(0.85, 1.15, u));
+        float streak = 0.75 + 0.25 * metal::sin(dx * 9.0 + along * 40.0);
+        float iw = 0.0015 + 0.02 * along;
+        float ix = across / iw;
+        float ion = metal::exp(-ix * ix) * metal::exp(-u * 1.6) * (0.7 + 0.3 * metal::sin(along * 160.0));
+        color += float3(1.0, 0.86, 0.62) * dust * streak * 0.55 + float3(0.35, 0.6, 1.0) * ion * 0.35;
+    }
+    return color * head.w * 0.03 * metal::smoothstep(0.0, 0.04, ray.y);
+}
