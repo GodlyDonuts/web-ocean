@@ -1,0 +1,25 @@
+name: GPU gallery
+on:
+  push:
+    branches: ['devin/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gallery:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - run: system_profiler SPDisplaysDataType || true
+      - run: zsh macos/build.sh
+      - run: python3 -m pip install --break-system-packages -r requirements-dev.txt
+      - run: python3 macos/Tests/render_gallery.py
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gallery
+          path: |
+            macos/build/gallery/*.png
+            macos/build/gallery/*.json
+            macos/build/gallery/*.log
