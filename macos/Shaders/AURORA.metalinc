@@ -105,7 +105,8 @@ inline float3 meteorRadiance(float3 dir, float4 fx, float night, float pixAng, f
 // 22-degree ice halo and parhelia (sun dogs) in thin cirrus veil. Returns a
 // relative gain on the local sky radiance, so it scales with day or moonlight.
 inline float3 iceHalo(float3 ray, float3 light, float veil) {
-    float strength = metal::smoothstep(0.05, 0.4, veil) * (1.0 - metal::smoothstep(0.75, 1.0, veil));
+    // Only a distinct cirrostratus sheet makes a halo; the everyday light veil does not.
+    float strength = metal::smoothstep(0.42, 0.6, veil) * (1.0 - metal::smoothstep(0.8, 1.0, veil));
     if (strength < 0.001 || light.y < -0.02) return float3(0.0);
     float ang = metal::acos(metal::clamp(metal::dot(ray, light), -1.0, 1.0));
     if (ang < 0.30 || ang > 0.62) return float3(0.0);
