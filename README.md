@@ -17,10 +17,12 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Volumetric clouds, scene-space rain, gradual storm transitions | Implemented |
 | Local sunrise/sunset, independent Sun/Moon motion, remote starry sky | Implemented |
 | Approximate IP location, cached weather and offline fallback | Implemented; no GPS permission prompt |
-| Pause on occlusion, minimization, sleep and inactive session | Implemented for the preview |
+| Desktop wallpaper behind icons on every display and Space, menu bar controls, Open at Login | Implemented (`open macos/build/Ocean.app`; `--preview` for the old window) |
+| Pause when covered, display/system sleep, lock, screensaver, inactive session or manual pause | Implemented |
+| Adaptive governor: frame rate and pixel budget follow battery, Low Power Mode, thermal state, display refresh and desktop coverage | Implemented; see [`PerformancePolicy.swift`](macos/PerformancePolicy.swift) |
+| Aurora arcs, meteor showers (real annual calendar) and bioluminescent surf, scheduled per local night | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`NightEffects.swift`](macos/NightEffects.swift) |
 | Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
-| Shared multi-display renderer and regional demand | Planned; pure demand/layout contracts and a diagnostic exist |
-| Installable wallpaper behind desktop icons | **Not yet implemented** in the current Metal app |
+| Shared multi-display renderer | Implemented: one simulation and HDR frame, cheap per-display composite (`fs_mirror`) |
 
 The objective is a lightweight, continuous wallpaper with real local daylight and weather, a fixed ocean composition, and cinematic nights without city light pollution. Inland weather drives an idealized sea state; it is not a marine swell forecast.
 
@@ -37,7 +39,9 @@ open macos/build/Ocean.app
 
 No npm packages, Python, Rust, development server or downloaded assets are required for the native build. Swift builds the app bundle; packaged Metal sources compile into retained pipeline states at startup. The included galaxy asset is ready to use. See its [credits and provenance](macos/Assets/Galaxy/CREDITS.md).
 
-The window supports resizing and macOS full screen. The camera remains fixed. Use the app's weather controls for manual storm previews, or automatic mode for current local weather. Quit with Command-Q.
+The app runs as a wallpaper with a menu bar (wave) icon: pause, daylight/weather, frame rate (Adaptive/60/30/20/15), quality budget, displays and Open at Login. `macos/build/Ocean.app/Contents/MacOS/Ocean --preview` opens the resizable development window instead. The camera remains fixed. Night events can be forced for previews with `--query=aurora=2&meteors=40&bio=1` (0 disables).
+
+`python3 macos/Tests/render_gallery.py` renders a windowless scene gallery plus day/night-effects GPU benchmarks; the `GPU gallery` workflow runs it, the unit tests and a live wallpaper smoke test on GitHub's macOS runner on every push.
 
 The preview caps its internal image at approximately 1,024,000 pixels, preserves aspect ratio and defaults to 30 FPS. The standard 1280×800 view uses 98,304 ocean triangles. Wave simulation updates six periodic 256×256 FFT bands; these are reusable wave tiles rather than a fully meshed world. Geometry is concentrated in the viewport with sparse displacement guards, including a near patch behind the camera that prevents holes during overtaking storm waves.
 
