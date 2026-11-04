@@ -59,10 +59,18 @@ if pngs:
     sheet = Image.new('RGB', (640*cols, 400*rows))
     for i, t in enumerate(thumbs): sheet.paste(t, ((i % cols)*640, (i//cols)*400))
     sheet.save(out/'contact.png')
-bench = out/'benchmark.json'
-p = subprocess.run([str(app), '--benchmark', f'--query=fixedDt=0.0333333333&frames=240&report={bench}'], capture_output=True, text=True, timeout=300)
-(out/'benchmark.log').write_text(p.stdout + p.stderr)
-(out/'gallery.json').write_text(json.dumps({'scenes': results, 'benchmark': json.loads(bench.read_text()) if bench.is_file() else None}, indent=2))
+night = {k: v for k, v in scenes['everything_night'].items() if k != 'time'}
+benchmarks = {'default': {}, 'night_effects_off': {**night, 'aurora': 0, 'meteors': 0, 'bio': 0}, 'night_effects_on': night}
+bench_results = {}
+for label, extra in benchmarks.items():
+    bench = out/f'benchmark-{label}.json'
+    q = {'fixedDt': 0.0333333333, 'frames': 240, 'report': bench, **extra}
+    p = subprocess.run([str(app), '--benchmark', '--query=' + '&'.join(f'{k}={v}' for k, v in q.items())], capture_output=True, text=True, timeout=300)
+    (out/f'benchmark-{label}.log').write_text(p.stdout + p.stderr)
+    bench_results[label] = json.loads(bench.read_text()) if bench.is_file() else None
+    b = bench_results[label] or {}
+    print(f"benchmark {label}: median {b.get('gpuMedianMs')} ms, p95 {b.get('gpuP95Ms')} ms")
+(out/'gallery.json').write_text(json.dumps({'scenes': results, 'benchmarks': bench_results}, indent=2))
 for r in results:
     for f in [out/f'{r["scene"]}.rgba16f', Path(str(out/f'{r["scene"]}.rgba16f') + '.bgra8')]: f.unlink(missing_ok=True)
 sys.exit(0 if all(r['ok'] for r in results) else 1)

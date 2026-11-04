@@ -20,7 +20,7 @@ struct NightEffectsTests {
             let mid = NightEffects.levels(date: date, zone: zone, latitude: 40)
             if mid.aurora > 0 { temperate += 1 }
             if mid.bioluminescence > 0 { bio += 1 }
-            check(mid.aurora >= 0 && mid.aurora <= 1 && mid.meteors >= 1, "auto ranges")
+            check(mid.aurora >= 0 && mid.aurora <= 2.5 && mid.meteors >= 1, "auto ranges")
         }
         check(polar > 1600 && polar < 1900, "polar aurora frequency \(polar)")
         check(temperate > 300 && temperate < 600, "temperate aurora frequency \(temperate)")

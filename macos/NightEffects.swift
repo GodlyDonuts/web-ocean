@@ -45,7 +45,7 @@ enum NightEffects {
         let polar = min(1, max(0, (lat-50)/17))
         let activity = hash(night, 0xA0)
         let chance = 0.22 + 0.68*polar
-        let auto = activity < chance ? (0.35 + 0.65*(1 - activity/chance))*(0.55 + 0.45*polar) : 0
+        let auto = activity < chance ? 2.5*(0.35 + 0.65*(1 - activity/chance))*(0.55 + 0.45*polar) : 0
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
         let day = Double(calendar.ordinality(of: .day, in: .year, for: date.addingTimeInterval(-12*3600)) ?? 1)
         let bloom = hash(night, 0xB1)
