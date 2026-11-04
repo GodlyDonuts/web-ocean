@@ -22,6 +22,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Adaptive governor: frame rate and pixel budget follow battery, Low Power Mode, thermal state, display refresh and desktop coverage | Implemented; see [`PerformancePolicy.swift`](macos/PerformancePolicy.swift) |
 | Aurora arcs, meteor showers (real annual calendar) and bioluminescent surf, scheduled per local night | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`NightEffects.swift`](macos/NightEffects.swift) |
 | Crepuscular sun rays, 22° ice halos and sun dogs in cirrus (sun and moon), primary/secondary rainbows (moonbows at night) in sunlit rain | Implemented; see [`SHAFTS.metal`](macos/Shaders/SHAFTS.metal), [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc) |
+| Real solar and lunar eclipses on their actual dates and places (Meeus lunar terms): Moon covers the Sun, corona at totality, copper umbra | Implemented; see [`CelestialCycle.swift`](macos/CelestialCycle.swift), [`SKY_BG.metal`](macos/Shaders/SKY_BG.metal) |
 | Gull flocks at dawn/dusk (vertex-generated, flapping/gliding) and storm waterspouts, both on deterministic schedules | Implemented; see [`BIRDS.metal`](macos/Shaders/BIRDS.metal), [`NightEffects.swift`](macos/NightEffects.swift) |
 | Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
 | Shared multi-display renderer | Implemented: one simulation and HDR frame, cheap per-display composite (`fs_mirror`) |

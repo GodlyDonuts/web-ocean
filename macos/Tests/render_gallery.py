@@ -42,6 +42,12 @@ scenes = {
     'seabirds_sunset': {**ny, 'utc': utc('2026-10-30T21:35:00Z'), 'heading': 250, 'birds': 0.5},
     'seabirds_day': {'sunElev': 25, 'clouds': 0.3, 'birds': 0.42},
     'waterspout': {'storm': 0.55, 'sunElev': 12, 'clouds': 0.7, 'spout': 1},
+    'solar_eclipse': {'dayNight': 1, 'latitude': 43.26, 'longitude': -2.93, 'timeZone': 'Europe/Madrid',
+                      'utc': utc('2026-08-12T18:27:35Z'), 'heading': 282.68, 'clouds': 0.15},
+    'eclipse_partial': {'dayNight': 1, 'latitude': 43.26, 'longitude': -2.93, 'timeZone': 'Europe/Madrid',
+                        'utc': utc('2026-08-12T18:21:00Z'), 'heading': 282.0, 'clouds': 0.15},
+    'lunar_eclipse': {'dayNight': 1, 'latitude': 39.10, 'longitude': -94.58, 'timeZone': 'America/Chicago',
+                      'utc': utc('2026-03-03T11:35:00Z'), 'heading': 266.4, 'clouds': 0.1},
     'everything_night': {'dayNight': 1, 'latitude': 66.0, 'longitude': -18.0, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-14T02:00:00Z'), 'heading': 20, 'clouds': 0.1, 'windSpeed': 12, 'aurora': 1.6, 'meteors': 60, 'bio': 1.2},
 }
 selected = sys.argv[1:] or list(scenes)

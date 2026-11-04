@@ -27,7 +27,7 @@ metal::float3 celestialNightBackdrop(metal::float3 dir,constant Frame& F) {
         +metal::float3(0.0016,0.0019,0.0025)*halo)*F.celestial.z;
 }
 
-metal::float3 moonDisk(metal::float3 dir, float pixAng, constant Frame& F,
+metal::float3 moonDisk(metal::float3 dir, float pixAng, constant Frame& F, metal::float4 eclipse,
                      metal::texture2d<float> transLUT, metal::sampler sampC) {
     if (F.celestial.w<0.5 || dir.y<=0.0) return metal::float3(0.0);
     metal::float3 center=F.moonDir.xyz;
@@ -44,7 +44,20 @@ metal::float3 moonDisk(metal::float3 dir, float pixAng, constant Frame& F,
     float edge=1.0-metal::smoothstep(radius-aa,radius+aa,angle);
     float footprint=metal::min(1.0,radius*radius/(aa*aa));
     metal::float3 extinction=sampleTrans(camR(F),metal::max(dir.y,0.0),transLUT,sampC);
-    return metal::float3(0.88,0.91,1.0)*illumination*maria*edge*footprint*1.8*extinction;
+    metal::float3 lit=metal::float3(0.88,0.91,1.0)*illumination;
+    // Lunar eclipse: penumbral dimming, then a copper umbra with a pale turquoise edge.
+    float parallax=1.02*3.671*radius,umbraR=parallax-F.celestial.x,penR=parallax+F.celestial.x;
+    float shadowAng=metal::sqrt(metal::max(0.0,2.0*(1.0-metal::dot(dir,eclipse.xyz))));
+    if (shadowAng<penR) {
+        float pen=metal::clamp((penR-shadowAng)/(penR-umbraR),0.0,1.0);
+        float umbra=1.0-metal::smoothstep(umbraR-radius*0.08,umbraR+radius*0.08,shadowAng);
+        float depth=metal::clamp((umbraR-shadowAng)/umbraR,0.0,1.0);
+        float q=(shadowAng-umbraR)/(radius*0.15);
+        metal::float3 blood=metal::float3(0.9,0.3,0.12)*metal::mix(0.12,0.04,depth)
+            +metal::float3(0.08,0.2,0.26)*metal::exp(-q*q)*0.25;
+        lit=metal::mix(lit*(1.0-0.8*pen*pen),blood,umbra);
+    }
+    return lit*maria*edge*footprint*1.8*extinction;
 }
 
 // Illuminated cloud veil removes stellar contrast before it becomes fully
