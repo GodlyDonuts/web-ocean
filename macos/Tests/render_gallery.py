@@ -41,6 +41,7 @@ scenes = {
     'moonbow': {**ny, 'utc': utc('2026-10-31T02:10:00Z'), 'heading': 240.0059176808, 'storm': 0.25, 'clouds': 0.3},
     'seabirds_sunset': {**ny, 'utc': utc('2026-10-30T21:35:00Z'), 'heading': 250, 'birds': 0.5},
     'seabirds_day': {'sunElev': 25, 'clouds': 0.3, 'birds': 0.42},
+    'waterspout': {'storm': 0.55, 'sunElev': 12, 'clouds': 0.7, 'spout': 1},
     'everything_night': {'dayNight': 1, 'latitude': 66.0, 'longitude': -18.0, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-14T02:00:00Z'), 'heading': 20, 'clouds': 0.1, 'windSpeed': 12, 'aurora': 1.6, 'meteors': 60, 'bio': 1.2},
 }
 selected = sys.argv[1:] or list(scenes)

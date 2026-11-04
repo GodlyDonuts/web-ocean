@@ -41,7 +41,15 @@ struct NightEffectsTests {
         check(night == 0 && storm == 0, "no flocks at night or in storms")
         let a = Wildlife.flock(time: 1793502000, sunAltitude: 3, severity: 0), b = Wildlife.flock(time: 1793502000, sunAltitude: 3, severity: 0)
         check(a == b, "flocks deterministic")
+        check(StormEvents.waterspout(time: 0, severity: 0, override: 1) != nil && StormEvents.waterspout(time: 0, severity: 0.6, override: 0) == nil, "spout override")
+        var spouts = 0, calm = 0
+        for n in 0..<20000 {
+            let time = 1793502000 + Double(n) * 9
+            if StormEvents.waterspout(time: time, severity: 0.6) != nil { spouts += 1 }
+            if StormEvents.waterspout(time: time, severity: 0.1) != nil { calm += 1 }
+        }
+        check(calm == 0 && spouts > 1000 && spouts < 4000, "waterspout frequency \(spouts)")
         if failures > 0 { exit(1) }
-        print("PASS: nightly aurora/meteor/bioluminescence schedule, overrides, latitude frequencies, shower calendar, seabird flocks.")
+        print("PASS: nightly aurora/meteor/bioluminescence schedule, overrides, latitude frequencies, shower calendar, seabird flocks, waterspouts.")
     }
 }

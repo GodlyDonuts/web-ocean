@@ -82,3 +82,27 @@ enum Wildlife {
                      count: 18 + Int(NightEffects.hash(index, 0xB1D9) * 40))
     }
 }
+
+/// Storm waterspouts: 15-minute windows, about a third of them in moderate storms.
+enum StormEvents {
+    static let window = 900.0, duration = 300.0, fade = 40.0
+
+    /// (strength, seed, azimuth offset) or nil.
+    static func waterspout(time: Double, severity: Double, override: Double? = nil) -> SIMD3<Double>? {
+        if let forced = override, forced.isFinite {
+            guard forced > 0 else { return nil }
+            return SIMD3(min(forced, 1.5), 0.4, 0.12)
+        }
+        guard time.isFinite, severity > 0.3, severity < 0.9 else { return nil }
+        let index = Int64((time / window).rounded(.down))
+        guard NightEffects.hash(index, 0x5B07) < 0.35 else { return nil }
+        let start = NightEffects.hash(index, 0x5B08) * (window - duration)
+        let local = time - Double(index) * window - start
+        guard local >= 0, local <= duration else { return nil }
+        let ramp = min(1, local / fade, (duration - local) / fade)
+        let storm = min(1, (severity - 0.3) / 0.2) * min(1, (0.9 - severity) / 0.1)
+        let strength = ramp * storm
+        guard strength > 0.001 else { return nil }
+        return SIMD3(strength, NightEffects.hash(index, 0x5B09), (NightEffects.hash(index, 0x5B0A) - 0.5) * 0.9)
+    }
+}

@@ -78,5 +78,10 @@ fragment fsOutput fs(
         metal::float3 bow=rainbow(ray,metal::normalize(bowNight>0.5 ? F[41].xyz : F[42].xyz),bowRain);
         color=metal::max(color+_e4.xyz*bow*(1.0-volume),metal::float3(0.0));
     }
+    if (F[38].x>0.001 && volume<0.999) {
+        float spout=waterspout(ray,F[38],F[48].y)*(1.0-volume);
+        float lum=metal::dot(_e4.xyz,metal::float3(0.2126,0.7152,0.0722));
+        color=metal::mix(color,lum*metal::float3(0.30,0.32,0.36)+metal::float3(0.002),spout);
+    }
     return fsOutput { metal::float4(color,1.0) };
 }
