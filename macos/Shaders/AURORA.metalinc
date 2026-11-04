@@ -146,5 +146,8 @@ inline float3 rainbow(float3 ray, float3 sun, float strength) {
     // Light scattered inside the primary bow brightens the sky there.
     bow += float3(0.16) * (1.0 - metal::smoothstep(0.6, 0.71, ang)) * metal::smoothstep(0.55, 0.62, ang);
     float alexander = metal::smoothstep(0.73, 0.75, ang) * (1.0 - metal::smoothstep(0.86, 0.88, ang));
-    return bow * strength - float3(0.12 * strength) * alexander;
+    // Rain curtains are uneven, so the bow brightens and fades along its length.
+    float az = metal::atan2(ray.x, ray.z);
+    float patch = 0.35 + 0.65 * metal::smoothstep(0.25, 0.75, fxRing(az, 2.2, float2(3.0, metal::asin(metal::clamp(ray.y, 0.0, 1.0)) * 4.0)));
+    return (bow * patch * 0.8 - float3(0.12) * alexander) * strength;
 }
