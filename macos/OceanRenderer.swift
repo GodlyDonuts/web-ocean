@@ -512,8 +512,8 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         guard fade > 0.001 else { return nil }
         shaftsActive = true
         // Bloom reaches the image as bloom*0.125*mix weight; undo that so strength is in scene units.
-        let gain = strength * fade / max(0.125 * max(value("bloom", 0.1), 0.02), 1e-3) * 0.35
-        return [su, sv, gain, horizonUV, Float(width) / Float(max(height, 1)), value("shaftThreshold", 1.2), 0.965, 0]
+        let gain = strength * fade / max(0.125 * max(value("bloom", 0.1), 0.02), 1e-3) * 2.2
+        return [su, sv, gain, horizonUV, Float(width) / Float(max(height, 1)), value("shaftThreshold", 0.9), 0.965, v[48].y]
     }
 
     private func writeUniforms(dt: Float) {

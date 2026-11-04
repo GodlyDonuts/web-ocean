@@ -6,7 +6,7 @@ using namespace metal;
 
 struct ShaftParams {
     float4 sun;   // sun uv, strength, horizon v
-    float4 shape; // aspect, threshold, decay, unused
+    float4 shape; // aspect, threshold, decay, seconds
 };
 struct VSOut {
     float4 pos [[position]];
@@ -18,6 +18,22 @@ vertex VSOut vs(uint i [[vertex_id]]) {
     o.pos = float4(p * 2.0 - 1.0, 0.0, 1.0);
     o.uv = float2(p.x, 1.0 - p.y);
     return o;
+}
+inline float shaftHash(float2 p) {
+    return fract(sin(dot(p, float2(127.1, 311.7))) * 43758.5453);
+}
+inline float shaftNoise(float2 p) {
+    float2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(shaftHash(i), shaftHash(i + float2(1, 0)), u.x),
+               mix(shaftHash(i + float2(0, 1)), shaftHash(i + float2(1, 1)), u.x), u.y);
+}
+// Beams radiating from the sun: periodic in angle, drifting slowly as cloud gaps move.
+inline float shaftBeams(float angle, float t) {
+    float2 ring = float2(cos(angle), sin(angle));
+    float a = shaftNoise(ring * 7.0 + float2(t * 0.011, 3.0));
+    float b = shaftNoise(ring * 19.0 + float2(-t * 0.017, 9.0));
+    float beams = smoothstep(0.35, 0.8, a * 0.65 + b * 0.35);
+    return 0.12 + 0.88 * beams * beams;
 }
 fragment float4 fs(VSOut in [[stage_in]],
                    texture2d<float, access::sample> scene [[texture(0)]],
@@ -46,5 +62,6 @@ fragment float4 fs(VSOut in [[stage_in]],
     float2 d = (in.uv - sun) * float2(aspect, 1.0);
     float reach = exp(-length(d) * 1.4);
     float below = in.uv.y > horizon ? 0.45 : 1.0;
-    return float4(sum * (S.sun.z / float(taps)) * reach * below, 0.0);
+    float beams = mix(1.0, shaftBeams(atan2(d.y, d.x), S.shape.w), smoothstep(0.015, 0.12, length(d)));
+    return float4(sum * (S.sun.z / float(taps)) * reach * below * beams, 0.0);
 }
