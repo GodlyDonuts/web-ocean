@@ -34,6 +34,8 @@ scenes = {
     'bioluminescent_surf': {**ny, 'utc': utc('2026-11-10T04:00:00Z'), 'heading': 270, 'windSpeed': 13, 'bio': 1.5, 'aurora': 0},
     'sun_shafts': {'sunElev': 5, 'clouds': 0.7, 'veil': 0.2},
     'storm_breaking': {'storm': 0.45, 'sunElev': 7, 'clouds': 0.85},
+    'ice_halo': {'sunElev': 12, 'clouds': 0.05, 'veil': 0.55},
+    'moon_halo': {**ny, 'utc': utc('2026-10-31T02:10:00Z'), 'heading': 60.0059176808, 'clouds': 0.02, 'veil': 0.5},
     'everything_night': {'dayNight': 1, 'latitude': 66.0, 'longitude': -18.0, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-14T02:00:00Z'), 'heading': 20, 'clouds': 0.1, 'windSpeed': 12, 'aurora': 1.6, 'meteors': 60, 'bio': 1.2},
 }
 selected = sys.argv[1:] or list(scenes)

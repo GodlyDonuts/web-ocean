@@ -101,3 +101,31 @@ inline float3 meteorRadiance(float3 dir, float4 fx, float night, float pixAng, f
     }
     return sum * night * 0.6;
 }
+
+// 22-degree ice halo and parhelia (sun dogs) in thin cirrus veil. Returns a
+// relative gain on the local sky radiance, so it scales with day or moonlight.
+inline float3 iceHalo(float3 ray, float3 light, float veil) {
+    float strength = metal::smoothstep(0.05, 0.4, veil) * (1.0 - metal::smoothstep(0.75, 1.0, veil));
+    if (strength < 0.001 || light.y < -0.02) return float3(0.0);
+    float ang = metal::acos(metal::clamp(metal::dot(ray, light), -1.0, 1.0));
+    if (ang < 0.30 || ang > 0.62) return float3(0.0);
+    float3 ring = float3(0.3835, 0.3875, 0.3935);
+    float3 d = (float3(ang) - ring) / float3(0.0055, 0.0065, 0.009);
+    float3 halo = metal::exp(-d * d) * float3(0.85, 0.75, 0.6);
+    // Outer diffuse skirt: brighter just outside the ring than inside it.
+    halo += float3(0.18) * metal::smoothstep(0.38, 0.4, ang) * metal::exp(-(ang - 0.39) * 9.0);
+    // Sun dogs: bright prismatic spots at the light's altitude, slightly outside
+    // the ring as the sun climbs.
+    float elev = metal::asin(metal::clamp(light.y, -1.0, 1.0));
+    float dogR = 0.3835 / metal::max(metal::cos(elev), 0.4);
+    float3 h = metal::normalize(float3(ray.x, 0.0, ray.z) + float3(1e-5, 0.0, 0.0));
+    float3 lh = metal::normalize(float3(light.x, 0.0, light.z) + float3(1e-5, 0.0, 0.0));
+    float daz = metal::acos(metal::clamp(metal::dot(h, lh), -1.0, 1.0)) * metal::cos(elev);
+    float rise = metal::asin(metal::clamp(ray.y, -1.0, 1.0)) - elev;
+    float3 dd = (float3(daz) - float3(dogR, dogR + 0.006, dogR + 0.015)) / float3(0.012, 0.016, 0.03);
+    float3 dog = metal::exp(-dd * dd) * metal::exp(-rise * rise / 0.0006) * float3(2.4, 2.0, 1.5);
+    // Faint parhelic tails stretch away from the sun along its altitude.
+    dog += float3(0.25) * metal::smoothstep(dogR, dogR + 0.02, daz) * metal::exp(-(daz - dogR) * 6.0)
+        * metal::exp(-rise * rise / 0.00015);
+    return (halo + dog) * strength * 0.55;
+}

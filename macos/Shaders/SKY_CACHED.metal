@@ -67,5 +67,9 @@ fragment fsOutput fs(
         metal::float3 fx=auroraRadiance(ray,F[48],night,16,jitter)+meteorRadiance(ray,F[48],night,pixAng,F[7].xyz);
         color+=fx*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
     }
+    if (F[18].z>0.05 && volume<0.999 && ray.y>0.0) {
+        metal::float3 halo=iceHalo(ray,metal::normalize(F[41].xyz),F[18].z);
+        color+=_e4.xyz*halo*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
+    }
     return fsOutput { metal::float4(color,1.0) };
 }
