@@ -1,0 +1,102 @@
+// Night-sky events shared by the full-resolution sky resolve and the
+// reflection cube: aurora curtains and meteors. Inputs are plain vectors so
+// shaders with different Frame layouts can include this file.
+// fx = (aurora strength, wrapped seconds, meteor rate, bioluminescence).
+inline float fxHash(float2 p) { return metal::fract(metal::sin(metal::dot(p, float2(127.1, 311.7))) * 43758.5453); }
+inline float fxNoise(float2 p) {
+    float2 i = metal::floor(p), f = metal::fract(p);
+    float2 u = f * f * (3.0 - 2.0 * f);
+    return metal::mix(metal::mix(fxHash(i), fxHash(i + float2(1, 0)), u.x),
+                      metal::mix(fxHash(i + float2(0, 1)), fxHash(i + float2(1, 1)), u.x), u.y);
+}
+// Interleaved gradient noise for per-pixel march jitter.
+inline float fxIgn(float2 p) { return metal::fract(52.9829189 * metal::fract(metal::dot(p, float2(0.06711056, 0.00583715)))); }
+
+// Ribbon footprint of the aurora oval in the horizontal plane. The same
+// footprint stacked through altitude produces vertical curtains; a slow,
+// altitude-dependent fold keeps them from reading as flat sheets.
+inline float auroraFootprint(float2 q, float t, float h) {
+    float fold = 1.6 * metal::sin(q.x * 0.11 + t * 0.021) + 0.9 * metal::sin(q.x * 0.27 - t * 0.034 + 1.7)
+               + 0.45 * metal::sin(q.x * 0.63 + t * 0.055 + h * 0.8) + 1.4 * (fxNoise(float2(q.x * 0.09, t * 0.012)) - 0.5);
+    float v = (q.y + fold) / 9.0;
+    float cell = metal::floor(v);
+    float d = (metal::fract(v) - 0.5) * 9.0;
+    float seed = fxHash(float2(cell, 7.3));
+    float width = 0.35 + 0.55 * seed;
+    float ribbon = metal::exp(-d * d / (width * width));
+    // Vertical rays: fine, fast-shimmering striations along the ribbon.
+    float s = q.x * (1.7 + seed) + t * (0.18 + 0.2 * seed);
+    float rays = 0.45 + 0.55 * fxNoise(float2(s * 1.9, cell * 3.1 + t * 0.05));
+    rays *= 0.6 + 0.4 * fxNoise(float2(s * 6.3, cell));
+    // Each band pulses on its own slow schedule (substorm breakup).
+    float pulse = metal::smoothstep(0.15, 0.85, fxNoise(float2(cell * 1.37, t * 0.008 + seed * 9.0)));
+    return ribbon * rays * pulse * (0.35 + 0.65 * seed);
+}
+
+inline float3 auroraRadiance(float3 dir, float4 fx, float night, int steps, float jitter) {
+    float strength = fx.x * night;
+    if (strength < 0.002 || dir.y < 0.004) return float3(0.0);
+    float t = fx.y;
+    float3 sum = float3(0.0);
+    float inv = 1.0 / float(steps);
+    for (int i = 0; i < steps; ++i) {
+        float a = (float(i) + jitter) * inv;
+        float h = 1.0 + a * a * 2.6;          // denser sampling at the bright lower edge
+        float2 q = dir.xz * (h * 6.0 / metal::max(dir.y, 0.03));
+        float f = auroraFootprint(q, t, h);
+        // Oxygen 557.7 nm green at the base, 630 nm red and N2 violet aloft.
+        float3 c = metal::mix(float3(0.10, 1.00, 0.42), float3(0.85, 0.12, 0.55), metal::smoothstep(1.4, 3.4, h));
+        c = metal::mix(c, float3(0.20, 0.55, 1.0), metal::smoothstep(0.75, 1.0, a) * 0.5);
+        float edge = metal::smoothstep(1.0, 1.12, h);  // sharp lower border
+        sum += c * f * edge * metal::exp(-(h - 1.0) * 1.15);
+    }
+    float horizon = metal::smoothstep(0.004, 0.06, dir.y) * metal::exp(-0.025 / metal::max(dir.y, 0.01));
+    return sum * inv * strength * horizon * 0.09;
+}
+
+// Up to six meteors in flight, each on a short randomized schedule.
+inline float3 meteorRadiance(float3 dir, float4 fx, float night, float pixAng, float3 fwd) {
+    float rate = fx.z * night;
+    if (rate < 0.01 || dir.y < 0.02) return float3(0.0);
+    float3 sum = float3(0.0);
+    for (int k = 0; k < 6; ++k) {
+        float period = 9.0 + 4.0 * float(k);
+        float local = fx.y + float(k) * 3.7;
+        float n = metal::floor(local / period);
+        float2 seed = float2(n, float(k) * 13.1);
+        if (fxHash(seed) > metal::min(1.0, 0.18 * rate)) continue;
+        float life = 0.45 + 0.9 * fxHash(seed + 1.0);
+        float start = fxHash(seed + 2.0) * (period - life);
+        float p = (local - n * period - start) / life;
+        if (p < 0.0 || p > 1.0) continue;
+        // Keep showers inside the fixed camera's sky rather than behind it.
+        float az = metal::atan2(fwd.z, fwd.x) + (fxHash(seed + 3.0) - 0.5) * 1.3, el = 0.07 + 0.38 * fxHash(seed + 4.0);
+        float3 c = float3(metal::cos(az) * metal::cos(el), metal::sin(el), metal::sin(az) * metal::cos(el));
+        float3 r = metal::normalize(metal::cross(c, float3(0, 1, 0)));
+        float3 u = metal::cross(r, c);
+        float2 uv = float2(metal::dot(dir, r), metal::dot(dir, u));
+        if (metal::dot(dir, c) < 0.9) continue;
+        float ang = fxHash(seed + 5.0) * 6.2831853;
+        float2 heading = float2(metal::cos(ang), -metal::abs(metal::sin(ang)) - 0.35);
+        heading = metal::normalize(heading);
+        float span = 0.12 + 0.18 * fxHash(seed + 6.0);
+        float2 a = -heading * span * 0.5;
+        float2 head = a + heading * span * p;
+        float tail = span * (0.25 + 0.35 * metal::smoothstep(0.0, 0.4, p));
+        float2 b = head - heading * tail;
+        float2 pa = uv - b, ba = head - b;
+        float x = metal::clamp(metal::dot(pa, ba) / metal::max(metal::dot(ba, ba), 1e-8), 0.0, 1.0);
+        float dist = metal::length(pa - ba * x);
+        float width = pixAng * 0.9 + 0.0004;
+        float core = metal::exp(-dist * dist / (width * width));
+        float glow = metal::exp(-dist * dist / (16.0 * width * width)) * 0.18;
+        float envelope = metal::sin(3.14159265 * p);
+        envelope *= envelope;
+        float flare = 1.0 + 3.0 * metal::smoothstep(0.82, 0.95, p) * (1.0 - metal::smoothstep(0.95, 1.0, p));
+        float3 tint = metal::mix(float3(1.0, 0.75, 0.45), float3(0.55, 1.0, 0.75), fxHash(seed + 7.0));
+        float headGlow = metal::exp(-metal::dot(uv - head, uv - head) / (9.0 * width * width));
+        sum += (metal::mix(tint, float3(1.0), x) * (core + glow) * x * x + float3(1.0, 0.95, 0.85) * headGlow * 2.0)
+             * envelope * flare;
+    }
+    return sum * night * 0.6;
+}

@@ -6,6 +6,7 @@
 
 using metal::uint;
 #include "WATER_VIEW.metalinc"
+#include "AURORA.metalinc"
 
 
 struct VO {
@@ -57,5 +58,14 @@ fragment fsOutput fs(
     float volume=metal::max(below,water[0].z);
     if (F[17].w>7.5 && F[17].w<8.5) volume=0.0;
     metal::float3 color=metal::mix(_e4.xyz,waterVolumeRadiance(F[40].z,ray.y,water[0].y),volume);
+    float night=F[40].w>0.5 ? F[40].z : 0.0;
+    if (night>0.001 && volume<0.999 && ray.y>0.0) {
+        // Full-rate night events over the 8 Hz cloud cache; its alpha is the
+        // view-ray cloud transmission, so clouds occlude curtains and meteors.
+        float jitter=fxIgn(pos.xy+metal::float2(metal::fmod(F[17].z,64.0)*5.588238));
+        float pixAng=2.0*metal::length(F[6].xyz)*F[9].w;
+        metal::float3 fx=auroraRadiance(ray,F[48],night,12,jitter)+meteorRadiance(ray,F[48],night,pixAng,F[7].xyz);
+        color+=fx*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
+    }
     return fsOutput { metal::float4(color,1.0) };
 }

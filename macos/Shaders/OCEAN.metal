@@ -37,6 +37,9 @@ struct Frame {
     metal::float4 starX;
     metal::float4 starY;
     metal::float4 starZ;
+    metal::float4 cloudEvolution;
+    metal::float4 weather;
+    metal::float4 nightFx; // aurora, seconds, meteor rate, bioluminescence
 
 };
 struct Medium {
@@ -1033,6 +1036,14 @@ fragment fsOutput fs(
     metal::float3 _e1094 = col;
     float _e1095 = foamMask;
     col = metal::mix(_e1094, foamLit, _e1095 * 0.95);
+    if (F.nightFx.w>0.001 && F.celestial.w>0.5 && F.celestial.z>0.001) {
+        // Bioluminescent plankton: breaking, freshly sheared water flashes
+        // cyan; sparkles drift with the surface instead of the screen.
+        float spark=foamTex.sample(sampR,xz_2*0.37+metal::float2(F.nightFx.y*0.0021,0.0)).y;
+        float flash=foamMask*(0.35+1.65*freshK)*(0.45+1.1*spark*spark);
+        float dark=F.celestial.z*F.celestial.z;
+        col+=metal::float3(0.015,0.42,0.95)*(flash*F.nightFx.w*dark*0.11);
+    }
     metal::float4 _e1101 = F.fogExt;
     float _e1106 = F.fogExt.w;
     metal::float3 T = metal::exp(-(metal::max(_e1101.xyz, metal::float3(_e1106))) * dist);

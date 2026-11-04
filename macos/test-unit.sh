@@ -2,7 +2,7 @@
 # CPU-only contracts; safe for hosted macOS CI without a GPU/display.
 set -eu
 cd "$(dirname "$0")/.."
-mkdir -p macos/build/unit
+mkdir -p macos/build/unit macos/build/celestial-motion
 run_unit() {
   local test_name="$1"
   shift
@@ -19,3 +19,4 @@ run_unit ViewportMeshTests macos/ViewportMesh.swift
 run_unit DisplayDemandTests macos/Diagnostics/DisplayTileLayout.swift macos/SharedSurfaceDemand.swift
 run_unit AnimationClockTests macos/AnimationClock.swift
 run_unit PerformancePolicyTests macos/PerformancePolicy.swift
+run_unit NightEffectsTests macos/NightEffects.swift

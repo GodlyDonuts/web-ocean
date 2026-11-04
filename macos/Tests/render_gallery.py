@@ -26,6 +26,12 @@ scenes = {
     'thunderstorm': {'storm': 0.75, 'sunElev': 20},
     'hurricane_night': {**ny, 'storm': 1, 'utc': 1793417400},
     'after_rain': {'storm': 0.3, 'sunElev': 9, 'clouds': 0.5},
+    'aurora_arctic': {'dayNight': 1, 'latitude': 69.6, 'longitude': 18.9, 'timeZone': 'Europe/Oslo', 'utc': utc('2026-12-15T21:00:00Z'), 'heading': 0, 'clouds': 0.05, 'aurora': 1, 'meteors': 0},
+    'aurora_storm': {'dayNight': 1, 'latitude': 64.1, 'longitude': -21.9, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-20T01:00:00Z'), 'heading': 330, 'clouds': 0.25, 'aurora': 2.5, 'meteors': 0},
+    'meteor_shower_a': {**ny, 'utc': utc('2026-12-14T07:00:00Z'), 'heading': 120, 'clouds': 0.05, 'veil': 0.05, 'aurora': 0, 'meteors': 60, 'time': 31.2},
+    'meteor_shower_b': {**ny, 'utc': utc('2026-12-14T07:00:00Z'), 'heading': 120, 'clouds': 0.05, 'veil': 0.05, 'aurora': 0, 'meteors': 60, 'time': 47.9},
+    'bioluminescent_surf': {**ny, 'utc': utc('2026-11-10T04:00:00Z'), 'heading': 270, 'windSpeed': 13, 'bio': 1.5, 'aurora': 0},
+    'everything_night': {'dayNight': 1, 'latitude': 66.0, 'longitude': -18.0, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-14T02:00:00Z'), 'heading': 20, 'clouds': 0.1, 'windSpeed': 12, 'aurora': 1.6, 'meteors': 60, 'bio': 1.2},
 }
 selected = sys.argv[1:] or list(scenes)
 results = []
