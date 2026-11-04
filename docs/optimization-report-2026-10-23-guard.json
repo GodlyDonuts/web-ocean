@@ -1,0 +1,1054 @@
+{
+  "date": "2026-10-23",
+  "device": "Apple M1",
+  "change": "World-space horizontal guard bands from per-frame GPU absolute displacement bounds; a separate shader variant preserves historical normal-view arithmetic. Restore hidden-sky work rejection in guarded narrow views.",
+  "guardActivation": "Viewport width/height < 0.5; central grid and triangle count are unchanged. Two reduction dispatches run only in these narrow views.",
+  "boundConstruction": "Sum the per-cascade componentwise maxima of absolute displacement, with 1% and 0.001m padding. Include the effect of view-depth displacement in horizontal guard width. Verify against a CPU scan of the same frame via blit snapshots.",
+  "referencePolicy": "Eight unchanged layouts are compared with the archived pre-guard vertex shader and pre-optimization fragment shading. Nine current-geometry states compare optimized fragment shading, mip fusion and sky rejection against the current guard geometry plus pre-optimization fragment shading. The intentionally changed extreme layout is additionally checked using an independent raster coverage oracle.",
+  "quality": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "sunset",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "swell_phase_45",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "swell_phase_120",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "daylight",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "rough_cloudy",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "ultrawide",
+        "width": 1907,
+        "height": 537,
+        "triangles": 104448,
+        "indexBits": 16,
+        "indexBytes": 626688,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096236,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096236,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "portrait",
+        "width": 759,
+        "height": 1349,
+        "triangles": 99712,
+        "indexBits": 16,
+        "indexBytes": 598272,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4095564,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4095564,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "wide_16_9",
+        "width": 1349,
+        "height": 759,
+        "triangles": 100096,
+        "indexBits": 16,
+        "indexBytes": 600576,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4095564,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4095564,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "index_fallback",
+        "width": 62,
+        "height": 16384,
+        "triangles": 125952,
+        "indexBits": 32,
+        "indexBytes": 1511424,
+        "physicalGuard": true,
+        "guardBoundsVerified": true,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4063232,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4063232,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      }
+    ]
+  },
+  "historicalQuality": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "sunset",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "swell_phase_45",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "swell_phase_120",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "daylight",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "rough_cloudy",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096000,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "ultrawide",
+        "width": 1907,
+        "height": 537,
+        "triangles": 104448,
+        "indexBits": 16,
+        "indexBytes": 626688,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4096236,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4096236,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "portrait",
+        "width": 759,
+        "height": 1349,
+        "triangles": 99712,
+        "indexBits": 16,
+        "indexBytes": 598272,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4095564,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4095564,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      },
+      {
+        "case": "wide_16_9",
+        "width": 1349,
+        "height": 759,
+        "triangles": 100096,
+        "indexBits": 16,
+        "indexBytes": 600576,
+        "physicalGuard": false,
+        "guardBoundsVerified": false,
+        "fusedMips": true,
+        "mipmapRounding": "towardZero",
+        "comparedHalfFloatValues": 4095564,
+        "changedValues": 0,
+        "comparedDisplayBytes": 4095564,
+        "changedDisplayBytes": 0,
+        "comparedMipBytes": 18175264,
+        "changedMipBytes": 0
+      }
+    ]
+  },
+  "coverage": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "standard",
+        "settings": {
+          "renderWidth": 1280,
+          "renderHeight": 800,
+          "time": 5
+        },
+        "legacyMissingPixels": 0,
+        "width": 1280,
+        "height": 800,
+        "checkedPixels": 497920,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "standard_storm",
+        "settings": {
+          "renderWidth": 1280,
+          "renderHeight": 800,
+          "time": 90,
+          "windSpeed": 12,
+          "swellHs": 2.5
+        },
+        "legacyMissingPixels": 0,
+        "width": 1280,
+        "height": 800,
+        "checkedPixels": 497920,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "portrait",
+        "settings": {
+          "renderWidth": 759,
+          "renderHeight": 1349,
+          "time": 15
+        },
+        "legacyMissingPixels": 0,
+        "width": 759,
+        "height": 1349,
+        "checkedPixels": 497904,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "stacked_portrait",
+        "settings": {
+          "renderWidth": 512,
+          "renderHeight": 2048,
+          "time": 30
+        },
+        "legacyMissingPixels": 0,
+        "width": 506,
+        "height": 2024,
+        "checkedPixels": 498410,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "narrow",
+        "settings": {
+          "renderWidth": 256,
+          "renderHeight": 4096,
+          "time": 45
+        },
+        "legacyMissingPixels": 0,
+        "width": 253,
+        "height": 4048,
+        "checkedPixels": 498410,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "narrow_storm",
+        "settings": {
+          "renderWidth": 256,
+          "renderHeight": 4096,
+          "time": 90,
+          "windSpeed": 12,
+          "swellHs": 2.5
+        },
+        "legacyMissingPixels": 120466,
+        "width": 253,
+        "height": 4048,
+        "checkedPixels": 498410,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "extreme_phase_5",
+        "settings": {
+          "renderWidth": 62,
+          "renderHeight": 16384,
+          "time": 5
+        },
+        "legacyMissingPixels": 422451,
+        "width": 62,
+        "height": 16384,
+        "checkedPixels": 494512,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "extreme_phase_45",
+        "settings": {
+          "renderWidth": 62,
+          "renderHeight": 16384,
+          "time": 45
+        },
+        "legacyMissingPixels": 458503,
+        "width": 62,
+        "height": 16384,
+        "checkedPixels": 494512,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "extreme_phase_120",
+        "settings": {
+          "renderWidth": 62,
+          "renderHeight": 16384,
+          "time": 120
+        },
+        "legacyMissingPixels": 448199,
+        "width": 62,
+        "height": 16384,
+        "checkedPixels": 494512,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "extreme_storm",
+        "settings": {
+          "renderWidth": 62,
+          "renderHeight": 16384,
+          "time": 90,
+          "windSpeed": 12,
+          "swellHs": 2.5
+        },
+        "legacyMissingPixels": 446394,
+        "width": 62,
+        "height": 16384,
+        "checkedPixels": 494512,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "one_pixel_wide",
+        "settings": {
+          "renderWidth": 1,
+          "renderHeight": 16384,
+          "time": 5
+        },
+        "legacyMissingPixels": 7972,
+        "width": 1,
+        "height": 16384,
+        "checkedPixels": 7976,
+        "guardMissingPixels": 0
+      },
+      {
+        "case": "ultrawide",
+        "settings": {
+          "renderWidth": 1908,
+          "renderHeight": 537,
+          "time": 30
+        },
+        "legacyMissingPixels": 0,
+        "width": 1907,
+        "height": 537,
+        "checkedPixels": 497727,
+        "guardMissingPixels": 0
+      }
+    ]
+  },
+  "apiShaderValidation": {
+    "portrait": "759x1349 passed",
+    "narrow": "62x16384 passed with guardBoundsVerified=true"
+  },
+  "benchmarks": {
+    "normalFourRuns": {
+      "baseline": "guard",
+      "rounds": 1,
+      "mipMode": 2,
+      "sharedLighting": false,
+      "referenceMedianAverageMs": 8.002166694495827,
+      "optimizedMedianAverageMs": 8.091895841062069,
+      "reductionPercent": -1.1213106398790806,
+      "runs": [
+        {
+          "cpuEncodeMeanMs": 0.7899871503468603,
+          "cpuEncodeMedianMs": 0.8423334220424294,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.698384720870914,
+          "gpuMedianMs": 7.922708406113088,
+          "gpuP95Ms": 12.658874969929457,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard/run-0.json",
+            "legacyGuard": "1"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.6957815882439414,
+          "cpuEncodeMedianMs": 0.7860834011808038,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.676398608561916,
+          "gpuMedianMs": 8.068124996498227,
+          "gpuP95Ms": 12.541000032797456,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard/run-1.json",
+            "legacyGuard": "0"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.7349850677807505,
+          "cpuEncodeMedianMs": 0.7454167352989316,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.75966876046732,
+          "gpuMedianMs": 8.11566668562591,
+          "gpuP95Ms": 12.76495831552893,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard/run-2.json",
+            "legacyGuard": "0"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.6879114555583025,
+          "cpuEncodeMedianMs": 0.6888334173709154,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.760724305951348,
+          "gpuMedianMs": 8.081624982878566,
+          "gpuP95Ms": 12.335375067777932,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard/run-3.json",
+            "legacyGuard": "1"
+          }
+        }
+      ]
+    },
+    "normalEightRuns": {
+      "baseline": "guard",
+      "rounds": 2,
+      "mipMode": 2,
+      "sharedLighting": false,
+      "referenceMedianAverageMs": 8.092489559203386,
+      "optimizedMedianAverageMs": 8.097625046502799,
+      "reductionPercent": -0.06345991875358337,
+      "runs": [
+        {
+          "cpuEncodeMeanMs": 0.7582677111107236,
+          "cpuEncodeMedianMs": 0.8063333807513118,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.780199994604724,
+          "gpuMedianMs": 8.122916566208005,
+          "gpuP95Ms": 12.388291652314365,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-2-rounds/run-0.json",
+            "legacyGuard": "1"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.7596434084310507,
+          "cpuEncodeMedianMs": 0.859291641972959,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.764026050145427,
+          "gpuMedianMs": 8.040916756726801,
+          "gpuP95Ms": 12.327916570939124,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-2-rounds/run-1.json",
+            "legacyGuard": "0"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.6908881963075449,
+          "cpuEncodeMedianMs": 0.6924583576619625,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.783670835934268,
+          "gpuMedianMs": 8.09550005942583,
+          "gpuP95Ms": 12.666375027038157,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-2-rounds/run-2.json",
+            "legacyGuard": "0"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.732816670400401,
+          "cpuEncodeMedianMs": 0.799291767179966,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.709873260037662,
+          "gpuMedianMs": 8.03833338432014,
+          "gpuP95Ms": 12.699250015430152,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-2-rounds/run-3.json",
+            "legacyGuard": "1"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.7026569461838031,
+          "cpuEncodeMedianMs": 0.703750061802566,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.821165280338997,
+          "gpuMedianMs": 8.102791733108461,
+          "gpuP95Ms": 12.561458395794034,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-2-rounds/run-4.json",
+            "legacyGuard": "0"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.7535725657362491,
+          "cpuEncodeMedianMs": 0.7757917046546936,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.77227951423265,
+          "gpuMedianMs": 8.176249917596579,
+          "gpuP95Ms": 12.410250026732683,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-2-rounds/run-5.json",
+            "legacyGuard": "1"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.7093409677812209,
+          "cpuEncodeMedianMs": 0.705791637301445,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.790186110612316,
+          "gpuMedianMs": 8.032458368688822,
+          "gpuP95Ms": 12.619250104762614,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-2-rounds/run-6.json",
+            "legacyGuard": "1"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.6964878402262306,
+          "cpuEncodeMedianMs": 0.6806667661294341,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.830339930136688,
+          "gpuMedianMs": 8.151291636750102,
+          "gpuP95Ms": 12.804791564121842,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-2-rounds/run-7.json",
+            "legacyGuard": "0"
+          }
+        }
+      ]
+    },
+    "narrowFourRuns": {
+      "baseline": "guard",
+      "rounds": 1,
+      "mipMode": 2,
+      "sharedLighting": false,
+      "referenceMedianAverageMs": 4.337958351243287,
+      "optimizedMedianAverageMs": 7.580270757898688,
+      "reductionPercent": -74.74282010398123,
+      "runs": [
+        {
+          "cpuEncodeMeanMs": 0.7244038201558093,
+          "cpuEncodeMedianMs": 0.7365416968241334,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 5.501074304144519,
+          "gpuMedianMs": 4.3438749853521585,
+          "gpuP95Ms": 10.626374976709485,
+          "gpuStagesMs": {},
+          "height": 16384,
+          "indexBits": 32,
+          "indexBytes": 1511424,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 125952,
+          "verboseBindings": false,
+          "width": 62,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-62x16384/run-0.json",
+            "renderWidth": "62",
+            "renderHeight": "16384",
+            "legacyGuard": "1"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.7150038193988925,
+          "cpuEncodeMedianMs": 0.730416621081531,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.245164237450808,
+          "gpuMedianMs": 7.582624908536673,
+          "gpuP95Ms": 11.608333326876163,
+          "gpuStagesMs": {},
+          "height": 16384,
+          "indexBits": 32,
+          "indexBytes": 1511424,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 125952,
+          "verboseBindings": false,
+          "width": 62,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-62x16384/run-1.json",
+            "renderWidth": "62",
+            "renderHeight": "16384",
+            "legacyGuard": "0"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.5772225665471827,
+          "cpuEncodeMedianMs": 0.5417916690930724,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 8.220036459776262,
+          "gpuMedianMs": 7.577916607260704,
+          "gpuP95Ms": 11.5300000179559,
+          "gpuStagesMs": {},
+          "height": 16384,
+          "indexBits": 32,
+          "indexBytes": 1511424,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 125952,
+          "verboseBindings": false,
+          "width": 62,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-62x16384/run-2.json",
+            "renderWidth": "62",
+            "renderHeight": "16384",
+            "legacyGuard": "0"
+          }
+        },
+        {
+          "cpuEncodeMeanMs": 0.7188784821967905,
+          "cpuEncodeMedianMs": 0.7364166667684913,
+          "device": "Apple M1",
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 5.520277772059974,
+          "gpuMedianMs": 4.332041717134416,
+          "gpuP95Ms": 10.664875037036836,
+          "gpuStagesMs": {},
+          "height": 16384,
+          "indexBits": 32,
+          "indexBytes": 1511424,
+          "mipmapRounding": "towardZero",
+          "profiled": false,
+          "samples": 120,
+          "triangles": 125952,
+          "verboseBindings": false,
+          "width": 62,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/guard-62x16384/run-3.json",
+            "renderWidth": "62",
+            "renderHeight": "16384",
+            "legacyGuard": "1"
+          }
+        }
+      ]
+    }
+  },
+  "metrics": {
+    "normalFourRuns": {
+      "gpuMeanMs": {
+        "legacy": 8.72955451341113,
+        "guard": 8.71803368451462,
+        "changePercent": -0.1319749922955693
+      },
+      "gpuMedianMs": {
+        "legacy": 8.002166694495827,
+        "guard": 8.091895841062069,
+        "changePercent": 1.1213106398790806
+      },
+      "cpuEncodeMeanMs": {
+        "legacy": 0.7389493029525813,
+        "guard": 0.7153833280123459,
+        "changePercent": -3.189119313879052
+      }
+    },
+    "normalEightRuns": {
+      "gpuMeanMs": {
+        "legacy": 8.763134719871838,
+        "guard": 8.799800524138846,
+        "changePercent": 0.41840968373865195
+      },
+      "gpuMedianMs": {
+        "legacy": 8.092489559203386,
+        "guard": 8.097625046502799,
+        "changePercent": 0.06345991875358337
+      },
+      "cpuEncodeMeanMs": {
+        "legacy": 0.7384994787571486,
+        "guard": 0.7124190977871574,
+        "changePercent": -3.5315368148780557
+      }
+    },
+    "narrowFourRuns": {
+      "gpuMeanMs": {
+        "legacy": 5.510676038102247,
+        "guard": 8.232600348613534,
+        "changePercent": 49.39365500151334
+      },
+      "gpuMedianMs": {
+        "legacy": 4.337958351243287,
+        "guard": 7.580270757898688,
+        "changePercent": 74.74282010398123
+      },
+      "cpuEncodeMeanMs": {
+        "legacy": 0.7216411511762999,
+        "guard": 0.6461131929730376,
+        "changePercent": -10.466137924666452
+      }
+    }
+  },
+  "interpretation": "The eight-run normal-view GPU median is effectively unchanged. Narrow timings compare different output: legacy omits much of the ocean, whereas the guarded path renders it. They do not demonstrate an equal-quality speedup. No power savings are claimed.",
+  "visualInspection": {
+    "settings": {
+      "renderWidth": 256,
+      "renderHeight": 4096,
+      "time": 90,
+      "windSpeed": 12,
+      "swellHs": 2.5
+    },
+    "actualWidth": 253,
+    "actualHeight": 4048,
+    "before": "macos/build/coverage/narrow_storm-color-old.png",
+    "after": "macos/build/coverage/narrow_storm-color-new.png",
+    "finding": "Legacy output exposes a large triangular background gap in the lower ocean; guarded output fills it with water. PNGs decode the actual final BGRA8 readback without rescaling."
+  },
+  "limitations": [
+    "One Apple M1 and software render targets were tested; untested physical displays and other GPU generations are not established.",
+    "Coverage is checked below the fixed sky-culling margin in twelve scenes; this does not establish all possible wave settings or arbitrary cameras."
+  ],
+  "sources": {
+    "macos/OceanRenderer.swift": "6a58e03c4ebc0d8110b0aa2b1b37a4933f8428f68e7dc101cd05f62469e01a4e",
+    "macos/Shaders/OCEAN.metal": "d1760c2b059ff47d6b3eef0e3597f02ae818dc96ceafdb67de30138071ec65fd",
+    "macos/Shaders/DISPLACEMENT_BOUNDS.metal": "5acd6ff0b1a56831b112a05e747d9fe5f7fff4f8d4b2053f169f5b2b37bb3544",
+    "macos/Shaders/DISPLACEMENT_BOUNDS_FINAL.metal": "7989655479121bb36fbaedb20e2db2bf56a6b50dbd6c18f82b712d4dc097531b",
+    "macos/Tests/OCEAN_REFERENCE.metal": "dfa587032a105c38d63cb947c72e08f529d22533dc2b91044898fc980e28215a",
+    "macos/Tests/Experiments/OCEAN_PRE_GUARD.metal": "1bfdce412394033fe4641b9cb6ae3608031182a98be834cb9098431db131625d",
+    "macos/Tests/compare_quality.py": "719ed091c50c0145de6b1da190e3c6e2aae652afc324caf6cd6b804b6f5c6d09",
+    "macos/Tests/verify_coverage.py": "f6c1b5d4f00894b32bc81ac468a9f77dbc6c7a8e427661d61df065815a3d5ba3",
+    "macos/Tests/benchmark.py": "cac4741d4fd6cd66df68574f954a4d55bb4a5b3b5171562eba8af24f76bbf4bc",
+    "macos/test.sh": "a605c590a69584a3f6b218a0f96f3094133e6b2a9b6082298380559de775fefd"
+  }
+}

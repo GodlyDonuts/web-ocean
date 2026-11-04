@@ -1,0 +1,3 @@
+# Optional GPU analysis/capture dependencies; not needed to build or run Ocean.
+numpy>=1.26,<3
+Pillow>=10,<13

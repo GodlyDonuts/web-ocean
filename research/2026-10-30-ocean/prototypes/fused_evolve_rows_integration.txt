@@ -1,0 +1,91 @@
+FUSED EVOLVE + ROW FFT CANDIDATE
+
+Status: a source-derived, uncompiled, unbenchmarked GPU candidate.
+Source commit: 8739f0793f84b96cb87a21558a117e1714184ad7
+No repository source or remote branch was changed.
+
+Purpose
+-------
+Generate the four packed complex spectral fields directly into row-FFT
+workgroup memory, removing specA/specB materialization. Keep the current
+phase equations, precision, spectrum realization, 256-point FFT, butterfly
+schedule, column FFT, and final texture assembly.
+
+Exact resource bindings
+-----------------------
+group 0, binding 0: existing simUBO (224 bytes, uniform)
+group 0, binding 1: existing h0Buf (storage, read)
+group 0, binding 2: existing tmpA (storage, read_write)
+group 0, binding 3: existing tmpB (storage, read_write)
+
+N=256, LOGN=8 and workgroup_size=128 in this candidate. Each workgroup
+uses two 256-element vec4f workgroup arrays: 8192 bytes in total.
+Dispatch workgroups(256, 1, CASCADES). CASCADES is 6 in the source snapshot.
+Do not dispatch the original evolution grid (16,16,6).
+
+Integration changes in js/main.js
+---------------------------------
+1. Expose the text of fused_evolve_rows.wgsl through the existing shader
+   module/build convention (for example, as FUSED_EVOLVE_ROWS in sim.js).
+   The current bundler is not assumed to support raw WGSL imports.
+
+2. Create fusedRowsPipe via the existing computePipe() helper.
+   Its bind group is:
+   bg(fusedRowsPipe, [
+     { buffer: simUBO }, { buffer: h0Buf },
+     { buffer: tmpA }, { buffer: tmpB }
+   ], 'fused evolve rows')
+
+3. In encodeSim(), replace these two dispatches:
+     evolvePipe / bgEvolve / dispatchWorkgroups(N/16,N/16,C)
+     rowsPipe / bgRows / dispatchWorkgroups(N,1,C)
+   with:
+     fusedRowsPipe / bgFusedRows / dispatchWorkgroups(N,1,C)
+
+4. Keep the existing colsPipe / bgCols dispatch and all later consumers.
+   Keep SIM_INIT, its h0Buf write, and its dispatch before the fused kernel
+   whenever needSpectrum is set. Keep the existing simUBO update.
+
+5. Initially keep an explicit original/fused comparison switch. Once the
+   fused path is validated, delete specA/specB allocations, bgEvolve, bgRows,
+   and unused evolution/row pipelines from the fused-only configuration.
+
+6. Regenerate the bundled HTML through the existing build procedure.
+
+Expected source-level changes
+-----------------------------
+Two vec4f spectral buffers each occupy 6*256*256*16 bytes = 6 MiB.
+Removing both saves 12 MiB of allocation.
+Each is currently written by SIM_EVOLVE then read by FFT_ROWS. Removing
+those stores and loads saves 24 MiB of explicit shader traffic per frame.
+The evolution + row + column source-level load/store total changes from
+63 MiB to 39 MiB per frame. This excludes mips, workgroup accesses, caches,
+compiler lowering, and other renderer stages; it is not measured DRAM traffic.
+
+No extra pruning or trig optimization is included in this first candidate.
+The only early return is the original DC case inside evolveAt(). It returns
+a value to main(); every entry-point invocation reaches all FFT barriers.
+
+GPU validation still required
+-----------------------------
+1. Compile with WebGPU validation enabled. Check binding layouts, workgroup
+   storage limits, uniform layout, and shader compilation diagnostics.
+2. Compare original versus fused tmpA/tmpB at the same h0 and uniforms before
+   comparing final displacement, derivatives, moments, and rendered output.
+3. Test all six cascades and times including 0, ordinary fractional times,
+   599.999 seconds, and the 600-second wrap. Test multiple choppiness values,
+   spectrum changes, and device-lost/reinitialization paths.
+4. Keep the original arithmetic initially. Fusion can change compiler
+   contraction/reassociation; bit-identical GPU output is not promised.
+5. Compare fixed-camera clips, not just stills, especially glitter and foam
+   injection near the Jacobian threshold.
+6. Time the combined old evolve+row stages against the new fused stage and
+   measure complete-frame latency and power. Inspect register pressure and
+   occupancy: less explicit traffic does not guarantee a faster kernel.
+
+CPU check
+---------
+check_fused_evolve_rows.py verifies the packed-field equations and row-index
+mapping against independently expressed complex arithmetic and an inverse
+DFT reference. It does not execute or compile WGSL, model GPU rounding, prove
+race freedom, or benchmark the GPU. Its JSON result must retain this label.

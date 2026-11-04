@@ -1,0 +1,36 @@
+--- macos/Tests/benchmark.py
++++ macos/Tests/benchmark.py
+@@ -17,7 +17,7 @@
+ parser.add_argument('--mip-mode',type=int,default=2,choices=[2])
+ parser.add_argument('--rounds',type=int,default=1,help='ABBA rounds; alternate round order to counter drift')
+ parser.add_argument('--shared-lighting',action='store_true',help='Enable the experimental shared lighting cache in optimized runs')
+-parser.add_argument('--baseline',choices=['original','previous','bindings','mips','guard','packed','clock','clouds','cubic','evolution','inactiveaa','textureusage'],default='original')
++parser.add_argument('--baseline',choices=['original','previous','bindings','mips','guard','packed','clock','clouds','cubic','evolution','inactiveaa','textureusage','wavebarriers'],default='original')
+ args = parser.parse_args()
+ if args.rounds < 1: parser.error('--rounds must be positive')
+ for name in ['clouds','veil']:
+@@ -45,6 +45,7 @@
+     if args.time: query['time'] = args.time
+     if args.clouds is not None: query['clouds'] = args.clouds
+     if args.veil is not None: query['veil'] = args.veil
++    if args.baseline == 'wavebarriers': query['interleavedWaveMips'] = 0 if baseline else 1
+     if args.baseline == 'textureusage': query['narrowTextureUsage'] = 0 if baseline else 1
+     if args.baseline == 'inactiveaa': query['pruneCloudAA'] = 0 if baseline else 1
+     if args.baseline == 'evolution':
+@@ -69,7 +70,7 @@
+         query['fusedMips'] = 0
+     if args.baseline == 'mips':
+         query['fusedMips'] = 0 if baseline else args.mip_mode
+-    if baseline and args.baseline not in ['mips','guard','packed','clock','clouds','cubic','evolution','inactiveaa','textureusage']:
++    if baseline and args.baseline not in ['mips','guard','packed','clock','clouds','cubic','evolution','inactiveaa','textureusage','wavebarriers']:
+         query['verboseBindings'] = 1
+         query['fusedMips'] = 0
+         if args.baseline != 'bindings':
+@@ -86,6 +87,7 @@
+     if args.baseline == 'inactiveaa':
+         mask = (1 if cloud_enabled(0.4 if args.clouds is None else args.clouds) else 0) | (2 if cloud_enabled(0.36 if args.veil is None else args.veil) else 0)
+         assert report['skyAAMask'] == (3 if baseline else mask)
++    if args.baseline == 'wavebarriers': assert report['interleavedWaveMips'] == (not baseline)
+     if args.baseline == 'textureusage': assert report['narrowTextureUsage'] == (not baseline)
+     if args.baseline == 'evolution':
+         assert report['fusedEvolution'] == (not baseline)

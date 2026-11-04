@@ -427,8 +427,8 @@ fn faceDir(face: u32, uv: vec2f) -> vec3f {
 @compute @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {
   if (f32(id.x) >= ENV || f32(id.y) >= ENV) { return; }
-  // faces are refreshed round-robin: face = (frame + z) % 6
-  let face = (u32(F.post.z) + id.z) % 6u;
+  // Faces advance on environment updates, independently of the render rate.
+  let face = (u32(F.camRight.w) + id.z) % 6u;
   let dir = normalize(faceDir(face, (vec2f(id.xy) + 0.5) / ENV));
   var L: vec3f;
   if (dir.y >= 0.0) {
@@ -443,7 +443,8 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
 }
 `;
 
-export const CUBE_MIPS = /* wgsl */ `
+export const CUBE_MIPS = FRAME_WGSL + /* wgsl */ `
+@group(0) @binding(2) var<uniform> F: Frame;
 @group(0) @binding(0) var src: texture_2d_array<f32>;
 @group(0) @binding(1) var dst: texture_storage_2d_array<rgba16float, write>;
 @compute @workgroup_size(8, 8, 1)
@@ -459,11 +460,11 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     for (var i = -1; i <= 2; i++) {
       let q = clamp(p + vec2i(i, j), vec2i(0), srcSize - 1);
       let w = select(1.0, 3.0, i == 0 || i == 1) * select(1.0, 3.0, j == 0 || j == 1);
-      acc += textureLoad(src, q, id.z, 0) * w;
+      acc += textureLoad(src, q, (u32(F.camRight.w) + id.z) % 6u, 0) * w;
       wsum += w;
     }
   }
-  textureStore(dst, id.xy, id.z, acc / wsum);
+  textureStore(dst, id.xy, (u32(F.camRight.w) + id.z) % 6u, acc / wsum);
 }
 `;
 

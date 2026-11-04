@@ -1,0 +1,84 @@
+// Celestial radiance and lightweight moon/ambient helpers.
+// The immutable Milky Way asset is credited in Assets/Galaxy/CREDITS.md.
+metal::float3 celestialNightSky(metal::float3 dir, constant Frame& F) {
+    if (F.celestial.w<0.5 || F.celestial.z<0.001) return metal::float3(0.0);
+    float night=F.celestial.z;
+    float moon=F.moonDir.w*metal::sqrt(F.moonDir.w)*metal::smoothstep(0.0,0.15,F.moonDir.y);
+    // Cinematographic sky fill: a dark indigo horizon, a brighter overhead
+    // hemisphere and a broad off-frame softbox. It is illumination, not a
+    // display black-level lift, so surfaces retain their normals and shadows.
+    float up=metal::max(dir.y,0.0);
+    metal::float3 key=metal::normalize(metal::float3(-0.45,0.85,-0.35));
+    float lobe=metal::max(0.0,metal::dot(dir,key));lobe*=lobe;lobe*=lobe;lobe*=lobe;
+    metal::float3 floor=metal::float3(0.0025,0.0045,0.009)*(0.65+0.35*up);
+    metal::float3 overhead=metal::float3(0.012,0.021,0.037)*up*up;
+    metal::float3 softKey=metal::float3(0.012,0.019,0.030)*lobe;
+    return (floor+overhead+softKey+metal::float3(0.004,0.007,0.012)*moon)*(night*0.45);
+
+}
+// What the camera sees is much darker than the off-frame illumination used
+// to photograph the sea. Keep a neutral airglow and a Moon-local halo instead
+// of showing the cinematic softbox as a uniform blue sky dome.
+metal::float3 celestialNightBackdrop(metal::float3 dir,constant Frame& F) {
+    if (F.celestial.w<0.5 || F.celestial.z<0.001) return metal::float3(0);
+    float moon=F.moonDir.w*metal::sqrt(F.moonDir.w)*metal::smoothstep(0,0.15,F.moonDir.y);
+    float halo=metal::pow(metal::max(0.0,metal::dot(dir,F.moonDir.xyz)),48.0)*moon;
+    return (metal::float3(0.0008,0.0012,0.0020)*(0.8+0.2*metal::max(dir.y,0.0))
+        +metal::float3(0.0016,0.0019,0.0025)*halo)*F.celestial.z;
+}
+
+metal::float3 moonDisk(metal::float3 dir, float pixAng, constant Frame& F,
+                     metal::texture2d<float> transLUT, metal::sampler sampC) {
+    if (F.celestial.w<0.5 || dir.y<=0.0) return metal::float3(0.0);
+    metal::float3 center=F.moonDir.xyz;
+    float angle=metal::sqrt(metal::max(0.0,2.0*(1.0-metal::dot(dir,center))));
+    float radius=F.celestial.y,aa=metal::max(pixAng*0.65,0.0001);
+    if (angle>radius+aa) return metal::float3(0.0);
+    metal::float3 axis=metal::abs(center.y)>0.99 ? metal::float3(1,0,0) : metal::float3(0,1,0);
+    metal::float3 right=metal::normalize(metal::cross(center,axis)),up=metal::cross(right,center);
+    metal::float2 uv=metal::float2(metal::dot(dir,right),metal::dot(dir,up))/radius;
+    float r2=metal::dot(uv,uv);
+    metal::float3 normal=metal::normalize(right*uv.x+up*uv.y-center*metal::sqrt(metal::max(0.0,1.0-r2)));
+    float illumination=metal::max(metal::dot(normal,F.sunDir.xyz),0.0);
+    float maria=0.83+0.12*metal::sin(uv.x*13.0+metal::sin(uv.y*7.0))*metal::sin(uv.y*11.0-uv.x*3.0);
+    float edge=1.0-metal::smoothstep(radius-aa,radius+aa,angle);
+    float footprint=metal::min(1.0,radius*radius/(aa*aa));
+    metal::float3 extinction=sampleTrans(camR(F),metal::max(dir.y,0.0),transLUT,sampC);
+    return metal::float3(0.88,0.91,1.0)*illumination*maria*edge*footprint*1.8*extinction;
+}
+
+// Illuminated cloud veil removes stellar contrast before it becomes fully
+// opaque. Use one perceptual extinction rule for the galaxy and reflected sky.
+float stellarCloudVisibility(float transmission) {
+    float t=metal::clamp(transmission,0.0,1.0);
+    return t*metal::smoothstep(0.45,0.95,t);
+}
+
+metal::float3 celestialStarfield(metal::float3 dir, float pixelAngle, constant Frame& F,
+    metal::texture2d<float> stars, metal::texture2d<float> galaxy, bool includePoints) {
+    if (F.celestial.w<0.5 || F.celestial.z<0.001 || dir.y<=0.0) return metal::float3(0.0);
+    metal::float3 eq=metal::normalize(metal::float3(metal::dot(dir,F.starX.xyz),metal::dot(dir,F.starY.xyz),metal::dot(dir,F.starZ.xyz)));
+    // NASA SVS celestial plate carree: RA increases left, north at the top.
+    metal::float2 uv(0.5-metal::atan2(eq.y,eq.x)/6.283185307,0.5-metal::asin(metal::clamp(eq.z,-1.0,1.0))/3.141592654);
+    float cosLatitude=metal::sqrt(metal::max(0.0001,1.0-eq.z*eq.z));
+    float footprint=metal::max(pixelAngle*float(galaxy.get_width())/(6.283185307*metal::max(cosLatitude,0.05)),1.0);
+    // The camera's half-resolution sky cache should carry unresolved galactic
+    // structure, not resolve the catalogue into a coarse speckled ceiling.
+    // Sharp foreground stars are already drawn separately at full resolution.
+    float lod=metal::log2(footprint);
+    if (!includePoints) lod=metal::max(lod,1.0);
+    metal::float3 radiance=galaxy.sample(stellarSampler,uv,metal::level(lod)).rgb;
+    if (!includePoints) radiance*=0.5;
+    float darkness=F.celestial.z*F.celestial.z*F.celestial.z;
+    float cloudAmount=metal::clamp(metal::max(F.cloudP.y,F.atmo.z*0.7),0.0,1.0);
+    float clearSky=1.0-metal::smoothstep(0.03,0.55,cloudAmount);
+    // A cloud-filled shot should not also carry a luminous photographic
+    // galactic cloud. Keep that structure in clear, dark gaps/nights.
+    radiance*=clearSky;
+    float grey=metal::dot(radiance,metal::float3(0.2126,0.7152,0.0722));
+    radiance=metal::mix(radiance,metal::float3(grey),0.25);
+    float horizon=metal::exp(-0.06/metal::max(dir.y,0.015));
+    float moonWash=F.moonDir.w*F.moonDir.w*metal::smoothstep(0.0,0.15,F.moonDir.y)*metal::pow(metal::max(0.0,metal::dot(dir,F.moonDir.xyz)),8.0);
+    metal::float3 points=includePoints ? stellarPointRadiance(dir,pixelAngle,F.celestial.z,F.moonDir,F.starX.xyz,F.starY.xyz,F.starZ.xyz,stars) : metal::float3(0.0);
+    return radiance*(darkness*horizon)*(1.0-moonWash*0.5)+points;
+}

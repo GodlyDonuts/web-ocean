@@ -1,4 +1,4 @@
-// FFT ocean simulation (Tessendorf) — 4 cascades of 256^2.
+// FFT ocean simulation (Tessendorf) — 6 cascades of 256^2.
 import { N, LOGN, CASCADES, NOISE_WGSL, PERIODIC_WGSL } from './common.js';
 
 const SIM_STRUCT = /* wgsl */ `
@@ -344,7 +344,7 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
 
 // World-space foam clipmaps (toroidally addressed, centred on the camera).
 // Foam is injected where the TOTAL surface Jacobian (all cascades) folds, then decays.
-export const FOAM_RES = 1024;
+export const FOAM_RES = 512;
 export const FOAM_UPDATE = /* wgsl */ `
 const RES: i32 = ${FOAM_RES};
 struct FoamU {

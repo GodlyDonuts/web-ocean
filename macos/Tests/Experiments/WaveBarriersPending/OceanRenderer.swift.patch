@@ -1,0 +1,53 @@
+--- macos/OceanRenderer.swift
++++ macos/OceanRenderer.swift
+@@ -59,6 +59,7 @@
+     private var packedJacobian = true
+     private var useSharedLighting = false
+     private var fusedEvolution = true
++    private var interleavedWaveMips = false
+     private var fusedMipmaps = false
+     private var mipmapRounding = MipmapRounding.unsupported
+     private var waveMipResources: [[Resource]] = []
+@@ -155,6 +156,7 @@
+             mipmapRounding = (try? MipmapRounding.detect(device:device,queue:queue)) ?? .unsupported
+             fusedMipmaps = mipmapRounding != .unsupported
+         }
++        interleavedWaveMips = fusedMipmaps && options["interleavedWaveMips"] != "0"
+         if options["pruneCloudAA"] != "0" {
+             specializedSkyAAMask = (value("clouds",0.4) > 0.001 ? 1 : 0) | (value("veil",0.36) > 0.001 ? 2 : 0)
+             if verificationEnabled, let forcedMask = Int(options["testCloudAAMask"] ?? ""), (0...3).contains(forcedMask) {
+@@ -205,8 +207,14 @@
+         compileOptions.languageVersion = .version2_3
+         for name in manifest.keys.sorted() {
+             if name.contains("MIPS_FUSED") && !fusedMipmaps { continue }
+-            let sourceURL = name == "OCEAN" && options["referenceOcean"] != nil
+-                    ? URL(fileURLWithPath:options["referenceOcean"]!) : root.appendingPathComponent(name + ".metal")
++            let sourceURL: URL
++            if name == "OCEAN", let reference = options["referenceOcean"] {
++                sourceURL = URL(fileURLWithPath:reference)
++            } else if name == "SIM_MIPS_FUSED4" && interleavedWaveMips {
++                sourceURL = root.appendingPathComponent("SIM_MIPS_FUSED4_INTERLEAVED.metal")
++            } else {
++                sourceURL = root.appendingPathComponent(name + ".metal")
++            }
+             var source = try String(contentsOf: sourceURL, encoding: .utf8)
+             if name == "FFT_COLS" { source = "#define OCEAN_PACKED_JACOBIAN \(packedJacobian ? 1 : 0)\n"+source }
+             if name == "OCEAN" { source = "#define OCEAN_SHARED_CUBIC \(options["sharedCubic"] == "0" ? 0 : 1)\n#define OCEAN_STABLE_TIME 0\n#define OCEAN_PACKED_JACOBIAN \(packedJacobian ? 1 : 0)\n#define OCEAN_PHYSICAL_GUARD 0\n#define OCEAN_COVERAGE \(verificationEnabled && options["coverage"] == "1" ? 1 : 0)\n#define OCEAN_PER_PIXEL_LIGHTING \(useSharedLighting ? 0 : 1)\n"+source }
+@@ -897,7 +905,7 @@
+         let report: [String:Any] = ["device":device.name,"width":width,"height":height,"triangles":triangleCount,"indexBits":indexType == .uint16 ? 16 : 32,"indexBytes":indexBuffer.length,
+             "cpuThreadEncodeMedianMs":threadCPU[threadCPU.count/2],"cpuThreadEncodeMeanMs":threadCPU.reduce(0,+)/Double(threadCPU.count),
+             "cpuEncodeMedianMs":cpu[cpu.count/2],"cpuEncodeMeanMs":cpu.reduce(0,+)/Double(cpu.count),
+-            "renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps, "mipmapRounding":mipmapRounding.rawValue, "verboseBindings":options["verboseBindings"] == "1", "samples":times.count,"gpuMedianMs":times[times.count/2],"gpuMeanMs":times.reduce(0,+)/Double(times.count),
++            "renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"interleavedWaveMips":interleavedWaveMips,"waveMipThreadgroupBytes":compute["SIM_MIPS_FUSED4"]?.state.staticThreadgroupMemoryLength ?? 0,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps, "mipmapRounding":mipmapRounding.rawValue, "verboseBindings":options["verboseBindings"] == "1", "samples":times.count,"gpuMedianMs":times[times.count/2],"gpuMeanMs":times.reduce(0,+)/Double(times.count),
+             "gpuP95Ms":times[min(times.count-1,Int(Double(times.count)*0.95))],
+             "gpuStagesMs":profiler?.averageMilliseconds ?? [:],"profiled":profiler != nil,"errors":errors]
+         do {
+@@ -918,7 +926,7 @@
+         let now = CACurrentMediaTime()
+         let fps = Double(frames-diagnosticFrames)/max(0.001,now-diagnosticTime)
+         diagnosticFrames = frames; diagnosticTime = now
+-        let data: [String: Any] = ["physicalGuard":width*2 < height && options["legacyGuard"] != "1","guardBoundsVerified":verifiedGuardBounds,"renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps,"mipmapRounding":mipmapRounding.rawValue,"renderer":"Metal", "device":device.name, "fps":(fps*10).rounded()/10,
++        let data: [String: Any] = ["physicalGuard":width*2 < height && options["legacyGuard"] != "1","guardBoundsVerified":verifiedGuardBounds,"renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"interleavedWaveMips":interleavedWaveMips,"waveMipThreadgroupBytes":compute["SIM_MIPS_FUSED4"]?.state.staticThreadgroupMemoryLength ?? 0,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps,"mipmapRounding":mipmapRounding.rawValue,"renderer":"Metal", "device":device.name, "fps":(fps*10).rounded()/10,
+             "gpuMs":(gpuMilliseconds*100).rounded()/100, "frames":frames, "paused":isPaused,
+             "width":width, "height":height, "triangles":triangleCount,"indexBits":indexType == .uint16 ? 16 : 32,"indexBytes":indexBuffer?.length ?? 0, "errors":errors, "gpuStagesMs":profiler?.averageMilliseconds ?? [:]]
+         if let encoded = try? JSONSerialization.data(withJSONObject: data, options: .sortedKeys), let text = String(data: encoded, encoding: .utf8) {

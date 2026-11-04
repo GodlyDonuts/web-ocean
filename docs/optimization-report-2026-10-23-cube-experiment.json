@@ -1,0 +1,837 @@
+{
+  "date": "2026-10-23",
+  "device": "Apple M1",
+  "outcome": "Rejected reflection-cube mip-tail fusion; production retains its original seven-dispatch cube mip chain. Retained benchmark-only thread CPU timing and stricter benchmark-result validation. No new renderer speedup claimed.",
+  "experiment": {
+    "archive": "macos/Tests/Experiments/CubeMipTail/",
+    "rawResults": "macos/Tests/Experiments/CubeMipTail/results.json",
+    "dispatchesBefore": 7,
+    "dispatchesCandidate": 2,
+    "quality": {
+      "passed": true,
+      "cases": [
+        {
+          "case": "sunset",
+          "settings": {
+            "time": 5
+          },
+          "width": 1280,
+          "height": 800,
+          "stableDetails": false,
+          "comparedHDRBytes": 8192000,
+          "comparedDisplayBytes": 4096000,
+          "comparedCloudBytes": 5656564,
+          "changedBytes": 0
+        },
+        {
+          "case": "daylight",
+          "settings": {
+            "time": 120,
+            "sunElev": 35,
+            "clouds": 0.5,
+            "veil": 0.8
+          },
+          "width": 1280,
+          "height": 800,
+          "stableDetails": false,
+          "comparedHDRBytes": 8192000,
+          "comparedDisplayBytes": 4096000,
+          "comparedCloudBytes": 5656564,
+          "changedBytes": 0
+        },
+        {
+          "case": "overcast",
+          "settings": {
+            "time": 45,
+            "clouds": 1,
+            "veil": 1,
+            "haze": 10
+          },
+          "width": 1280,
+          "height": 800,
+          "stableDetails": false,
+          "comparedHDRBytes": 8192000,
+          "comparedDisplayBytes": 4096000,
+          "comparedCloudBytes": 5656564,
+          "changedBytes": 0
+        },
+        {
+          "case": "clear",
+          "settings": {
+            "time": 15,
+            "clouds": 0,
+            "veil": 0
+          },
+          "width": 1280,
+          "height": 800,
+          "stableDetails": false,
+          "comparedHDRBytes": 8192000,
+          "comparedDisplayBytes": 4096000,
+          "comparedCloudBytes": 5656564,
+          "changedBytes": 0
+        },
+        {
+          "case": "portrait",
+          "settings": {
+            "time": 15,
+            "renderWidth": 759,
+            "renderHeight": 1349
+          },
+          "width": 759,
+          "height": 1349,
+          "stableDetails": false,
+          "comparedHDRBytes": 8191128,
+          "comparedDisplayBytes": 4095564,
+          "comparedCloudBytes": 5650636,
+          "changedBytes": 0
+        },
+        {
+          "case": "ultrawide",
+          "settings": {
+            "time": 30,
+            "renderWidth": 1908,
+            "renderHeight": 537
+          },
+          "width": 1907,
+          "height": 537,
+          "stableDetails": false,
+          "comparedHDRBytes": 8192472,
+          "comparedDisplayBytes": 4096236,
+          "comparedCloudBytes": 5647444,
+          "changedBytes": 0
+        },
+        {
+          "case": "stable_clock",
+          "settings": {
+            "time": 600.05
+          },
+          "width": 1280,
+          "height": 800,
+          "stableDetails": true,
+          "comparedHDRBytes": 8192000,
+          "comparedDisplayBytes": 4096000,
+          "comparedCloudBytes": 5656564,
+          "changedBytes": 0
+        },
+        {
+          "case": "month_clock",
+          "settings": {
+            "time": 2592000
+          },
+          "width": 1280,
+          "height": 800,
+          "stableDetails": true,
+          "comparedHDRBytes": 8192000,
+          "comparedDisplayBytes": 4096000,
+          "comparedCloudBytes": 5656564,
+          "changedBytes": 0
+        },
+        {
+          "case": "stable_narrow",
+          "settings": {
+            "time": 600.05,
+            "renderWidth": 62,
+            "renderHeight": 16384
+          },
+          "width": 62,
+          "height": 16384,
+          "stableDetails": true,
+          "comparedHDRBytes": 8126464,
+          "comparedDisplayBytes": 4063232,
+          "comparedCloudBytes": 5570548,
+          "changedBytes": 0
+        }
+      ]
+    },
+    "ordinaryRunCount": 28,
+    "benchmarkSummaries": {
+      "cube-2-rounds": {
+        "runCount": 8,
+        "metrics": {
+          "gpuMeanMs": {
+            "referenceAverageMs": 7.553783420007676,
+            "candidateAverageMs": 7.549612591052815,
+            "reductionPercent": 0.05521509848711581
+          },
+          "gpuMedianMs": {
+            "referenceAverageMs": 7.050291635096073,
+            "candidateAverageMs": 7.042291661491618,
+            "reductionPercent": 0.1134701090183543
+          },
+          "gpuP95Ms": {
+            "referenceAverageMs": 10.43776044389233,
+            "candidateAverageMs": 10.389968781964853,
+            "reductionPercent": 0.45787276096609375
+          },
+          "cpuEncodeMeanMs": {
+            "referenceAverageMs": 0.7106913178480075,
+            "candidateAverageMs": 0.6507040799381987,
+            "reductionPercent": 8.440688158601938
+          },
+          "cpuEncodeMedianMs": {
+            "referenceAverageMs": 0.7218854443635792,
+            "candidateAverageMs": 0.6563645729329437,
+            "reductionPercent": 9.076353033880501
+          }
+        }
+      },
+      "cube-2-rounds-t600.05": {
+        "runCount": 8,
+        "metrics": {
+          "gpuMeanMs": {
+            "referenceAverageMs": 7.507392099311497,
+            "candidateAverageMs": 7.510220313755174,
+            "reductionPercent": -0.0376723955038516
+          },
+          "gpuMedianMs": {
+            "referenceAverageMs": 7.0038020494394,
+            "candidateAverageMs": 7.0361146063078195,
+            "reductionPercent": -0.46135736904509006
+          },
+          "gpuP95Ms": {
+            "referenceAverageMs": 10.245177109027281,
+            "candidateAverageMs": 10.286083357641473,
+            "reductionPercent": -0.39927322074451155
+          },
+          "cpuEncodeMeanMs": {
+            "referenceAverageMs": 0.7223769098345656,
+            "candidateAverageMs": 0.6973870666115545,
+            "reductionPercent": 3.459391196312478
+          },
+          "cpuEncodeMedianMs": {
+            "referenceAverageMs": 0.7577187498100102,
+            "candidateAverageMs": 0.7043437799438834,
+            "reductionPercent": 7.044166437680199
+          }
+        }
+      },
+      "cube-3-rounds": {
+        "runCount": 12,
+        "metrics": {
+          "gpuMeanMs": {
+            "referenceAverageMs": 7.548164348958784,
+            "candidateAverageMs": 7.551007118308917,
+            "reductionPercent": -0.0376617309680638
+          },
+          "gpuMedianMs": {
+            "referenceAverageMs": 7.052923610899597,
+            "candidateAverageMs": 7.035506966834267,
+            "reductionPercent": 0.2469421905890945
+          },
+          "gpuP95Ms": {
+            "referenceAverageMs": 10.428222187329084,
+            "candidateAverageMs": 10.429243091493845,
+            "reductionPercent": -0.009789819841032887
+          },
+          "cpuEncodeMeanMs": {
+            "referenceAverageMs": 0.7131056174532407,
+            "candidateAverageMs": 0.724158447539796,
+            "reductionPercent": -1.5499569511216116
+          },
+          "cpuEncodeMedianMs": {
+            "referenceAverageMs": 0.7444513612426817,
+            "candidateAverageMs": 0.7489166455343366,
+            "reductionPercent": -0.5998087348784154
+          },
+          "cpuThreadEncodeMeanMs": {
+            "referenceAverageMs": 0.7120798291666658,
+            "candidateAverageMs": 0.7231738166666678,
+            "reductionPercent": -1.5579696328408943
+          },
+          "cpuThreadEncodeMedianMs": {
+            "referenceAverageMs": 0.7427918333333329,
+            "candidateAverageMs": 0.7476803333333445,
+            "reductionPercent": -0.6581251678648758
+          }
+        }
+      }
+    },
+    "stageProfiles": {
+      "reference": {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.8948090292202929,
+        "cpuEncodeMedianMs": 0.9700832888484001,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedCubeMips": false,
+        "fusedMips": true,
+        "gpuMeanMs": 7.366357976570725,
+        "gpuMedianMs": 6.9933750201016665,
+        "gpuP95Ms": 9.70749999396503,
+        "gpuStagesMs": {
+          "atmosphere": 0.12088995,
+          "bloom down": 0.3161486666666667,
+          "bloom down vertices": 0.10944307499999999,
+          "bloom up": 0.1063781166666667,
+          "bloom up vertices": 0.07177924166666663,
+          "composite": 0.2700337000000001,
+          "composite vertices": 0.015272983333333334,
+          "environment": 0.2993933833333333,
+          "foam": 0.3979666500000001,
+          "ocean and sky": 3.687479158333334,
+          "ocean and sky vertices": 0.4078058750000001,
+          "visible sky": 0.9959538250000001,
+          "visible sky vertices": 0.043026749999999996,
+          "waves": 2.372010041666665
+        },
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "packedJacobian": true,
+        "profiled": true,
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280
+      },
+      "optimized": {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.7879822922404855,
+        "cpuEncodeMedianMs": 0.7858749013394117,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedCubeMips": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.397849651169963,
+        "gpuMedianMs": 7.0411249762400985,
+        "gpuP95Ms": 9.730500052683055,
+        "gpuStagesMs": {
+          "atmosphere": 0.12555416666666666,
+          "bloom down": 0.325772575,
+          "bloom down vertices": 0.10535285000000001,
+          "bloom up": 0.1080451,
+          "bloom up vertices": 0.06819946666666664,
+          "composite": 0.27186771666666676,
+          "composite vertices": 0.013562474999999996,
+          "environment": 0.300594425,
+          "foam": 0.3863933916666667,
+          "ocean and sky": 3.705436149999999,
+          "ocean and sky vertices": 0.39426528333333316,
+          "visible sky": 0.9962888749999999,
+          "visible sky vertices": 0.020182316666666665,
+          "waves": 2.3912368416666667
+        },
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "packedJacobian": true,
+        "profiled": true,
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280
+      }
+    },
+    "interpretation": "Initial CPU wall-time improvements were not repeatable: the twelve-run repeat increased average encoding-thread CPU time by about 1.6%, while average GPU time changed by less than 0.1%. Stage profiling showed effectively unchanged environment work. Fewer dispatches alone did not establish a useful benefit."
+  },
+  "retainedDiagnostics": {
+    "newMetrics": [
+      "cpuThreadEncodeMeanMs",
+      "cpuThreadEncodeMedianMs"
+    ],
+    "method": "CLOCK_THREAD_CPUTIME_ID sampled only when benchmarkEnabled. Excludes descheduled time; frequency, core placement and driver behavior can still affect results. It is not whole-process CPU usage or power.",
+    "aggregation": "The driver reports reference/candidate averages and percentage differences for all seven timing fields.",
+    "reportIntegrity": "Previous per-run and aggregate result files are removed before measurement. Native thread CPU metrics must be finite and positive; native report write failures exit nonzero.",
+    "smoke": {
+      "passed": true,
+      "samples": 1,
+      "threadCPUEncodeMeanMs": 0.9519999999999982,
+      "failedWriteExitCode": 1,
+      "missingReportWritten": false
+    },
+    "runnerChecks": {
+      "passed": true,
+      "aggregatedMetrics": 7,
+      "successfulRuns": 4,
+      "staleRunRemoved": true,
+      "staleAggregateRemoved": true,
+      "nativeFailurePropagated": true
+    },
+    "finalNativeSmoke": {
+      "cachedSkyElapsed": 2.0333334393799305,
+      "clockMode": "continuous",
+      "cpuEncodeMeanMs": 0.7212916389107704,
+      "cpuEncodeMedianMs": 0.7212916389107704,
+      "cpuThreadEncodeMeanMs": 0.7210000000000036,
+      "cpuThreadEncodeMedianMs": 0.7210000000000036,
+      "device": "Apple M1",
+      "elapsed": 2.0333334393799305,
+      "errors": [],
+      "fusedMips": true,
+      "gpuMeanMs": 9.369999985210598,
+      "gpuMedianMs": 9.369999985210598,
+      "gpuP95Ms": 9.369999985210598,
+      "gpuStagesMs": {},
+      "height": 800,
+      "indexBits": 16,
+      "indexBytes": 589824,
+      "mipmapRounding": "towardZero",
+      "packedJacobian": true,
+      "profiled": false,
+      "samples": 1,
+      "sharedCubic": true,
+      "skipCloudOctaves": true,
+      "stableDetails": false,
+      "triangles": 98304,
+      "verboseBindings": false,
+      "width": 1280
+    },
+    "comparisonReportSmoke": {
+      "baseline": "cubic",
+      "rounds": 1,
+      "mipMode": 2,
+      "sharedLighting": false,
+      "timings": {
+        "gpuMeanMs": {
+          "referenceAverageMs": 7.661723435739987,
+          "optimizedAverageMs": 7.53696579389119,
+          "reductionPercent": 1.6283234822446646
+        },
+        "gpuMedianMs": {
+          "referenceAverageMs": 7.198625011369586,
+          "optimizedAverageMs": 7.037812552880496,
+          "reductionPercent": 2.2339329835225685
+        },
+        "gpuP95Ms": {
+          "referenceAverageMs": 10.520354146137834,
+          "optimizedAverageMs": 10.426562512293458,
+          "reductionPercent": 0.8915254424092578
+        },
+        "cpuEncodeMeanMs": {
+          "referenceAverageMs": 0.7427696206529315,
+          "optimizedAverageMs": 0.7517685764469206,
+          "reductionPercent": -1.2115406370657222
+        },
+        "cpuEncodeMedianMs": {
+          "referenceAverageMs": 0.7812500116415322,
+          "optimizedAverageMs": 0.7595416973344982,
+          "reductionPercent": 2.7786641898950304
+        },
+        "cpuThreadEncodeMeanMs": {
+          "referenceAverageMs": 0.7420010749999992,
+          "optimizedAverageMs": 0.7507560416666672,
+          "reductionPercent": -1.1799129356609095
+        },
+        "cpuThreadEncodeMedianMs": {
+          "referenceAverageMs": 0.7794789999999807,
+          "optimizedAverageMs": 0.759229000000019,
+          "reductionPercent": 2.5978891028446194
+        }
+      },
+      "referenceMedianAverageMs": 7.198625011369586,
+      "optimizedMedianAverageMs": 7.037812552880496,
+      "reductionPercent": 2.2339329835225685,
+      "runs": [
+        {
+          "cachedSkyElapsed": 5.900000307708979,
+          "clockMode": "continuous",
+          "cpuEncodeMeanMs": 0.7233753412341078,
+          "cpuEncodeMedianMs": 0.7762083550915122,
+          "cpuThreadEncodeMeanMs": 0.7228993666666658,
+          "cpuThreadEncodeMedianMs": 0.773290999999972,
+          "device": "Apple M1",
+          "elapsed": 6.000000312924385,
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 7.654970832906353,
+          "gpuMedianMs": 7.162166642956436,
+          "gpuP95Ms": 10.580833302810788,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "packedJacobian": true,
+          "profiled": false,
+          "samples": 120,
+          "sharedCubic": false,
+          "skipCloudOctaves": true,
+          "stableDetails": false,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/cubic/run-0.json",
+            "sharedCubic": "0"
+          }
+        },
+        {
+          "cachedSkyElapsed": 5.900000307708979,
+          "clockMode": "continuous",
+          "cpuEncodeMeanMs": 0.719001388642937,
+          "cpuEncodeMedianMs": 0.7269583875313401,
+          "cpuThreadEncodeMeanMs": 0.7182287999999996,
+          "cpuThreadEncodeMedianMs": 0.7265000000000441,
+          "device": "Apple M1",
+          "elapsed": 6.000000312924385,
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 7.531541659651945,
+          "gpuMedianMs": 7.033000001683831,
+          "gpuP95Ms": 10.461875004693866,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "packedJacobian": true,
+          "profiled": false,
+          "samples": 120,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "stableDetails": false,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/cubic/run-1.json",
+            "sharedCubic": "1"
+          }
+        },
+        {
+          "cachedSkyElapsed": 5.900000307708979,
+          "clockMode": "continuous",
+          "cpuEncodeMeanMs": 0.7845357642509043,
+          "cpuEncodeMedianMs": 0.7921250071376562,
+          "cpuThreadEncodeMeanMs": 0.7832832833333349,
+          "cpuThreadEncodeMedianMs": 0.791957999999994,
+          "device": "Apple M1",
+          "elapsed": 6.000000312924385,
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 7.542389928130433,
+          "gpuMedianMs": 7.04262510407716,
+          "gpuP95Ms": 10.39125001989305,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "packedJacobian": true,
+          "profiled": false,
+          "samples": 120,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "stableDetails": false,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": false,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/cubic/run-2.json",
+            "sharedCubic": "1"
+          }
+        },
+        {
+          "cachedSkyElapsed": 5.900000307708979,
+          "clockMode": "continuous",
+          "cpuEncodeMeanMs": 0.762163900071755,
+          "cpuEncodeMedianMs": 0.7862916681915522,
+          "cpuThreadEncodeMeanMs": 0.7611027833333327,
+          "cpuThreadEncodeMedianMs": 0.7856669999999895,
+          "device": "Apple M1",
+          "elapsed": 6.000000312924385,
+          "errors": [],
+          "fusedMips": true,
+          "gpuMeanMs": 7.66847603857362,
+          "gpuMedianMs": 7.235083379782736,
+          "gpuP95Ms": 10.459874989464879,
+          "gpuStagesMs": {},
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "packedJacobian": true,
+          "profiled": false,
+          "samples": 120,
+          "sharedCubic": false,
+          "skipCloudOctaves": true,
+          "stableDetails": false,
+          "triangles": 98304,
+          "verboseBindings": false,
+          "width": 1280,
+          "reference": true,
+          "query": {
+            "fixedDt": "0.0333333333",
+            "frames": "180",
+            "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/cubic/run-3.json",
+            "sharedCubic": "0"
+          }
+        }
+      ]
+    }
+  },
+  "restoration": {
+    "exactFiles": {
+      "macos/Shaders/manifest.json": true,
+      "macos/Tests/verify_clouds.py": true,
+      "macos/test.sh": true
+    },
+    "oceanShaderMatchesAcceptedCubicPass": true,
+    "candidateShaderAbsentFromSourceAndAppBundle": true,
+    "nineSceneQuality": {
+      "passed": true,
+      "cases": [
+        {
+          "case": "sunset",
+          "width": 1280,
+          "height": 800,
+          "triangles": 98304,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "physicalGuard": false,
+          "guardBoundsVerified": false,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4096000,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4096000,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        },
+        {
+          "case": "swell_phase_45",
+          "width": 1280,
+          "height": 800,
+          "triangles": 98304,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "physicalGuard": false,
+          "guardBoundsVerified": false,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4096000,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4096000,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        },
+        {
+          "case": "swell_phase_120",
+          "width": 1280,
+          "height": 800,
+          "triangles": 98304,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "physicalGuard": false,
+          "guardBoundsVerified": false,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4096000,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4096000,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        },
+        {
+          "case": "daylight",
+          "width": 1280,
+          "height": 800,
+          "triangles": 98304,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "physicalGuard": false,
+          "guardBoundsVerified": false,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4096000,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4096000,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        },
+        {
+          "case": "rough_cloudy",
+          "width": 1280,
+          "height": 800,
+          "triangles": 98304,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "physicalGuard": false,
+          "guardBoundsVerified": false,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4096000,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4096000,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        },
+        {
+          "case": "ultrawide",
+          "width": 1907,
+          "height": 537,
+          "triangles": 104448,
+          "indexBits": 16,
+          "indexBytes": 626688,
+          "physicalGuard": false,
+          "guardBoundsVerified": false,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4096236,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4096236,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        },
+        {
+          "case": "portrait",
+          "width": 759,
+          "height": 1349,
+          "triangles": 99712,
+          "indexBits": 16,
+          "indexBytes": 598272,
+          "physicalGuard": false,
+          "guardBoundsVerified": false,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4095564,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4095564,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        },
+        {
+          "case": "wide_16_9",
+          "width": 1349,
+          "height": 759,
+          "triangles": 100096,
+          "indexBits": 16,
+          "indexBytes": 600576,
+          "physicalGuard": false,
+          "guardBoundsVerified": false,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4095564,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4095564,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        },
+        {
+          "case": "index_fallback",
+          "width": 62,
+          "height": 16384,
+          "triangles": 125952,
+          "indexBits": 32,
+          "indexBytes": 1511424,
+          "physicalGuard": true,
+          "guardBoundsVerified": true,
+          "fusedMips": true,
+          "mipmapRounding": "towardZero",
+          "comparedHalfFloatValues": 4063232,
+          "changedValues": 0,
+          "comparedDisplayBytes": 4063232,
+          "changedDisplayBytes": 0,
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "packedJacobian": true,
+          "packedJacobianHalfFloatsVerified": 524286,
+          "comparedMipBytes": 18175264,
+          "changedMipBytes": 0
+        }
+      ]
+    },
+    "stableGuardMetalValidation": {
+      "cachedSkyElapsed": 600.05,
+      "clockMode": "continuous",
+      "device": "Apple M1",
+      "elapsed": 600.05,
+      "errors": [],
+      "fps": 8.4,
+      "frames": 8,
+      "fusedMips": true,
+      "gpuMs": 73.89,
+      "gpuStagesMs": {},
+      "guardBoundsVerified": true,
+      "height": 4048,
+      "indexBits": 16,
+      "indexBytes": 655872,
+      "mipmapRounding": "towardZero",
+      "packedJacobian": true,
+      "paused": false,
+      "physicalGuard": true,
+      "renderer": "Metal",
+      "sharedCubic": true,
+      "skipCloudOctaves": true,
+      "stableDetails": true,
+      "triangles": 109312,
+      "width": 253
+    }
+  },
+  "limitations": [
+    "Single Apple M1; scene and OS load limit generalization.",
+    "Thread CPU time reduces one source of timing ambiguity but does not eliminate hardware scheduling or frequency variation.",
+    "Stage timestamps use instrumentation and are nonadditive; no power measurement was taken."
+  ],
+  "nextCandidates": [
+    "Audit explicit compute barriers against actual producer/consumer dependencies; preserve all dependent ordering and verify the resulting images."
+  ],
+  "sources": {
+    "macos/OceanRenderer.swift": "8f36cd747d7cda1c5d3224d729a044a4ec8239d6a8dedd97a571b13f187a3049",
+    "macos/Tests/benchmark.py": "9b6cdc15c78c79e87aabad72b0b8c64137101d3e1b2fa26a790e0e0699c63aed",
+    "macos/Shaders/OCEAN.metal": "4d2f0e29946d8a31e480c5f58463e5b85210f78f5bf78f6f978424b9752607c9",
+    "macos/Shaders/CUBE_MIPS.metal": "0d7ec038e745d02fcef57391e1e4bf0c1c64d6455201a0bb5ae0917e9c822812",
+    "macos/Shaders/manifest.json": "8b8d6538526b466bffbd16e30239d490420ba07804a9db0913e0e34dcdca04a9"
+  }
+}

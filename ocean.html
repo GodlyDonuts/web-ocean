@@ -7,6 +7,8 @@
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
   #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+  .fixed-view #c { cursor: default; }
+  .fixed-view #hud, .fixed-view #panel { display: none; }
   #hud { position: fixed; left: 12px; top: 10px; font: 12px/1.45 ui-monospace, Consolas, monospace; color: #e8e2d6;
          text-shadow: 0 1px 2px #000a; pointer-events: none; user-select: none; }
   #hud .help { opacity: .7; }
@@ -35,8 +37,8 @@ const LOGN = 8;
 const CASCADES = 6;
 const SKY_W = 256;      // sky-view LUT size
 const SKY_H = 144;
-const ENV_SIZE = 256;   // environment cube face size
-const ENV_MIPS = 9;
+const ENV_SIZE = 128;   // environment cube face size
+const ENV_MIPS = 8;
 
 // Per-frame uniform block shared by every render / sky shader.
 // Layout must match the Float32Array offsets in main.js (FR_* constants).
@@ -44,7 +46,7 @@ const FRAME_WGSL = /* wgsl */ `
 struct Frame {
   viewProj: mat4x4f,   // camera-relative view-projection (reverse-Z, infinite)
   camPos:   vec4f,     // xyz metres, w = time (s)
-  camRight: vec4f,     // xyz * tan(fovX/2)
+  camRight: vec4f,     // xyz * tan(fovX/2), w = environment update face
   camUp:    vec4f,     // xyz * tan(fovY/2)
   camFwd:   vec4f,     // xyz
   sunDir:   vec4f,     // xyz towards sun, w = solar illuminance scale
@@ -197,7 +199,7 @@ fn pfbm(p: vec2f, period: i32, oct: i32) -> f32 {
 `;
 
 // ---- js/wgsl/sim.js ----
-// FFT ocean simulation (Tessendorf) — 4 cascades of 256^2.
+// FFT ocean simulation (Tessendorf) — 6 cascades of 256^2.
 
 const SIM_STRUCT = /* wgsl */ `
 const N: u32 = ${N}u;
@@ -542,7 +544,7 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
 
 // World-space foam clipmaps (toroidally addressed, centred on the camera).
 // Foam is injected where the TOTAL surface Jacobian (all cascades) folds, then decays.
-const FOAM_RES = 1024;
+const FOAM_RES = 512;
 const FOAM_UPDATE = /* wgsl */ `
 const RES: i32 = ${FOAM_RES};
 struct FoamU {
@@ -1045,8 +1047,8 @@ fn faceDir(face: u32, uv: vec2f) -> vec3f {
 @compute @workgroup_size(8, 8, 1)
 fn main(@builtin(global_invocation_id) id: vec3u) {
   if (f32(id.x) >= ENV || f32(id.y) >= ENV) { return; }
-  // faces are refreshed round-robin: face = (frame + z) % 6
-  let face = (u32(F.post.z) + id.z) % 6u;
+  // Faces advance on environment updates, independently of the render rate.
+  let face = (u32(F.camRight.w) + id.z) % 6u;
   let dir = normalize(faceDir(face, (vec2f(id.xy) + 0.5) / ENV));
   var L: vec3f;
   if (dir.y >= 0.0) {
@@ -1061,7 +1063,8 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
 }
 `;
 
-const CUBE_MIPS = /* wgsl */ `
+const CUBE_MIPS = FRAME_WGSL + /* wgsl */ `
+@group(0) @binding(2) var<uniform> F: Frame;
 @group(0) @binding(0) var src: texture_2d_array<f32>;
 @group(0) @binding(1) var dst: texture_storage_2d_array<rgba16float, write>;
 @compute @workgroup_size(8, 8, 1)
@@ -1077,11 +1080,11 @@ fn main(@builtin(global_invocation_id) id: vec3u) {
     for (var i = -1; i <= 2; i++) {
       let q = clamp(p + vec2i(i, j), vec2i(0), srcSize - 1);
       let w = select(1.0, 3.0, i == 0 || i == 1) * select(1.0, 3.0, j == 0 || j == 1);
-      acc += textureLoad(src, q, id.z, 0) * w;
+      acc += textureLoad(src, q, (u32(F.camRight.w) + id.z) % 6u, 0) * w;
       wsum += w;
     }
   }
-  textureStore(dst, id.xy, id.z, acc / wsum);
+  textureStore(dst, id.xy, (u32(F.camRight.w) + id.z) % 6u, acc / wsum);
 }
 `;
 
@@ -1159,6 +1162,23 @@ struct VO { @builtin(position) pos: vec4f, @location(0) ndc: vec2f };
 }
 `;
 
+// A cheap background pass samples the slowly refreshed, view-aligned sky.
+const SKY_CACHED = /* wgsl */ `
+@group(0) @binding(0) var sky: texture_2d<f32>;
+@group(0) @binding(1) var samp: sampler;
+struct VO { @builtin(position) pos: vec4f, @location(0) uv: vec2f };
+@vertex fn vs(@builtin(vertex_index) i: u32) -> VO {
+  let p = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
+  var o: VO;
+  o.pos = vec4f(p * 2.0 - 1.0, 0.0, 1.0);
+  o.uv = vec2f(p.x, 1.0 - p.y);
+  return o;
+}
+@fragment fn fs(in: VO) -> @location(0) vec4f {
+  return textureSample(sky, samp, in.uv);
+}
+`;
+
 const OCEAN = FRAME_WGSL + ATMO_CORE_WGSL + RENDER_BINDINGS + /* wgsl */ `
 @group(0) @binding(4) var dispTex: texture_2d_array<f32>;
 @group(0) @binding(5) var derivTex: texture_2d_array<f32>;
@@ -1172,6 +1192,29 @@ const OCEAN = FRAME_WGSL + ATMO_CORE_WGSL + RENDER_BINDINGS + /* wgsl */ `
 const ENV_MAXMIP: f32 = ${ENV_MIPS - 1}.0;
 const ENV_TEXELS_PER_RAD: f32 = ${ENV_SIZE}.0 / 1.5708;
 const TEX_N: f32 = ${N}.0;
+
+// Cubic B-spline reconstruction of the coarse wave bands. Bilinear slopes
+// and slope moments expose square texel boundaries in glossy reflections.
+// Four hardware-filtered taps give continuous first derivatives across cells.
+fn cubicWave(t: texture_2d_array<f32>, uv: vec2f, layer: u32) -> vec4f {
+  let size = vec2f(textureDimensions(t, 0));
+  let p = uv * size - 0.5;
+  let base = floor(p);
+  let f = fract(p);
+  let w0 = (1.0 - f) * (1.0 - f) * (1.0 - f) / 6.0;
+  let w1 = (3.0 * f * f * f - 6.0 * f * f + 4.0) / 6.0;
+  let w2 = (-3.0 * f * f * f + 3.0 * f * f + 3.0 * f + 1.0) / 6.0;
+  let w3 = f * f * f / 6.0;
+  let g0 = w0 + w1;
+  let g1 = w2 + w3;
+  let h0 = (base - 1.0 + w1 / g0 + 0.5) / size;
+  let h1 = (base + 1.0 + w3 / g1 + 0.5) / size;
+  return mix(
+    mix(textureSampleLevel(t, sampR, h0, layer, 0.0),
+        textureSampleLevel(t, sampR, vec2f(h1.x, h0.y), layer, 0.0), g1.x),
+    mix(textureSampleLevel(t, sampR, vec2f(h0.x, h1.y), layer, 0.0),
+        textureSampleLevel(t, sampR, h1, layer, 0.0), g1.x), g1.y);
+}
 
 struct VSOut {
   @builtin(position) pos: vec4f,
@@ -1196,7 +1239,12 @@ struct VSOut {
     let texel = F.cascL[c >> 2u][c & 3u] / TEX_N;
     let lod = log2(max(eff / texel, 1.0)) + 0.5;
     if (lod < 8.0) {
-      disp += textureSampleLevel(dispTex, sampR, xz * F.cascInvL[c >> 2u][c & 3u], c, lod).xyz;
+      let uv = xz * F.cascInvL[c >> 2u][c & 3u];
+      var wave = textureSampleLevel(dispTex, sampR, uv, c, lod);
+      if (c < 2u && lod < 1.0) {
+        wave = mix(cubicWave(dispTex, uv, c), wave, smoothstep(0.0, 1.0, lod));
+      }
+      disp += wave.xyz;
     }
   }
   var o: VSOut;
@@ -1233,7 +1281,16 @@ fn foamPattern(xz: vec2f, t: f32) -> f32 {
 }
 
 @fragment fn fs(in: VSOut) -> @location(0) vec4f {
+  if (F.post.w > 7.5 && F.post.w < 8.5) { return vec4f(0.01, 0.02, 0.03, 1.0); }
   let xz = in.xz;
+  // Derive a continuous ocean footprint from the viewing ray. Implicit UV
+  // derivatives change at the displaced mesh's triangle and LOD boundaries.
+  let ndc = vec2f(in.pos.x * F.screen.z * 2.0 - 1.0, 1.0 - in.pos.y * F.screen.w * 2.0);
+  let ray = F.camFwd.xyz + ndc.x * F.camRight.xyz + ndc.y * F.camUp.xyz;
+  let rayY = min(ray.y, -0.005);
+  let rayT = length(in.rel) / length(ray);
+  let oceanDx = rayT * (F.camRight.xz - ray.xz * F.camRight.y / rayY) * (2.0 * F.screen.z);
+  let oceanDy = rayT * (F.camUp.xz - ray.xz * F.camUp.y / rayY) * (2.0 * F.screen.w);
   var s = vec2f(0.0);
   var jxx = 0.0;
   var jzz = 0.0;
@@ -1245,9 +1302,21 @@ fn foamPattern(xz: vec2f, t: f32) -> f32 {
   for (var c = 0u; c < ${CASCADES}u; c++) {
     let uv = xz * F.cascInvL[c >> 2u][c & 3u];
     let gk = mix(1.0, gust, select(0.0, select(0.5, 1.0, c >= 4u), c >= 3u));
-    let dv = textureSample(derivTex, sampR, uv, c) * gk;
-    let mv = textureSample(momTex, sampR, uv, c) * (gk * gk);
-    let av = textureSample(dispTex, sampR, uv, c) * gk;
+    let dx = oceanDx * F.cascInvL[c >> 2u][c & 3u];
+    let dy = oceanDy * F.cascInvL[c >> 2u][c & 3u];
+    var dv = textureSampleGrad(derivTex, sampR, uv, c, dx, dy);
+    var mv = textureSampleGrad(momTex, sampR, uv, c, dx, dy);
+    var av = textureSampleGrad(dispTex, sampR, uv, c, dx, dy);
+    let footprint = max(length(dx), length(dy)) * TEX_N;
+    if (c < 2u) {
+      let blend = smoothstep(1.0, 2.0, footprint);
+      dv = mix(cubicWave(derivTex, uv, c), dv, blend);
+      mv = mix(cubicWave(momTex, uv, c), mv, blend);
+      av = mix(cubicWave(dispTex, uv, c), av, blend);
+    }
+    dv *= gk;
+    mv *= gk * gk;
+    av *= gk;
     s += dv.xy;
     jxx += dv.z;
     jzz += dv.w;
@@ -1267,11 +1336,9 @@ fn foamPattern(xz: vec2f, t: f32) -> f32 {
   let jz = max(1.0 + jzz, 0.15);
   let sl = vec2f(s.x / jx, s.y / jz);
   let nrm = normalize(vec3f(-sl.x, 1.0, -sl.y));
-  // specular anti-aliasing: slope variation across the pixel widens the lobe
-  let dsx = dpdx(sl);
-  let dsy = dpdy(sl);
-  let aa = vec3f(dsx.x * dsx.x + dsy.x * dsy.x, dsx.y * dsx.y + dsy.y * dsy.y, dsx.x * dsx.y + dsy.x * dsy.y) * 0.5;
-  cov += aa * min(1.0, 0.03 / max(max(aa.x, aa.y), 1e-8));
+  // The mip-filtered slope moments already account for unresolved variation.
+  // Screen derivatives of the interpolated slopes jump at mesh/LOD edges and
+  // introduce a stationary grid into roughness and reflected light.
   let J = (1.0 + jxx) * (1.0 + jzz) - jxz * jxz;
 
   let sunE = sunIlluminance() * sunVis[0];
@@ -1552,7 +1619,7 @@ fn ign(p: vec2f) -> f32 { return fract(52.9829189 * fract(dot(p, vec2f(0.0671105
 
 // ---- js/main.js ----
 // WebGPU ocean — custom renderer.
-// FFT ocean (5 cascades) + CDLOD surface mesh + physically based sky + HDR post.
+// FFT ocean (6 cascades) + CDLOD surface mesh + physically based sky + HDR post.
 // All per-frame data lives in preallocated typed arrays / descriptors (no per-frame garbage
 // apart from the unavoidable swap-chain view and command buffer objects).
 
@@ -1562,6 +1629,11 @@ fn ign(p: vec2f) -> f32 { return fract(52.9829189 * fract(dot(p, vec2f(0.0671105
 
 const qs = new URLSearchParams(location.search);
 const DBG = Number(qs.get('dbg')) || 0;
+const fixedView = qs.get('fixed') === '1';
+const economical = fixedView && qs.get('quality') !== 'high';
+const targetFPS = Math.max(1, Math.min(60, Number(qs.get('fps')) || (economical ? 24 : 60)));
+const maxPixels = economical ? 1280 * 800 : Infinity;
+if (fixedView) document.documentElement.classList.add('fixed-view');
 const D2R = Math.PI / 180;
 const GU = GPUBufferUsage;
 const TU = GPUTextureUsage;
@@ -1598,6 +1670,10 @@ function fail(msg) {
   throw new Error(msg);
 }
 function log(msg) {
+  if (/GPU error|FATAL|init failed|device lost/.test(msg)) {
+    (window.oceanErrors ||= []).push(msg);
+    window.oceanErrors = window.oceanErrors.slice(-20);
+  }
   console.log(msg);
   try { fetch('/__log', { method: 'POST', body: String(msg) }).catch(() => {}); } catch (e) { /* offline */ }
 }
@@ -1617,7 +1693,7 @@ function mat4Mul(out, a, b) {
 
 async function main() {
   if (!navigator.gpu) fail('WebGPU is not available in this browser.');
-  const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+  const adapter = await navigator.gpu.requestAdapter({ powerPreference: economical ? 'low-power' : 'high-performance' });
   if (!adapter) fail('No WebGPU adapter found.');
   const hasTS = adapter.features.has('timestamp-query');
   const device = await adapter.requestDevice({
@@ -1776,7 +1852,7 @@ async function main() {
   });
   const sampRepeat = device.createSampler({
     magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear',
-    addressModeU: 'repeat', addressModeV: 'repeat', maxAnisotropy: 16,
+    addressModeU: 'repeat', addressModeV: 'repeat', maxAnisotropy: 4,
   });
   const frameUBO = mkBuf(384, GU.UNIFORM | GU.COPY_DST, 'frame ubo');
   const sunVisBuf = mkBuf(16, GU.STORAGE, 'sun visibility');
@@ -1790,15 +1866,15 @@ async function main() {
   const bgEnv = bg(envPipe, [{ buffer: frameUBO }, transView, skyView, sampClamp, lvl(envTex, 0)], 'env');
   const bgSunVis = bg(sunVisPipe, [{ buffer: frameUBO }, transView, skyView, sampClamp, { buffer: sunVisBuf }], 'sunvis');
   const bgCubeMips = [];
-  for (let m = 1; m < ENV_MIPS; m++) bgCubeMips.push(bg(cubeMipPipe, [lvl(envTex, m - 1), lvl(envTex, m)], 'cubemip' + m));
+  for (let m = 1; m < ENV_MIPS; m++) bgCubeMips.push(bg(cubeMipPipe, [lvl(envTex, m - 1), lvl(envTex, m), { buffer: frameUBO }], 'cubemip' + m));
 
   // --------------------------------------------------------------------------------------
   // Render pipelines
   // --------------------------------------------------------------------------------------
   const MSAA = 4;
   const HDR = 'rgba16float';
-  const [oceanMod, skyMod, downMod, upMod, compMod] = await Promise.all([
-    shader(OCEAN, 'ocean'), shader(SKY_BG, 'sky'), shader(BLOOM_DOWN, 'bloom down'),
+  const [oceanMod, skyMod, cachedSkyMod, downMod, upMod, compMod] = await Promise.all([
+    shader(OCEAN, 'ocean'), shader(SKY_BG, 'sky'), shader(SKY_CACHED, 'cached sky'), shader(BLOOM_DOWN, 'bloom down'),
     shader(BLOOM_UP, 'bloom up'), shader(COMPOSITE, 'composite'),
   ]);
   const oceanPipe = await device.createRenderPipelineAsync({
@@ -1814,12 +1890,18 @@ async function main() {
   });
   const skyPipe = await device.createRenderPipelineAsync({
     label: 'sky', layout: 'auto',
-    vertex: { module: skyMod, entryPoint: 'vs' },
-    fragment: { module: skyMod, entryPoint: 'fs', targets: [{ format: HDR }] },
+    vertex: { module: economical ? cachedSkyMod : skyMod, entryPoint: 'vs' },
+    fragment: { module: economical ? cachedSkyMod : skyMod, entryPoint: 'fs', targets: [{ format: HDR }] },
     primitive: { topology: 'triangle-list' },
     depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'equal' },
     multisample: { count: MSAA },
   });
+  const skyCachePipe = economical ? await device.createRenderPipelineAsync({
+    label: 'sky cache', layout: 'auto',
+    vertex: { module: skyMod, entryPoint: 'vs' },
+    fragment: { module: skyMod, entryPoint: 'fs', targets: [{ format: HDR }] },
+    primitive: { topology: 'triangle-list' },
+  }) : null;
   const downPipe = await device.createRenderPipelineAsync({
     label: 'bloom down', layout: 'auto',
     vertex: { module: downMod, entryPoint: 'vs' },
@@ -1842,7 +1924,8 @@ async function main() {
   const bgOcean = [0, 1].map((i) => bg(oceanPipe, [{ buffer: frameUBO }, transView, skyView, sampClamp,
     fullArr(dispTex), fullArr(derivTex), fullArr(momTex), foamTex.createView(), envCubeView, sampRepeat,
     fullArr(foamW[i]), { buffer: sunVisBuf }], 'ocean' + i));
-  const bgSky = bg(skyPipe, [{ buffer: frameUBO }, transView, skyView, sampClamp], 'sky');
+  const bgSky = bg(skyCachePipe || skyPipe, [{ buffer: frameUBO }, transView, skyView, sampClamp], 'sky');
+  let bgCachedSky = null;
 
   // Water height under the camera (async readback, a few frames of latency) so the
   // floating camera rides above passing crests instead of clipping into them.
@@ -1859,8 +1942,8 @@ async function main() {
   const onProbeFail = () => { probePending = false; };
 
   // CDLOD grid mesh
-  const GRID = 32;
-  const LEAF = 2.0;           // finest node size (m) -> 6.25 cm vertex spacing
+  const GRID = economical ? 16 : 32;
+  const LEAF = economical ? 4.0 : 2.0; // 25 cm spacing in preview, 6.25 cm in high quality
   const R0 = 8 * LEAF;        // LOD 0 range
   const LODS = 17;
   const MAX_DIST = 160000;
@@ -1884,7 +1967,7 @@ async function main() {
   // --------------------------------------------------------------------------------------
   // Screen-size dependent targets
   // --------------------------------------------------------------------------------------
-  const BLOOM_LEVELS = 8;
+  const BLOOM_LEVELS = 6;
   const linSamp = device.createSampler({ magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
   const compUBO = mkBuf(32, GU.UNIFORM | GU.COPY_DST, 'composite ubo');
   const compData = new Float32Array(8);
@@ -1892,7 +1975,8 @@ async function main() {
   for (let i = 0; i < BLOOM_LEVELS * 2; i++) bloomUBOs.push(mkBuf(16, GU.UNIFORM | GU.COPY_DST, 'bloom ubo'));
 
   let W = 0, H = 0;
-  let colorMS, depthMS, hdrTex, bloomTex;
+  let colorMS, depthMS, hdrTex, bloomTex, cachedSkyTex;
+  let skyCachePass = null, skyCacheDirty = true, meshDirty = true;
   const mainPass = {
     colorAttachments: [{ view: null, resolveTarget: null, clearValue: { r: 0, g: 0, b: 0, a: 1 }, loadOp: 'clear', storeOp: 'discard' }],
     depthStencilAttachment: { view: null, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
@@ -1906,12 +1990,26 @@ async function main() {
   function resize() {
     const fw = Number(qs.get('w')) || 0, fh = Number(qs.get('h')) || 0;
     const dpr = window.devicePixelRatio || 1;
-    const w = fw || Math.max(1, Math.round(canvas.clientWidth * dpr));
-    const h = fh || Math.max(1, Math.round(canvas.clientHeight * dpr));
+    const nativeW = Math.max(1, canvas.clientWidth * dpr);
+    const nativeH = Math.max(1, canvas.clientHeight * dpr);
+    const scale = Math.min(1, Math.sqrt(maxPixels / (nativeW * nativeH)));
+    const w = fw || Math.max(1, Math.round(nativeW * scale));
+    const h = fh || Math.max(1, Math.round(nativeH * scale));
     if (w === W && h === H) return;
     W = w; H = h;
+    meshDirty = true;
     canvas.width = W; canvas.height = H;
-    for (const t of [colorMS, depthMS, hdrTex, bloomTex]) t && t.destroy();
+    for (const t of [colorMS, depthMS, hdrTex, bloomTex, cachedSkyTex]) t && t.destroy();
+    if (economical) {
+      cachedSkyTex = device.createTexture({
+        size: [Math.max(1, Math.round(W * 0.75)), Math.max(1, Math.round(H * 0.75))],
+        format: HDR, usage: TU.RENDER_ATTACHMENT | TU.TEXTURE_BINDING,
+      });
+      const view = cachedSkyTex.createView();
+      skyCachePass = { colorAttachments: [{ view, loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 1 } }] };
+      bgCachedSky = bg(skyPipe, [view, sampClamp], 'cached sky');
+      skyCacheDirty = true;
+    }
     colorMS = device.createTexture({ size: [W, H], format: HDR, sampleCount: MSAA, usage: TU.RENDER_ATTACHMENT });
     depthMS = device.createTexture({ size: [W, H], format: 'depth32float', sampleCount: MSAA, usage: TU.RENDER_ATTACHMENT });
     hdrTex = device.createTexture({ size: [W, H], format: HDR, usage: TU.RENDER_ATTACHMENT | TU.TEXTURE_BINDING });
@@ -2001,25 +2099,28 @@ async function main() {
   }
   if (qs.get('fov')) cam.fovY = Number(qs.get('fov')) * D2R;
   const keys = Object.create(null);
-  addEventListener('keydown', (e) => { keys[e.code] = true; if (e.code === 'KeyH') togglePanel(); });
-  addEventListener('keyup', (e) => { keys[e.code] = false; });
-  addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
-  canvas.addEventListener('click', () => { if (document.pointerLockElement !== canvas) canvas.requestPointerLock(); });
-  let dragging = false;
-  canvas.addEventListener('mousedown', (e) => { if (e.button === 2) dragging = true; });
-  addEventListener('mouseup', () => { dragging = false; });
-  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-  addEventListener('mousemove', (e) => {
-    if (document.pointerLockElement === canvas || dragging) {
-      cam.yaw += e.movementX * 0.0022;
-      cam.pitch = Math.max(-1.5, Math.min(1.5, cam.pitch - e.movementY * 0.0022));
-    }
-  });
-  addEventListener('wheel', (e) => {
-    cam.speed = Math.max(0.5, Math.min(400, cam.speed * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
-  }, { passive: true });
+  if (!fixedView) {
+    addEventListener('keydown', (e) => { keys[e.code] = true; if (e.code === 'KeyH') togglePanel(); });
+    addEventListener('keyup', (e) => { keys[e.code] = false; });
+    addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+    canvas.addEventListener('click', () => { if (document.pointerLockElement !== canvas) canvas.requestPointerLock(); });
+    let dragging = false;
+    canvas.addEventListener('mousedown', (e) => { if (e.button === 2) dragging = true; });
+    addEventListener('mouseup', () => { dragging = false; });
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    addEventListener('mousemove', (e) => {
+      if (document.pointerLockElement === canvas || dragging) {
+        cam.yaw += e.movementX * 0.0022;
+        cam.pitch = Math.max(-1.5, Math.min(1.5, cam.pitch - e.movementY * 0.0022));
+      }
+    });
+    addEventListener('wheel', (e) => {
+      cam.speed = Math.max(0.5, Math.min(400, cam.speed * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
+    }, { passive: true });
+  }
 
   function updateCamera(dt) {
+    if (fixedView) return;
     const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
     let mx = 0, my = 0, mz = 0;
     const fwd = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
@@ -2107,7 +2208,7 @@ async function main() {
   // Per-frame uniforms
   // --------------------------------------------------------------------------------------
   let simTime = Number(qs.get('t')) || 0;
-  let frameIndex = 0;
+  let frameIndex = 0, envFace = 0;
 
   function writeFrame(time) {
     const aspect = W / H;
@@ -2128,7 +2229,7 @@ async function main() {
     const f = frameF;
     f.set(viewProj, 0);
     f[16] = cam.x; f[17] = cam.y; f[18] = cam.z; f[19] = time;
-    f[20] = rx * tanX; f[21] = ry * tanX; f[22] = rz * tanX; f[23] = 0;
+    f[20] = rx * tanX; f[21] = ry * tanX; f[22] = rz * tanX; f[23] = envFace;
     f[24] = ux * tanY; f[25] = uy * tanY; f[26] = uz * tanY; f[27] = 0;
     f[28] = fx; f[29] = fy; f[30] = fz; f[31] = 0;
     const se = P.sunElev * D2R, sa = P.sunAzim * D2R;
@@ -2206,6 +2307,9 @@ async function main() {
   let last = performance.now();
   let fpsAcc = 0, fpsN = 0, fpsT = 0;
   let shooting = false;
+  let gpuBusy = false, nextFrameAt = 0;
+  const stats = window.oceanStats = { frames: 0, gpuMs: 0, width: 0, height: 0, triangles: 0 };
+  let lastSkyUpdate = -Infinity, lastEnvUpdate = -Infinity, lastSkyCacheUpdate = -Infinity;
 
   function encodeSim(cp) {
     cp.setPipeline(evolvePipe);
@@ -2260,6 +2364,11 @@ async function main() {
   function frame(now) {
     if (shooting) return;  // paused while a screenshot is read back
     requestAnimationFrame(frame);
+    // Do not build up GPU work or render while the preview is hidden/minimized.
+    if (document.hidden || window.oceanPaused) { last = now; nextFrameAt = now; return; }
+    if (gpuBusy || (!fixedDt && now + 0.5 < nextFrameAt)) return;
+    const interval = 1000 / targetFPS;
+    nextFrameAt = now + interval - (Math.max(0, now - nextFrameAt) % interval);
     resize();
     let dt = Math.min(0.1, (now - last) / 1000);
     last = now;
@@ -2275,14 +2384,21 @@ async function main() {
     simTime += dt;
     if (simTime > LOOP) simTime -= LOOP;
     frameIndex++;
+    stats.frames = frameIndex;
+    stats.gpuMs = gpuMs;
+    stats.width = W; stats.height = H;
 
     writeFrame(simTime);
     writeSimStatic();
     simF[52] = simTime; simF[53] = dt;
     device.queue.writeBuffer(simUBO, 0, simF);
     writeFoamUniforms(dt);
-    selectAll();
-    if (nodeCount) device.queue.writeBuffer(instBuf, 0, instData, 0, nodeCount * 4);
+    if (!fixedView || meshDirty) {
+      selectAll();
+      if (nodeCount) device.queue.writeBuffer(instBuf, 0, instData, 0, nodeCount * 4);
+      meshDirty = false;
+      stats.triangles = GRID * GRID * 2 * nodeCount;
+    }
 
     const enc = device.createCommandEncoder();
     const cp = enc.beginComputePass(computeDesc);
@@ -2304,28 +2420,47 @@ async function main() {
       needLUT = false;
     }
     encodeSim(cp);
-    cp.setPipeline(probePipe);
-    cp.setBindGroup(0, bgProbe);
-    cp.dispatchWorkgroups(1);
-    cp.setPipeline(skyViewPipe);
-    cp.setBindGroup(0, bgSkyView);
-    cp.dispatchWorkgroups(Math.ceil(SKY_W / 8), Math.ceil(SKY_H / 8));
-    cp.setPipeline(sunVisPipe);
-    cp.setBindGroup(0, bgSunVis);
-    cp.dispatchWorkgroups(1);
-    cp.setPipeline(envPipe);
-    cp.setBindGroup(0, bgEnv);
-    // one cube face per frame (all six on start-up / after parameter changes)
-    cp.dispatchWorkgroups(ENV_SIZE / 8, ENV_SIZE / 8, envFull > 0 ? 6 : 1);
-    if (envFull > 0) envFull--;
-    cp.setPipeline(cubeMipPipe);
-    for (let m = 1; m < ENV_MIPS; m++) {
-      const s = Math.max(1, ENV_SIZE >> m);
-      cp.setBindGroup(0, bgCubeMips[m - 1]);
-      cp.dispatchWorkgroups(Math.ceil(s / 8), Math.ceil(s / 8), 6);
+    if (!fixedView) {
+      cp.setPipeline(probePipe);
+      cp.setBindGroup(0, bgProbe);
+      cp.dispatchWorkgroups(1);
+    }
+    if (envFull > 0 || now - lastSkyUpdate >= 250) {
+      lastSkyUpdate = now;
+      cp.setPipeline(skyViewPipe);
+      cp.setBindGroup(0, bgSkyView);
+      cp.dispatchWorkgroups(Math.ceil(SKY_W / 8), Math.ceil(SKY_H / 8));
+      cp.setPipeline(sunVisPipe);
+      cp.setBindGroup(0, bgSunVis);
+      cp.dispatchWorkgroups(1);
+    }
+    if (envFull > 0 || now - lastEnvUpdate >= 100) {
+      lastEnvUpdate = now;
+      const envFaces = envFull > 0 ? 6 : 1;
+      cp.setPipeline(envPipe);
+      cp.setBindGroup(0, bgEnv);
+      // Only rebuild the refreshed face and its mip chain.
+      cp.dispatchWorkgroups(ENV_SIZE / 8, ENV_SIZE / 8, envFaces);
+      if (envFull > 0) envFull--;
+      envFace = (envFace + 1) % 6;
+      cp.setPipeline(cubeMipPipe);
+      for (let m = 1; m < ENV_MIPS; m++) {
+        const s = Math.max(1, ENV_SIZE >> m);
+        cp.setBindGroup(0, bgCubeMips[m - 1]);
+        cp.dispatchWorkgroups(Math.ceil(s / 8), Math.ceil(s / 8), envFaces);
+      }
     }
     cp.end();
 
+    if (economical && (skyCacheDirty || envFull > 0 || now - lastSkyCacheUpdate >= 125)) {
+      const sp = enc.beginRenderPass(skyCachePass);
+      sp.setPipeline(skyCachePipe);
+      sp.setBindGroup(0, bgSky);
+      sp.draw(3);
+      sp.end();
+      skyCacheDirty = false;
+      lastSkyCacheUpdate = now;
+    }
     const rp = enc.beginRenderPass(mainPass);
     if (nodeCount) {
       rp.setPipeline(oceanPipe);
@@ -2335,7 +2470,7 @@ async function main() {
       rp.drawIndexed(GRID * GRID * 6, nodeCount);
     }
     rp.setPipeline(skyPipe);
-    rp.setBindGroup(0, bgSky);
+    rp.setBindGroup(0, economical ? bgCachedSky : bgSky);
     rp.draw(3);
     rp.end();
 
@@ -2366,7 +2501,7 @@ async function main() {
     pc.end();
 
     let doProbe = false;
-    if (!probePending && (frameIndex & 7) === 0) {
+    if (!fixedView && !probePending && (frameIndex & 7) === 0) {
       enc.copyBufferToBuffer(probeOut, 0, probeRead, 0, 16);
       doProbe = true;
     }
@@ -2386,6 +2521,8 @@ async function main() {
     }
     submitList[0] = enc.finish();
     device.queue.submit(submitList);
+    gpuBusy = true;
+    device.queue.onSubmittedWorkDone().then(() => { gpuBusy = false; }, () => { gpuBusy = false; });
     if (doProbe) { probePending = true; probeRead.mapAsync(GPUMapMode.READ).then(onProbe, onProbeFail); }
     if (doTs) { tsPending = true; tsRead.mapAsync(GPUMapMode.READ).then(onTsMapped, onTsFail); }
     if (readBuf) saveShot(readBuf, Math.ceil(W * 4 / 256) * 256, true);

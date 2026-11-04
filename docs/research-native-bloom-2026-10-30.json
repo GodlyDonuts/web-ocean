@@ -1,0 +1,211 @@
+{
+  "evidence": "CPU mathematical support model only. Not an image-quality, GPU, power or OS-visibility result.",
+  "sourceSnapshot": "current local native renderer",
+  "width": 1280,
+  "height": 800,
+  "planningTile": 32,
+  "nativeBloomLevels": 6,
+  "nativeBloomExtents": [
+    [
+      640,
+      400
+    ],
+    [
+      320,
+      200
+    ],
+    [
+      160,
+      100
+    ],
+    [
+      80,
+      50
+    ],
+    [
+      40,
+      25
+    ],
+    [
+      20,
+      12
+    ]
+  ],
+  "compositeBloomScale": 0.125,
+  "firstDownsampleUsesNonlinearKarisWeights": true,
+  "candidateSplit": {
+    "localLevelCount": 4,
+    "firstGlobalLevelIndex": 4,
+    "globalProxyExtent": [
+      40,
+      25
+    ],
+    "status": "Unimplemented appearance approximation. Direct coarse shading does not equal filtered detailed HDR; glint energy and nonlinear Karis weighting require validation."
+  },
+  "scenarios": [
+    {
+      "mosaic4x3": {
+        "visibleTileCount": 12,
+        "visibleOutputFraction": 1.0,
+        "nativeBloomHDRSupportFraction": 1.0,
+        "evidence": "Ideal whole-tile classification against synthetic proven opaque regions. Actual macOS per-tile behavior has not been measured."
+      },
+      "scenario": "all_visible",
+      "visiblePixels": 1024000,
+      "visibleFraction": 1.0,
+      "supportByBloomLevels": {
+        "4": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        },
+        "6": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        },
+        "8": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        }
+      }
+    },
+    {
+      "mosaic4x3": {
+        "visibleTileCount": 10,
+        "visibleOutputFraction": 0.83375,
+        "nativeBloomHDRSupportFraction": 1.0,
+        "evidence": "Ideal whole-tile classification against synthetic proven opaque regions. Actual macOS per-tile behavior has not been measured."
+      },
+      "scenario": "confirmed_opaque_center",
+      "visiblePixels": 249856,
+      "visibleFraction": 0.244,
+      "supportByBloomLevels": {
+        "4": {
+          "requiredHDRPixels": 510064,
+          "requiredHDRFraction": 0.498109375
+        },
+        "6": {
+          "requiredHDRPixels": 1005424,
+          "requiredHDRFraction": 0.981859375
+        },
+        "8": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        }
+      }
+    },
+    {
+      "mosaic4x3": {
+        "visibleTileCount": 3,
+        "visibleOutputFraction": 0.25,
+        "nativeBloomHDRSupportFraction": 0.4984375,
+        "evidence": "Ideal whole-tile classification against synthetic proven opaque regions. Actual macOS per-tile behavior has not been measured."
+      },
+      "scenario": "left_quarter",
+      "visiblePixels": 256000,
+      "visibleFraction": 0.25,
+      "supportByBloomLevels": {
+        "4": {
+          "requiredHDRPixels": 318400,
+          "requiredHDRFraction": 0.3109375
+        },
+        "6": {
+          "requiredHDRPixels": 510400,
+          "requiredHDRFraction": 0.4984375
+        },
+        "8": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        }
+      }
+    },
+    {
+      "mosaic4x3": {
+        "visibleTileCount": 4,
+        "visibleOutputFraction": 0.33375,
+        "nativeBloomHDRSupportFraction": 0.8375,
+        "evidence": "Ideal whole-tile classification against synthetic proven opaque regions. Actual macOS per-tile behavior has not been measured."
+      },
+      "scenario": "top_strip",
+      "visiblePixels": 204800,
+      "visibleFraction": 0.2,
+      "supportByBloomLevels": {
+        "4": {
+          "requiredHDRPixels": 304640,
+          "requiredHDRFraction": 0.2975
+        },
+        "6": {
+          "requiredHDRPixels": 652800,
+          "requiredHDRFraction": 0.6375
+        },
+        "8": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        }
+      }
+    },
+    {
+      "mosaic4x3": {
+        "visibleTileCount": 12,
+        "visibleOutputFraction": 1.0,
+        "nativeBloomHDRSupportFraction": 1.0,
+        "evidence": "Ideal whole-tile classification against synthetic proven opaque regions. Actual macOS per-tile behavior has not been measured."
+      },
+      "scenario": "unknown_opacity",
+      "visiblePixels": 1024000,
+      "visibleFraction": 1.0,
+      "supportByBloomLevels": {
+        "4": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        },
+        "6": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        },
+        "8": {
+          "requiredHDRPixels": 1024000,
+          "requiredHDRFraction": 1.0
+        }
+      }
+    },
+    {
+      "mosaic4x3": {
+        "visibleTileCount": 0,
+        "visibleOutputFraction": 0.0,
+        "nativeBloomHDRSupportFraction": 0.0,
+        "evidence": "Ideal whole-tile classification against synthetic proven opaque regions. Actual macOS per-tile behavior has not been measured."
+      },
+      "scenario": "authoritatively_hidden",
+      "visiblePixels": 0,
+      "visibleFraction": 0.0,
+      "supportByBloomLevels": {
+        "4": {
+          "requiredHDRPixels": 0,
+          "requiredHDRFraction": 0.0
+        },
+        "6": {
+          "requiredHDRPixels": 0,
+          "requiredHDRFraction": 0.0
+        },
+        "8": {
+          "requiredHDRPixels": 0,
+          "requiredHDRFraction": 0.0
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Only already-proven opaque synthetic regions may remove demand. Unknown opacity stays visible.",
+    "Bilinear support includes zero-weight neighbors at exact mathematical centers, but GPU interpolation/UV roundoff is not simulated. Production masks need conservative numerical guards and GPU impulse validation.",
+    "4-level and split bloom are different filters/representations, not bit-identical performance optimizations.",
+    "Keep the native 0.125 composite scale when isolating another change; altering normalization is a separate appearance change.",
+    "All-hidden demand is zero; no partly visible surface is treated as fully hidden."
+  ],
+  "sources": {
+    "macos/OceanRenderer.swift": "8be2e963da12d04a685c465d5bcb346da3f7b766e40e4a61a9ac245e9a6619bd",
+    "macos/Shaders/BLOOM_DOWN.metal": "fc86dc9bed4b77b2669df3b03d8b9db33848309808bf701c91abc4dccd79da11",
+    "macos/Shaders/BLOOM_UP.metal": "1b57c28a28a22bc0a9683ccff990fbeaa643cf117fbf03f3b54a7e043850c607",
+    "macos/Shaders/COMPOSITE.metal": "7d6edd463717278b8c5336405f9b2d7d30bc32bb58e1cdf2c3da46ef40844533",
+    "research/2026-10-30-ocean/prototypes/demand_planner.py": "8dd873af153bd0b9c785b4d92add7c139f16a0daba369bbefd822ab6679ae671"
+  }
+}

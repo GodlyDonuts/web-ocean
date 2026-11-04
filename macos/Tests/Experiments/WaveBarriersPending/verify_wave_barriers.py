@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Exact GPU comparison of interleaved wave mip barriers, including all bloom levels."""
+import json
+from pathlib import Path
+import subprocess
+root = Path(__file__).resolve().parents[2]
+app = root/'macos/build/Ocean.app/Contents/MacOS/Ocean'
+output = root/'macos/build/quality-wave-barriers'
+output.mkdir(exist_ok=True)
+report = output/'report.json'
+report.unlink(missing_ok=True)
+cases = {
+    'sunset':{}, 'phase45':{'time':45}, 'phase120':{'time':120},
+    'daylight':{'sunElev':35,'clouds':0.1},
+    'storm':{'windSpeed':12,'swellHs':2.5,'clouds':1,'veil':1,'haze':8},
+    'clear':{'clouds':0,'veil':0}, 'low_only':{'veil':0}, 'high_only':{'clouds':0},
+    'ultrawide':{'renderWidth':1908,'renderHeight':537,'time':30},
+    'portrait':{'renderWidth':759,'renderHeight':1349,'time':15},
+    'index_fallback':{'renderWidth':62,'renderHeight':16384,'time':5},
+    'stable':{'time':600.05}, 'month':{'time':2592000},
+    'narrow_stable':{'renderWidth':253,'renderHeight':4048,'time':600.05},
+}
+results=[]
+for name,settings in cases.items():
+    captures=[]; paths=[]
+    for enabled in (False,True):
+        path=output/f'{name}-{int(enabled)}.rgba16f'
+        paths.append(path)
+        for suffix in ('','.bgra8','.mips','.clouds','.bloom'): Path(str(path)+suffix).unlink(missing_ok=True)
+        query={'fixedDt':'0.0333333333','dump':str(path),'dumpMips':1,'dumpClouds':1,'dumpBloom':1,'interleavedWaveMips':int(enabled),**settings}
+        process=subprocess.run([str(app),'--verify','--query='+'&'.join(f'{k}={v}' for k,v in query.items())],cwd=root,capture_output=True,text=True,timeout=90)
+        assert process.returncode==0,process.stdout+'\n'+process.stderr
+        diagnostic=[line.removeprefix('Ocean diagnostics: ') for line in process.stdout.splitlines() if line.startswith('Ocean diagnostics: ')]
+        assert len(diagnostic)==1
+        data=json.loads(diagnostic[0]);assert not data['errors'] and data['interleavedWaveMips']==enabled
+        assert data['renderTextureUsage']==[5]*8, data['renderTextureUsage']
+        captures.append({suffix:Path(str(path)+suffix).read_bytes() for suffix in ('','.bgra8','.mips','.clouds','.bloom')})
+    counts={}
+    for suffix in captures[0]:
+        a,b=captures[0][suffix],captures[1][suffix]
+        assert a and len(a)==len(b),(name,suffix,len(a),len(b))
+        assert a==b,(name,suffix,sum(x!=y for x,y in zip(a,b)))
+        counts[suffix or 'HDR']=len(a)
+    result={'case':name,'comparedBytes':counts,'changedBytes':0,'width':data['width'],'height':data['height'],'waveMipThreadgroupBytes':data['waveMipThreadgroupBytes']}
+    results.append(result);print(json.dumps(result),flush=True)
+    for path in paths:
+        for suffix in captures[0]: Path(str(path)+suffix).unlink()
+report.write_text(json.dumps({'passed':True,'cases':results},indent=2)+'\n')
+print('PASS: HDR, display, wave/foam mips, sky/environment/sun and all six bloom levels are bit-identical.',flush=True)

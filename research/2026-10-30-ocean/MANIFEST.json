@@ -1,0 +1,104 @@
+{
+  "source_repository": "https://github.com/GodlyDonuts/web-ocean",
+  "source_branch": "feature/native-macos-wallpaper",
+  "source_commit": "8739f0793f84b96cb87a21558a117e1714184ad7",
+  "prepared_date": "2026-10-30",
+  "validation": "17 CPU unit tests passed; source-JavaScript CDLOD counts and independent CPU FFT/DFT checks passed. WGSL and Swift remain uncompiled; no GPU or macOS performance measurements.",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 9626,
+      "sha256": "a92dfd26ffa7d851ca2957caf198d7b76cd44d3982c5600f7dadb7b8c09512d6"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 28,
+      "sha256": "bde68ffcfb53dd010e2ca394340aee83803b9f8e90ecfb32b1c600cd4d3db081"
+    },
+    {
+      "path": "prototypes/OcclusionProbe-README.md",
+      "bytes": 4929,
+      "sha256": "ece8fbc77399ac574d314c5ec709c76b04c98df319eed5ae28de30588affd55d"
+    },
+    {
+      "path": "prototypes/OcclusionProbe.swift",
+      "bytes": 16429,
+      "sha256": "f634a24d1ad20bb266cc5f73750d21458f65e1e56137239002300c0435519f99"
+    },
+    {
+      "path": "prototypes/build-occlusion-probe.sh",
+      "bytes": 1549,
+      "sha256": "e1117c11c8547f14436bd8b105f8860180e4f4d9ef20fe096ebd20f1c9d7bb0f"
+    },
+    {
+      "path": "prototypes/check_fused_evolve_rows.py",
+      "bytes": 8728,
+      "sha256": "8c1b682ce09a671be560b4ffd833b36289fe4c0458fd1abeabda2e0b6a686624"
+    },
+    {
+      "path": "prototypes/demand_planner.py",
+      "bytes": 9566,
+      "sha256": "8dd873af153bd0b9c785b4d92add7c139f16a0daba369bbefd822ab6679ae671"
+    },
+    {
+      "path": "prototypes/fused_evolve_rows.wgsl",
+      "bytes": 4054,
+      "sha256": "b764d8f298afb3d3d028c9bf75fb6b19968ee2857715dc2427b10ec403963d96"
+    },
+    {
+      "path": "prototypes/fused_evolve_rows_integration.txt",
+      "bytes": 4432,
+      "sha256": "eeb79666cd4e3fac8562887a46bac1db537679c7461559124669aa1d650d649c"
+    },
+    {
+      "path": "prototypes/run_experiments.py",
+      "bytes": 6132,
+      "sha256": "d493fd8aae126128d1ee0d9cc43c802aa8e5e4af5e620d080741195bdff77b06"
+    },
+    {
+      "path": "prototypes/spectral_geometry_analysis.py",
+      "bytes": 13364,
+      "sha256": "993a90d9688f90f44b5bf34f7eb3e745e7297604e9ffdc8453a88d0f27850a37"
+    },
+    {
+      "path": "prototypes/validate-cdlod-count.mjs",
+      "bytes": 6444,
+      "sha256": "8567990e7b30ae5054f77a97d58814cba8056b851df8fdde8597c4d82d9291a4"
+    },
+    {
+      "path": "tests/test_reference.py",
+      "bytes": 5787,
+      "sha256": "69a7093ca0558fc6b2f85d70641adb4510f5b5fae20af04bf0bd3c02609ff2c7"
+    },
+    {
+      "path": "results/cdlod_actual_js.json",
+      "bytes": 8668,
+      "sha256": "9cbb55eed5d186baeb8b5f3493b57fa20c4fe2382aef4fe77394e0fb769d0970"
+    },
+    {
+      "path": "results/fused_evolve_rows_cpu_check.json",
+      "bytes": 3777,
+      "sha256": "7c403c7f22c97dee62272bed54193dd86e9d332fb7e1f01244e67ba193088ebc"
+    },
+    {
+      "path": "results/reference_experiments.json",
+      "bytes": 4153,
+      "sha256": "b96f59824b56f27dbd636c090c366ce369932f15fbacf16424784ed9a5afd079"
+    },
+    {
+      "path": "results/spectral_geometry.json",
+      "bytes": 10226,
+      "sha256": "41bb807083eb55b319f799d24724ef0eb598a1d1346ff648ef318ee9d54be3a8"
+    },
+    {
+      "path": "figures/temporal_reconstruction_error.png",
+      "bytes": 112572,
+      "sha256": "e1980a4986399c820e01d44caafa1343387a2e4d94f3e3e722c8dd0ead3461e0"
+    },
+    {
+      "path": "figures/visibility_bloom_dependencies.png",
+      "bytes": 71985,
+      "sha256": "dc6ed105d6a22749b4137bd2a319032e77dfa8b6f52529bf2592d0897c644a5b"
+    }
+  ]
+}

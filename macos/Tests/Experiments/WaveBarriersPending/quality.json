@@ -1,0 +1,201 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "case": "sunset",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "phase45",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "phase120",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "daylight",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "storm",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "clear",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "low_only",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "high_only",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "ultrawide",
+      "comparedBytes": {
+        "HDR": 8192472,
+        ".bgra8": 4096236,
+        ".mips": 18175264,
+        ".clouds": 5647444,
+        ".bloom": 2721896
+      },
+      "changedBytes": 0,
+      "width": 1907,
+      "height": 537,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "portrait",
+      "comparedBytes": {
+        "HDR": 8191128,
+        ".bgra8": 4095564,
+        ".mips": 18175264,
+        ".clouds": 5650636,
+        ".bloom": 2720608
+      },
+      "changedBytes": 0,
+      "width": 759,
+      "height": 1349,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "index_fallback",
+      "comparedBytes": {
+        "HDR": 8126464,
+        ".bgra8": 4063232,
+        ".mips": 18175264,
+        ".clouds": 5570548,
+        ".bloom": 2668544
+      },
+      "changedBytes": 0,
+      "width": 62,
+      "height": 16384,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "stable",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "month",
+      "comparedBytes": {
+        "HDR": 8192000,
+        ".bgra8": 4096000,
+        ".mips": 18175264,
+        ".clouds": 5656564,
+        ".bloom": 2729920
+      },
+      "changedBytes": 0,
+      "width": 1280,
+      "height": 800,
+      "waveMipThreadgroupBytes": 2016
+    },
+    {
+      "case": "narrow_stable",
+      "comparedBytes": {
+        "HDR": 8193152,
+        ".bgra8": 4096576,
+        ".mips": 18175264,
+        ".clouds": 5638996,
+        ".bloom": 2714656
+      },
+      "changedBytes": 0,
+      "width": 253,
+      "height": 4048,
+      "waveMipThreadgroupBytes": 2016
+    }
+  ]
+}

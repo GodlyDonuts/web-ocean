@@ -1,0 +1,948 @@
+{
+  "date": "2026-10-23",
+  "device": "Apple M1",
+  "outcome": "Fixed repeated app windows caused by automated verification/benchmark launches. Both modes now render offscreen by default.",
+  "cause": "Each old --verify/--benchmark process created and activated a preview NSWindow, then terminated after its finite test run. Repeated test cases repeatedly showed and closed the preview.",
+  "implementation": {
+    "automaticModes": [
+      "--verify",
+      "--benchmark"
+    ],
+    "ui": "Prohibited application activation policy, no menu/window creation or app activation for automated modes. Error paths report to stderr and exit rather than showing alerts.",
+    "rendering": "A retained private BGRA8 render target replaces drawable acquisition/presentation only for automated runs. A timer drives the same Metal frame passes at the configured cap.",
+    "lifetime": "The single-frame semaphore is released after main-thread completion counters and verification consume the completed frame, preventing a timer from submitting another frame in that interval.",
+    "normalPreview": "Ordinary launches still create the existing resizable window and use Metal drawable presentation, visibility/sleep pause logic and existing menu controls.",
+    "explicitVisualOverride": "--windowed-test is an explicit developer opt-in for one visible automated run. It is not used by any automated test driver.",
+    "regressionGuards": "All active Python GPU verification/benchmark drivers assert offscreen=true, windowCount=0 and activationPolicy=2. verify_headless.py is part of macos/test.sh."
+  },
+  "validation": {
+    "headlessLifecycleAndSavedWindowedParity": {
+      "passed": true,
+      "cases": [
+        {
+          "case": "sunset",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 0.1666666753590107,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 0.2666666805744171,
+            "errors": [],
+            "fps": 20.3,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 10.94,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 800,
+            "indexBits": 16,
+            "indexBytes": 589824,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 98304,
+            "width": 1280,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "fc5eef877be661b8d31d87970fff951b26a0b5b10f16893de03f0453a6c534ef",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/sunset-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096000,
+              "sha256": "20fbfff0727baa385d3c9fda0eccc5913b65b24031944d7c7503403e4a6b7784",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/sunset-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "83af0a46287b269a2df5e2fd334c1e0c1f2b5a8444d3d1426d0d2806585064f5",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/sunset-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "swell_phase_45",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 45.16666667535901,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 45.26666668057442,
+            "errors": [],
+            "fps": 23,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9.73,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 800,
+            "indexBits": 16,
+            "indexBytes": 589824,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 98304,
+            "width": 1280,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "6133de59a4973c2c56e2a537a738ba12840dd9735ce693306c00dae3c50f32c9",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/swell_phase_45-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096000,
+              "sha256": "92428c7128d3a033ce4f102d4d3a542f6c279e55c95538679cb16d9f058b9293",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/swell_phase_45-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "7933efca2b4775db2bdb82675a712cbdb34f00f47d5710b7ff7b802de39b80c2",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/swell_phase_45-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "swell_phase_120",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 120.16666667535901,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 120.26666668057442,
+            "errors": [],
+            "fps": 23,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 10.11,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 800,
+            "indexBits": 16,
+            "indexBytes": 589824,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 98304,
+            "width": 1280,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "08153d43c97f015d11076df2931a3502d401aaa141cd90fceb2d0383be64cdf9",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/swell_phase_120-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096000,
+              "sha256": "7e7db7d5a95a2984470bcb95ae56e9f6908ab8765737e55893c7f0e5875246e3",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/swell_phase_120-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "a4d96dc5e30d5352cfbfa3a7162489357ee8a0c0e0c8479493b14c25359cbdd1",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/swell_phase_120-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "daylight",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 60.16666667535901,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 60.26666668057442,
+            "errors": [],
+            "fps": 22.2,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 8.99,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 800,
+            "indexBits": 16,
+            "indexBytes": 589824,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 98304,
+            "width": 1280,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "f5b596673e4cbf19daa615d2da844024715667f66f8f3bf119d29c8f24f8de75",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/daylight-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096000,
+              "sha256": "0da7bbaf496c481c51e7467feae60b0ae1f094ca5e4e982134d43b8b01592bd6",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/daylight-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "8fcd82d3f7bcd6281e9fd2da2c17d3c9a94db228f66153978714be35a75e1540",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/daylight-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "rough_cloudy",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 90.16666667535901,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 90.26666668057442,
+            "errors": [],
+            "fps": 22.8,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 10.42,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 800,
+            "indexBits": 16,
+            "indexBytes": 589824,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 98304,
+            "width": 1280,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "47dd46c0518302915c1ca3d161a25e702a5cb1af37197b5685a48a08add2ac34",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/rough_cloudy-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096000,
+              "sha256": "8410959d3b929f3d52381ba336bc5880d4fe9f617b0c98dc1b2ab934f5a0e293",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/rough_cloudy-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "7c5f92fac31707828bb7db83a780ad460c45d434e5a8e4276a346d37260ec3cc",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/rough_cloudy-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "ultrawide",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 30.16666667535901,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 30.266666680574417,
+            "errors": [],
+            "fps": 22.6,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9.81,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 537,
+            "indexBits": 16,
+            "indexBytes": 626688,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 104448,
+            "width": 1907,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8192472,
+              "sha256": "39f38113ca2df4b72fd2df8490f78b946c8a1624bd4817571cc63883e7c836ee",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/ultrawide-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096236,
+              "sha256": "b4bdc092b4d6e03632b6b5eadb3b2f00197b1ff32d9cb8e757c94326bf5184b8",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/ultrawide-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "11ef236c488475f0216fd9e023b4e4a716ef46a7e307c8bc217e341bec76ccc0",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/ultrawide-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "portrait",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 15.16666667535901,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 15.266666680574417,
+            "errors": [],
+            "fps": 22.1,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9.02,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 1349,
+            "indexBits": 16,
+            "indexBytes": 598272,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 99712,
+            "width": 759,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8191128,
+              "sha256": "59cbec3f973d1d90798afe6ee1d96f15bd7a45f0f242334a0f7960525130bf88",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/portrait-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4095564,
+              "sha256": "a6dfd1ced46db037a1d4cbf5602cdf2ebd480df6b50ae99557842aae0081e5f6",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/portrait-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "883dc86df90c7f8e067f6fd029c66be9e7ebc0d7a06c49f6979b7444934c5954",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/portrait-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "wide_16_9",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 20.16666667535901,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 20.266666680574417,
+            "errors": [],
+            "fps": 23.8,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9.25,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 759,
+            "indexBits": 16,
+            "indexBytes": 600576,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 100096,
+            "width": 1349,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8191128,
+              "sha256": "5d500ec9d6691da075178f4621b4ea99f94045c63cd7d3a937600db4d84bb3f9",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/wide_16_9-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4095564,
+              "sha256": "fedeb92b7f9fc74e03f9ece264e424a0521ddf550189e68175549d7549b401b9",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/wide_16_9-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "6853d28fab1a451081b42e55653bd7fb9d25424da5237e3b6bb1cbcfe1596a18",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/wide_16_9-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "index_fallback",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 5.166666675359011,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 5.266666680574417,
+            "errors": [],
+            "fps": 21.9,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9.4,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": true,
+            "height": 16384,
+            "indexBits": 32,
+            "indexBytes": 1511424,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": true,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 125952,
+            "width": 62,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8126464,
+              "sha256": "47d8485d53e14efc149463fb0d2dc4c1ac5fe6b0a2f48e00425d46d605493e9b",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/index_fallback-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4063232,
+              "sha256": "0c305ff10642d9c8c6485127e55004185cd15de9acf0d75b3799f8f4249185e0",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/index_fallback-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "4118fa83970c952112a614d86a18c40cef656236bf6a2633c0b2205606eaa7ff",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/index_fallback-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "stable_time",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 600.216666675359,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 600.3166666805744,
+            "errors": [],
+            "fps": 23.2,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9.38,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 800,
+            "indexBits": 16,
+            "indexBytes": 589824,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": true,
+            "triangles": 98304,
+            "width": 1280,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "36572297ffd6a114307659954dd6f94f21dbfe5dc8b396dec8199580b76b8203",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/stable_time-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096000,
+              "sha256": "36988406e562626fafe4232ea3e7d0edddc9701466937112b85e8f2bc0fc33da",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/stable_time-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "1717272c1bcac8b0eab3cd4288d7b9c9693fd74d2910536b0790a551c099e177",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/stable_time-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "month_uptime",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 2592000.1666666754,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 2592000.2666666806,
+            "errors": [],
+            "fps": 23.5,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9.35,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 800,
+            "indexBits": 16,
+            "indexBytes": 589824,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": true,
+            "triangles": 98304,
+            "width": 1280,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "c4affb1d3d6b80b2f1620720eeb2cc3c26f576033ae259138d1f4a93fe11af8c",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/month_uptime-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096000,
+              "sha256": "e04227318e60d378e9262aa2353d9db8a4cb6ef22d9e5b0a205bd5c4bfb671a8",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/month_uptime-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "83af0a46287b269a2df5e2fd334c1e0c1f2b5a8444d3d1426d0d2806585064f5",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/month_uptime-optimized.rgba16f.mips"
+            }
+          }
+        },
+        {
+          "case": "narrow_stable",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 600.216666675359,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 600.3166666805744,
+            "errors": [],
+            "fps": 21.9,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": true,
+            "height": 4048,
+            "indexBits": 16,
+            "indexBytes": 655872,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": true,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": true,
+            "triangles": 109312,
+            "width": 253,
+            "windowCount": 0
+          },
+          "windowedParity": {
+            "HDR": {
+              "bytes": 8193152,
+              "sha256": "fadaa2804ea6094cf4b0f82e72ae6051a101c63c2acc8a0b1f5add330e7c5761",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/narrow_stable-optimized.rgba16f"
+            },
+            ".bgra8": {
+              "bytes": 4096576,
+              "sha256": "871ec6938de032c523c3c1fda391b103cb975c24a906d0d1ee0e1301ef09b23d",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/narrow_stable-optimized.rgba16f.bgra8"
+            },
+            ".mips": {
+              "bytes": 18175264,
+              "sha256": "1dd765e9337854f65a995f69e3dcab86c90aea01e9fad5344446d18b80633e7d",
+              "fixture": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/quality-evolution/narrow_stable-optimized.rgba16f.mips"
+            }
+          }
+        }
+      ],
+      "benchmarkSmoke": {
+        "activationPolicy": 2,
+        "cachedSkyElapsed": 2.3000001199543476,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.5994757132915159,
+        "cpuEncodeMedianMs": 0.6057083373889327,
+        "cpuThreadEncodeMeanMs": 0.5957775833333301,
+        "cpuThreadEncodeMedianMs": 0.6044160000000005,
+        "device": "Apple M1",
+        "elapsed": 2.400000125169754,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.6997153034123285,
+        "gpuMedianMs": 7.939500035718083,
+        "gpuP95Ms": 10.493416688404977,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "offscreen": true,
+        "packedJacobian": true,
+        "profiled": false,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 12,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "windowCount": 0
+      },
+      "startupFailures": [
+        {
+          "mode": "--verify",
+          "exitCode": 1,
+          "message": "Ocean failed: The file \u201cmissing-381fed07-d5ee-4aa1-a78d-ff04317b73a2.metal\u201d couldn\u2019t be opened because there is no such file."
+        },
+        {
+          "mode": "--benchmark",
+          "exitCode": 1,
+          "message": "Ocean failed: The file \u201cmissing-381fed07-d5ee-4aa1-a78d-ff04317b73a2.metal\u201d couldn\u2019t be opened because there is no such file."
+        }
+      ],
+      "scope": "No NSWindow or drawable acquisition, application activation policy prohibited; original windowed captures used only as saved fixtures. The 12-sample benchmark is a lifecycle smoke test, not a performance comparison."
+    },
+    "comparedWindowedBytes": 365460684,
+    "metalAPIShaderValidation": {
+      "log": "macos/build/headless-metal-validation.log",
+      "diagnostics": {
+        "activationPolicy": 2,
+        "cachedSkyElapsed": 600.05,
+        "clockMode": "continuous",
+        "device": "Apple M1",
+        "elapsed": 600.05,
+        "errors": [],
+        "fps": 7.2,
+        "frames": 8,
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMs": 78.1,
+        "gpuStagesMs": {},
+        "guardBoundsVerified": true,
+        "height": 4048,
+        "indexBits": 16,
+        "indexBytes": 655872,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "offscreen": true,
+        "packedJacobian": true,
+        "paused": false,
+        "physicalGuard": true,
+        "renderer": "Metal",
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 0,
+        "specializedSkyAAMask": 0,
+        "spectrumBufferBytes": 0,
+        "stableDetails": true,
+        "triangles": 109312,
+        "width": 253,
+        "windowCount": 0
+      }
+    },
+    "unchangedShaderHashes": {
+      "macos/Shaders/OCEAN.metal": "4d2f0e29946d8a31e480c5f58463e5b85210f78f5bf78f6f978424b9752607c9",
+      "macos/Shaders/CUBE_MIPS.metal": "0d7ec038e745d02fcef57391e1e4bf0c1c64d6455201a0bb5ae0917e9c822812",
+      "macos/Shaders/BLOOM_DOWN.metal": "fc86dc9bed4b77b2669df3b03d8b9db33848309808bf701c91abc4dccd79da11",
+      "macos/Shaders/ENV_CUBE.metal": "f3556f490dbba4e6fcab540167a21c8f7f8eeea74c1a2c391659c607a0a991e0",
+      "macos/Shaders/FOAM_UPDATE.metal": "50315f19d2c5017ba261263b125cc64532353a39caae6f67d023d46bd71057a5",
+      "macos/Shaders/ARRAY16_MIPS_FUSED5.metal": "8b8c21f3b022a88d892758938cd3ad89eb5a2bfbbc8a207458e20c24147a7da8",
+      "macos/Shaders/FFT_COLS.metal": "e3256de5b2eb0c1bafb17fe0945740bf8d826e6792f00d8663a103a3eb72f6fc",
+      "macos/Shaders/ARRAY16_MIPS.metal": "ae058baff48c5440db8e302adf63289aa9426206af57652396fc8520221ed519",
+      "macos/Shaders/SIM_MIPS.metal": "b3e297219d85103b59bc3293fd6cc7ce8e62052f50c4bf597ef5514054aad926",
+      "macos/Shaders/SIM_EVOLVE.metal": "c605f051e7f5631e499f5cd066586d60c76d00659aa6367f6d851d92287acbee",
+      "macos/Shaders/FFT_ROWS.metal": "41121a3b6e4478dd0d059381fb6037695f51314258cfb122a723c55c824cccad",
+      "macos/Shaders/FOAM_TEX.metal": "691ff4c8f5f65ea70344486b127fe1b23d6bcf5aed6f76444fbf128592a5da40",
+      "macos/Shaders/SIM_MIPS_FUSED4.metal": "e30f37ea9c085a2572770f04084cdce0b4633c411cb7480b01011b2bdbf919f0",
+      "macos/Shaders/ARRAY16_MIPS_FUSED4.metal": "4298590403d904f51acb0fd78b4846256bd811f3da3cd41b00068720eff07e24",
+      "macos/Shaders/TRANS_LUT.metal": "dcf8d6e86a3f5fc65a75935578de6f67cf7d91895d72a9b983a0c576680d547e",
+      "macos/Shaders/SKY_CACHED.metal": "e40ab42d7096d89bf99baa83177bcc531d9916b282f47a6a1fbf090e4c4fd577",
+      "macos/Shaders/RGBA8_MIPS.metal": "d31e7e8be792412b0801eae4b364197701ca4203aca40f3df51d91ae90ece7d0",
+      "macos/Shaders/BLOOM_UP.metal": "1b57c28a28a22bc0a9683ccff990fbeaa643cf117fbf03f3b54a7e043850c607",
+      "macos/Shaders/COMPOSITE.metal": "7d6edd463717278b8c5336405f9b2d7d30bc32bb58e1cdf2c3da46ef40844533",
+      "macos/Shaders/SIM_EVOLVE_ROWS.metal": "5b66102f08959ef477e105b55ae0f337e59186adc9c64a7ff006532efe887ff7",
+      "macos/Shaders/SUN_VIS.metal": "3698a22c6436736f79a5faff6b08ecce370b38ca3d3a47d9387261e6a39b7d40",
+      "macos/Shaders/SIM_INIT.metal": "e3ec6cdf2033ef6a926f8831a1146b7a49423788e0d057ec273f0f3b773b6ba5",
+      "macos/Shaders/DISPLACEMENT_BOUNDS_FINAL.metal": "7989655479121bb36fbaedb20e2db2bf56a6b50dbd6c18f82b712d4dc097531b",
+      "macos/Shaders/SKY_BG.metal": "a3990c8d65406a7741cbaaf0930090b5f6efea19f5d71286c1432554fbfce98c",
+      "macos/Shaders/SKYVIEW_LUT.metal": "5c4cb176aea17b965ec6fe77901a165e1c8d9020a83b44251c2a9aa8f5a927d7",
+      "macos/Shaders/DISPLACEMENT_BOUNDS.metal": "5acd6ff0b1a56831b112a05e747d9fe5f7fff4f8d4b2053f169f5b2b37bb3544",
+      "macos/Shaders/MS_LUT.metal": "94e762265fc07f9a570bda986a5150472002859bd23eaa824c995ec176dde18f",
+      "macos/Shaders/LIGHTING.metal": "a4fa77d24edc85e1451a1eb641d2de8f5b4113c4171248f29ba105f9050d44c1"
+    },
+    "nativeBuild": "Passed native Swift build and ad-hoc codesigning.",
+    "pythonSyntax": "All seven changed Python drivers compiled successfully.",
+    "scope": "Twelve deterministic scene/viewport/uptime cases exactly match saved windowed HDR, final display and wave/foam mip captures, without launching a windowed process. Benchmark lifecycle and both automated startup-failure modes pass. The entire historical test suite was not rerun in this fix."
+  },
+  "performanceCaution": "The 72-frame, 12-measured-sample benchmark is a lifecycle smoke test, not a speed claim. Future A/B comparisons must use the same offscreen/windowed mode; earlier historical windowed timings are not a direct performance baseline for this backend change.",
+  "pendingOptimization": "The separate wave-mip barrier candidate was moved under macos/Tests/Experiments/WaveBarriersPending while fixing automated test windows; no unmeasured shader candidate is active.",
+  "sources": {
+    "macos/main.swift": "add649de344d44d7255e27f6209900e115cbcc53c5ead8d45e2d81368d109800",
+    "macos/OceanRenderer.swift": "8be2e963da12d04a685c465d5bcb346da3f7b766e40e4a61a9ac245e9a6619bd",
+    "macos/test.sh": "32dc9c3b340a52759b242190ac44489d6e6eeb25ed932bd3d413a3152b2e3c23",
+    "macos/Tests/verify_clouds.py": "a69077ec85b7887fa53dc5d3c2dd416a898079b194a2930d102f4d129bf83443",
+    "macos/Tests/verify_texture_usage.py": "13645b4cc1051b10ee8bea9be82c82633905b63938c15728e1d7040abfa66232",
+    "macos/Tests/benchmark.py": "b102d23fb3b251f84113a73e1160bca072871ee9b27637ec8ae1a5c69d86f229",
+    "macos/Tests/compare_quality.py": "be97d224874ba5fefb09f9a97c0b5a2e72d8b7519cca035f8dbee693cb8e6300",
+    "macos/Tests/verify_coverage.py": "65b8001dc1fcedc218912288238e77546797b6e0b6606d09ed6775a5ce8ebe07",
+    "macos/Tests/verify_headless.py": "b8c03ae9d4d2af1be4ee69afa2661bf61b8f026996e9eaecbe0ceee1f4e4c92e",
+    "macos/Tests/verify_time.py": "5ed786766deae78edd91c150aa949681118675904a9c9fbb4feb7222a137744a"
+  }
+}

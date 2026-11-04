@@ -1,0 +1,37 @@
+{
+  "cases" : [
+    {
+      "assembledMaxAbsoluteError" : 0,
+      "case" : "zero",
+      "differentHalfValues" : 0,
+      "differentRowValues" : 0,
+      "doubleDFTMaxAbsoluteError" : 0,
+      "rowMaxAbsoluteError" : 0
+    },
+    {
+      "assembledMaxAbsoluteError" : 0,
+      "case" : "impulse",
+      "differentHalfValues" : 0,
+      "differentRowValues" : 0,
+      "doubleDFTMaxAbsoluteError" : 0,
+      "rowMaxAbsoluteError" : 0
+    },
+    {
+      "assembledMaxAbsoluteError" : 0,
+      "case" : "frequency",
+      "differentHalfValues" : 60,
+      "differentRowValues" : 1320960,
+      "doubleDFTMaxAbsoluteError" : 1.3563895380139246e-09,
+      "rowMaxAbsoluteError" : 6.9849193096160889e-10
+    },
+    {
+      "assembledMaxAbsoluteError" : 6.103515625e-05,
+      "case" : "random",
+      "differentHalfValues" : 3444,
+      "differentRowValues" : 1683109,
+      "doubleDFTMaxAbsoluteError" : 1.0057711690401872e-09,
+      "rowMaxAbsoluteError" : 1.862645149230957e-09
+    }
+  ],
+  "device" : "Apple M1"
+}

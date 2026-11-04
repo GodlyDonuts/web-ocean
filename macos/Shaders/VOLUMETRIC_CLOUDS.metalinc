@@ -1,0 +1,167 @@
+// Shared by visible sky, reflection cube and direct-sun visibility.
+// Distances are kilometres. Integrate premultiplied radiance front-to-back.
+constexpr metal::sampler volumeSampler(metal::coord::normalized, metal::address::repeat,
+                                      metal::filter::linear);
+float stormBuild(constant Frame& F) { return F.weather.w; }
+float cloudBase(constant Frame& F) { return metal::mix(F.cloudP.x,1.0,stormBuild(F)); }
+float cloudDepth(constant Frame& F) { return 1.25+5.0*stormBuild(F); }
+metal::float3 cloudDomain(metal::float3 p,constant Frame& F) {
+    // A contracting air mass draws the existing banks toward the storm front;
+    // no noise seed or field is replaced when a storm is requested.
+    metal::float2 center(0.0,-12.0);
+    p.xz=center+(p.xz-center)*(1.0+stormBuild(F)*0.48);
+    return p;
+}
+metal::float4 cloudWeather(metal::float3 p,constant Frame& F,metal::texture3d<float> noise) {
+    p=cloudDomain(p,F);
+    return noise.sample(volumeSampler,metal::float3(p.x*0.018,0.23,p.z*0.018)
+        +metal::float3(F.cloudMotion.z,0,F.cloudMotion.w),metal::level(0));
+}
+float volumeDensity(metal::float3 p, constant Frame& F,
+                    metal::texture3d<float> cloudNoise, bool detail) {
+    float build=stormBuild(F),height=(p.y-cloudBase(F))/cloudDepth(F);
+    if (height<=0.0 || height>=1.0) return 0.0;
+    metal::float4 weather=cloudWeather(p,F,cloudNoise);
+    float bank=weather.r*0.72+weather.g*0.28;
+    metal::float3 domain=cloudDomain(p,F);
+    metal::float3 uv=domain*metal::float3(0.09,0.12,0.09)
+        +metal::float3(F.cloudMotion.x,0,F.cloudMotion.y);
+    // Rising convective lobes stretch vertically and broaden laterally.
+    uv.y=p.y*0.12;
+    uv.xz+=(weather.gb-0.5)*build*0.12;
+    metal::float4 shape=cloudNoise.sample(volumeSampler,uv,metal::level(0));
+    float secondary=detail ? cloudNoise.sample(volumeSampler,uv*2.0+metal::float3(F.cloudEvolution.x,0,F.cloudEvolution.y)+metal::float3(0.17,0.31,0.07),metal::level(0)).g : shape.g;
+    float billow=shape.r*0.42+shape.g*0.38+secondary*0.20;
+    float threshold=metal::mix(0.76,0.22,F.cloudP.y)+(weather.r-0.5)*0.42;
+    float fairProfile=metal::smoothstep(0.0,0.09,height)*(1.0-metal::smoothstep(0.62,1.0,height));
+    float fair=billow-threshold-(1.0-fairProfile)*0.20;
+    // Expand the footprints of the same banks until neighbouring towers join.
+    // Their tops rise according to the shared large-scale weather field.
+    float footprint=metal::smoothstep(0.50-build*0.08,0.70-build*0.06,bank);
+    float top=1.0;
+    float bottom=0.015+(1.0-shape.g)*0.065;
+    float stormProfile=metal::smoothstep(bottom,bottom+0.045,height)
+        *(1.0-metal::smoothstep(top*0.67,top,height));
+    float tower=(billow-0.45+(bank-0.5)*0.22)*footprint;
+    tower+=footprint*metal::smoothstep(0.35,0.75,height)*0.025;
+    float base=metal::mix(fair,tower,build);
+    if (base<=0) return 0;
+    float erosion=detail ? metal::mix(0.5,cloudNoise.sample(volumeSampler,uv*4.0+metal::float3(F.cloudEvolution.x,0,F.cloudEvolution.y)*2.0,metal::level(0)).b,1.0-build*0.9) : 0.5;
+    float edge=1.0-metal::smoothstep(0,0.22,base);
+    float profile=metal::mix(fairProfile,stormProfile,build);
+    return metal::clamp((base-(1.0-erosion)*0.13*edge)*6.5,0.0,1.0)*profile;
+}
+float shaftDensity(metal::float3 p,constant Frame& F,metal::texture3d<float> noise) {
+    if (F.weather.y<0.001 || p.y<0.02 || p.y>cloudBase(F)+0.3) return 0;
+    metal::float4 weather=cloudWeather(p,F,noise);
+    float bank=metal::smoothstep(0.35,0.62,weather.r*0.72+weather.g*0.28);
+    float filaments=noise.sample(volumeSampler,p*metal::float3(0.13,0.006,0.13)
+        +metal::float3(F.cloudMotion.x,0,F.cloudMotion.y),metal::level(0)).r;
+    return bank*(0.3+filaments*0.7)*F.weather.y*0.045;
+}
+metal::float3 volumePosition(metal::float3 earthPoint, constant Frame& F) {
+    return metal::float3(earthPoint.x+F.camPos.x*0.001,metal::length(earthPoint)-RG,earthPoint.z+F.camPos.z*0.001);
+}
+metal::float4 volumeClouds(metal::float3 dir, float pixAng, constant Frame& F,
+    metal::texture2d<float> transLUT, metal::texture2d<float> skyLUT,
+    metal::sampler sampC, metal::texture3d<float> cloudNoise, thread float& sunTransmission) {
+    sunTransmission=1.0;
+    if (F.cloudP.y <= 0.001 || dir.y <= 0.0) return metal::float4(0.0);
+    metal::float3 ro(0.0,camR(F),0.0);
+    float start=raySphere(ro,dir,RG+cloudBase(F)).y;
+
+    float end=metal::min(raySphere(ro,dir,RG+cloudBase(F)+cloudDepth(F)).y,100.0);
+    if (end <= start) return metal::float4(0.0);
+    // Distance-adaptive quadrature resolves the nearby billows and filters
+    // erosion once it becomes smaller than a march segment or a sky pixel.
+    float sigma=metal::max(F.cloudP.z,0.0)*2.2;
+    metal::float4 light=F.celestial.w>0.5 ? F.lightDir : F.sunDir;
+    metal::float3 sunlight=sampleTrans(RG+F.cloudP.x+0.6,light.y,transLUT,sampC)*light.w;
+    sunlight *= metal::smoothstep(-0.04,0.01,light.y);
+    if (F.celestial.w>0.5 && F.sunDir.y < -0.0174524) sunlight*=metal::float3(0.72,0.81,1.0);
+    metal::float3 zenith=skyAtmo(metal::float3(0,1,0),F,skyLUT,sampC);
+    metal::float3 horizon=skyAtmo(metal::normalize(metal::float3(dir.x,0.05,dir.z)),F,skyLUT,sampC);
+    float cosTheta=metal::dot(dir,light.xyz);
+    float phase=metal::mix(phaseHG(cosTheta,0.35),phaseHG(cosTheta,-0.20),0.35);
+    metal::float3 result(0.0);float transmittance=1.0;float visibleOpacity=0.0;
+    // Integrate distant precipitation below the cloud base separately. The
+    // cloud march starts exactly at condensation, keeping its boundary sampled
+    // consistently instead of sparkling as a random step crosses a bright rim.
+    if (F.weather.y>0.001) {
+        float rainEnd=metal::min(start,65.0);
+        for (int k=0;k<16;++k) {
+            float t=(float(k)+0.5)*rainEnd/16.0;
+            float rain=shaftDensity(volumePosition(ro+dir*t,F),F,cloudNoise);
+            float opacity=1.0-metal::exp(-rain*rainEnd/16.0);
+            result+=transmittance*opacity*(horizon+zenith)*0.18;
+            visibleOpacity+=transmittance*opacity;transmittance*=1.0-opacity;
+        }
+    }
+    float travel=start;
+    for (int i=0;i<448 && travel<end;++i) {
+        float segmentLength=metal::min(end-travel,0.04+travel*0.003);
+        float distance=travel+segmentLength*0.5;
+        travel+=segmentLength;
+        metal::float3 world=ro+dir*distance;
+        metal::float3 p=volumePosition(world,F);
+        bool detail=distance*pixAng<0.08 && segmentLength<0.18;
+        float density=volumeDensity(p,F,cloudNoise,detail);
+        float rain=shaftDensity(p,F,cloudNoise);
+        if (density<0.001 && rain<0.00001) continue;
+        // Four expanding sunlight segments through the same 3D volume.
+        float opticalDepth=0.0;
+        float offset=0.12;
+        float segment=0.24;
+        for (int j=0;j<(density>0.001 ? 4 : 0);++j) {
+            metal::float3 samplePoint=volumePosition(world+light.xyz*offset,F);
+            opticalDepth+=volumeDensity(samplePoint,F,cloudNoise,false)*segment;
+            offset+=segment; segment*=2.0;
+        }
+        float direct=metal::exp(-sigma*opticalDepth);
+        // A broad multiple-scattering approximation keeps shadowed interiors
+        // readable without adding another ray march or flattening every lobe.
+        float multiple=metal::exp(-sigma*opticalDepth*0.06)*0.055
+            +metal::exp(-sigma*opticalDepth*0.20)*0.025;
+        float height=metal::clamp((p.y-cloudBase(F))/cloudDepth(F),0.0,1.0);
+        // Less ambient at the dense base gives the banks readable depth.
+        float powder=1.0-metal::exp(-density*2.5);
+        metal::float3 ambient=metal::mix(horizon,zenith,0.35+height*0.45)
+            *metal::mix(0.16,0.38,height);
+        direct*=metal::mix(1.0,1.0+powder,metal::smoothstep(0.0,0.9,cosTheta));
+        float skyDepth=volumeDensity(p+metal::float3(0,0.4,0),F,cloudNoise,false)*0.6
+            +volumeDensity(p+metal::float3(0,1.2,0),F,cloudNoise,false)*1.2;
+        ambient=(zenith*0.28+horizon*0.18)*(0.35+0.65*metal::exp(-skyDepth*0.6));
+        metal::float3 source=sunlight*(phase*direct+multiple)+ambient;
+        // Deep rain banks absorb more light and lose warm saturation.
+        source=metal::mix(source,metal::dot(source,metal::float3(0.2126,0.7152,0.0722))*metal::float3(0.76,0.84,0.96),F.weather.x*0.65);
+        float extinction=density*sigma+rain;
+        float opacity=1.0-metal::exp(-extinction*segmentLength);
+        source=metal::mix(source,(horizon+zenith)*0.13,rain/metal::max(extinction,0.00001));
+        float aerial=metal::exp(-distance*(0.012+0.002*F.atmo.x));
+        result+=transmittance*opacity*(source*aerial+horizon*(1.0-aerial)*0.65);
+        visibleOpacity+=transmittance*opacity;
+        transmittance*=1.0-opacity;
+        if (transmittance<metal::mix(0.015,0.00001,stormBuild(F))) break;
+    }
+    // The residual below our opaque cutoff is numerical, not a visible disk.
+    sunTransmission=transmittance<0.0001 ? 0.0 : transmittance;
+    return metal::float4(result,visibleOpacity);
+}
+
+// Thin cirrus retain a cheap shell representation, but with broken filaments
+// instead of the old solid thresholded patches. The same wind moves all layers.
+metal::float4 volumeWisps(metal::float3 dir, constant Frame& F,
+    metal::texture2d<float> transLUT, metal::texture2d<float> skyLUT,
+    metal::sampler sampC, metal::texture3d<float> cloudNoise) {
+    CloudHit hit=hitLayer(dir,6.0,F);
+    metal::float2 uv=hit.q*metal::float2(0.022,0.009)+F.cloudEvolution.zw;
+    float broad=cloudNoise.sample(volumeSampler,metal::float3(uv.x,0.37,uv.y),metal::level(0.0)).r;
+    float filament=cloudNoise.sample(volumeSampler,metal::float3(uv.x*2.0,1.31,uv.y*5.0),metal::level(0.0)).g;
+    float density=metal::smoothstep(0.46,0.72,broad)*metal::smoothstep(0.25,0.8,filament)*F.atmo.z*0.11*metal::pow(1.0-stormBuild(F),2.0);
+    float opacity=(1.0-metal::exp(-density/metal::max(hit.mu,0.12)))*metal::exp(-hit.t*0.007);
+    metal::float4 light=F.celestial.w>0.5 ? F.lightDir : F.sunDir;
+    metal::float3 sun=sampleTrans(RG+6.0,metal::dot(hit.up,light.xyz),transLUT,sampC)*light.w;
+    float phase=phaseHG(metal::dot(dir,light.xyz),0.55);
+    metal::float3 ambient=skyAtmo(metal::float3(0,1,0),F,skyLUT,sampC)*0.45;
+    return metal::float4((sun*(phase*0.65+0.04)+ambient)*opacity,opacity);
+}

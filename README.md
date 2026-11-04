@@ -1,100 +1,102 @@
-# web-ocean
+# Ocean
 
-A real-time ocean renderer written from scratch on WebGPU, with no engine or rendering library. It draws a sunset sea with simulated waves, whitecaps, sun glitter, and a physically based sky with clouds. You fly around it with a free camera.
+A cinematic ocean being developed into a live macOS wallpaper. The current app uses **Swift, AppKit, MetalKit and Metal**, with a fixed view across the water. Waves, volumetric clouds, rain, sunlight, moonlight and stars respond to time and weather.
 
-![Looking toward the sun from 2.4 m above the water](docs/front.jpg)
+**Start here:** [developer handoff](docs/handoff.md) · [architecture](docs/architecture.md) · [testing](docs/testing.md) · [next work](docs/engineering-roadmap.md).
 
-| 75 degrees off the sun, 2.4 m up | Looking toward the sun from 30 m up |
+![Native nighttime ocean](docs/night-sky-integration-preview.png)
+
+## Current status
+
+`main` is the current native Metal implementation. The root HTML/JavaScript renderer is retained as a browser reference. The separate historical `feature/native-macos-wallpaper` branch and its browser-host implementation predate the Metal rewrite.
+
+| Capability | Status |
 |---|---|
-| ![](docs/side.jpg) | ![](docs/high.jpg) |
+| Fixed ocean viewpoint, animated waves, foam and reflections | Implemented |
+| Native Metal rendering, bounded resolution, 30 FPS default | Implemented |
+| Volumetric clouds, scene-space rain, gradual storm transitions | Implemented |
+| Local sunrise/sunset, independent Sun/Moon motion, remote starry sky | Implemented |
+| Approximate IP location, cached weather and offline fallback | Implemented; no GPS permission prompt |
+| Pause on occlusion, minimization, sleep and inactive session | Implemented for the preview |
+| Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
+| Shared multi-display renderer and regional demand | Planned; pure demand/layout contracts and a diagnostic exist |
+| Installable wallpaper behind desktop icons | **Not yet implemented** in the current Metal app |
 
-## Run it
+The objective is a lightweight, continuous wallpaper with real local daylight and weather, a fixed ocean composition, and cinematic nights without city light pollution. Inland weather drives an idealized sea state; it is not a marine swell forecast.
 
-You need a recent Chrome with WebGPU and a reasonably capable GPU. On a laptop, force Chrome onto the dedicated GPU in the Windows graphics settings, or it will fall back to the integrated one.
+## Build and run
 
-Open `ocean.html` directly in the browser. `ocean.min.html` is the same page minified (61 KB instead of 102 KB). Both are self-contained and work from `file://`.
+Use an Apple silicon Mac with macOS 13+ and Xcode Command Line Tools:
 
-To run from source:
-
+```sh
+git clone https://github.com/GodlyDonuts/web-ocean.git
+cd web-ocean
+zsh macos/build.sh
+open macos/build/Ocean.app
 ```
-npm install
-npm start        # serves http://localhost:8080/
+
+No npm packages, Python, Rust, development server or downloaded assets are required for the native build. Swift builds the app bundle; packaged Metal sources compile into retained pipeline states at startup. The included galaxy asset is ready to use. See its [credits and provenance](macos/Assets/Galaxy/CREDITS.md).
+
+The window supports resizing and macOS full screen. The camera remains fixed. Use the app's weather controls for manual storm previews, or automatic mode for current local weather. Quit with Command-Q.
+
+The preview caps its internal image at approximately 1,024,000 pixels, preserves aspect ratio and defaults to 30 FPS. The standard 1280×800 view uses 98,304 ocean triangles. Wave simulation updates six periodic 256×256 FFT bands; these are reusable wave tiles rather than a fully meshed world. Geometry is concentrated in the viewport with sparse displacement guards, including a near patch behind the camera that prevents holes during overtaking storm waves.
+
+## Check the current implementation
+
+The native build has no test dependencies. Some GPU analysis scripts need Python with NumPy and Pillow:
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements-dev.txt
+zsh macos/test-current.sh
 ```
 
-After editing anything under `js/`, run `npm run build` to regenerate both bundles. The minified build strips WGSL comments and whitespace and minifies the JavaScript with esbuild.
+This maintained handoff gate builds the app, checks CPU contracts, and validates daylight, weather, night-water rendering, mesh coverage and the windowless lifecycle. It takes several minutes and writes disposable captures to ignored `macos/build/` directories. GPU fixtures use synthetic coordinates and do not perform IP lookup or write user astronomy caches. They create **zero application windows**.
 
-## Controls
+For a quick CPU-only check, run `zsh macos/test-unit.sh`. For the broader development suite, run `zsh macos/test.sh`. [Testing instructions](docs/testing.md) distinguish maintained regressions, optional visual reviews, historical comparisons and performance measurements. CI builds native sources and runs CPU checks; hosted CI is not a substitute for real Mac GPU validation.
 
-| Input | Action |
+## Time, location and weather
+
+The app looks up coarse location by public IP through `ipwho.is`, reuses it for astronomy and weather, and caches the result. Weather comes from Open-Meteo. Normal operation can therefore contact those services; neither is required for the deterministic GPU fixtures. No account or API key is required by the current implementation.
+
+Solar timings and hourly celestial samples are cached daily; real UTC drives the sky independently of wave phase. The Moon has its own path and phase. Weather is cached for 15 minutes and transitions continuously; IP location is refreshed infrequently, with a 24-hour cache. Saved state lives under `~/Library/Application Support/OceanWallpaper/`. Offline operation retains available cached state. See [day/night details](docs/day-night-cycle.md) and [weather behavior](docs/dynamic-weather.md).
+
+## Where to work
+
+| Area | Source / guide |
 |---|---|
-| Click the canvas | Capture the mouse (Esc releases it). Holding the right mouse button also works. |
-| Mouse | Look around |
-| W A S D | Move |
-| Space or E / Q or C | Up / down |
-| Shift | 5x speed |
-| Mouse wheel | Change base speed |
-| H | Settings panel: wind, swell, choppiness, turbidity, foam, sun, haze, clouds, exposure, bloom |
+| Window lifecycle and menus | `macos/main.swift` |
+| Resource ownership and frame encoding | `macos/OceanRenderer.swift` |
+| Wave simulation, surface, foam, rain and sky | `macos/Shaders/` and [architecture](docs/architecture.md) |
+| Astronomy and IP location | `macos/CelestialCycle.swift`, `macos/ObserverLocationProvider.swift` |
+| Weather state and providers | `macos/Weather.swift`, `macos/WeatherProvider.swift` |
+| Animation timing | `macos/AnimationClock.swift` |
+| Display demand contracts and diagnostic | `macos/SharedSurfaceDemand.swift`, `macos/Diagnostics/` |
+| Tests and experiments | `macos/Tests/` and [testing guide](docs/testing.md) |
+| Research and evidence | `research/`, `docs/` and [documentation index](docs/README.md) |
+| Optional shader migration tools | `tools/`; these are not part of normal native builds |
+| Retained browser reference | `index.html`, `js/`, `ocean.html`, `ocean.min.html` |
 
-The camera keeps itself above the displaced water surface, so waves never pass through it.
+## Continue development
 
-URL parameters are handy for testing. `?w=2560&h=1440` forces the render resolution, `cam=x,y,z,yawDeg,pitchDeg` sets the camera, `fov=deg` sets the field of view, `ui=0` hides the HUD, and any settings key works too, for example `windSpeed=12&swellHs=2&sunElev=8`.
+Read [the handoff](docs/handoff.md) before changing render architecture. The next milestone is to separate shared ocean/environment state from display surfaces, validate presentation demand and reveal behavior, then integrate desktop wallpaper windows. Preserve the current fixed view, no-prompt IP location, continuous transitions, bounded GPU work and windowless automated tests.
 
-## How it works
+Current limitations include approximate lunar positioning, procedural resolved stars, approximate cloud multiple scattering, a height-field underwater treatment, and no shoreline or overturning breakers. Startup shader compilation and reduced internal resolution are deliberate tradeoffs. Performance reports in `docs/` identify their scenes and revisions; compare matched before/after runs rather than combining timings from different versions. The latest storm-water correction measured about 10.62 → 10.58 ms mean GPU time in a short M1 comparison; this is not a battery-life claim.
 
-### Waves
+![Storm wave coverage correction](docs/night-water-comparison.png)
 
-The sea is a Tessendorf FFT simulation with six cascades of 256 by 256 samples. The patches range from 1103 m down to 0.26 m, so wavelengths run from about a kilometre to a few millimetres. The smallest cascade produces the sharp sun sparkles near the camera.
+## Browser reference
 
-The spectrum is a fetch-limited JONSWAP wind sea with Donelan-Banner directional spreading, plus a narrow long-crested swell. Dispersion includes the capillary term, and choppy horizontal displacement sharpens the crests. The inverse FFTs are radix-2 compute shaders working in workgroup memory.
+Node.js and npm are optional for the retained browser version:
 
-The surface mesh is a CDLOD quadtree with 17 levels. Vertices are 6.25 cm apart near the camera and the mesh reaches 160 km, with continuous vertex morphing between levels.
+```sh
+npm ci
+npm start
+```
 
-### Shading
+Open the local URL printed by the server in a browser with WebGPU support. `npm run build` regenerates the standalone HTML artifacts. Browser controls and rendering behavior are historical reference material; the native app has no free camera. Do not run the shader-export tools over hand-edited Metal without reviewing the diff: native Metal is the active source of truth.
 
-- Mip-mapped first and second moments of the wave slopes (LEAN mapping) give the right anisotropic roughness at every distance. The sun glitter widens with distance and the far sea settles into a sheen without aliasing. Screen-space slope derivatives add specular anti-aliasing.
-- Sun glitter uses an anisotropic Gaussian slope distribution with Smith masking and the size of the solar disc.
-- The sky reflection comes from an environment cube map rebuilt every frame, with roughness-filtered mips. At grazing angles the reflection direction is tilted to account for which wave facets the viewer can actually see.
-- The water body is turbid blue-green, lit by the whole sky hemisphere. Backlit crests get a subsurface glow, and wind-gust patches modulate the short ripples.
-- Whitecaps start where the total surface Jacobian folds. Foam is stored in two camera-centred world-space maps (128 m and 1 km wide), decays over time, drifts downwind, and breaks into streaks as it ages. A procedural bubble texture gives it its structure.
+## Origins and license
 
-### Sky
-
-The atmosphere follows Hillaire's approach, with transmittance, multiple-scattering, and sky-view lookup tables plus aerosol haze. There are two cloud layers, a broken low cumulus and a fibrous altostratus deck. Each is shaded with self-shadowing toward the sun, lit rims, silver linings when backlit, and direction-dependent multiple scattering.
-
-Cloud noise octaves are filtered by pixel footprint, and silhouettes are anti-aliased analytically: the screen-space derivative of each layer's edge function sets the width of its opacity edge. Cloud transmittance along the sun direction dims the sunlight that reaches the water, and aerial perspective is applied over the sea.
-
-### Post-processing
-
-The scene renders in HDR with 4x MSAA. Post-processing adds an 8-level bloom, AgX tone mapping, a slight white balance shift, and dithering.
-
-## Performance
-
-At 2560 by 1440 on an RTX 5070 Ti, the GPU takes about 6 to 8 ms per frame, measured while other programs were also using the GPU. The HUD shows FPS and GPU time when the browser supports `timestamp-query`.
-
-The per-frame code reuses preallocated typed arrays and descriptors, so the garbage collector has almost nothing to do. The only recurring allocations are the objects WebGPU itself requires, such as the swap-chain view and command buffers.
-
-## Known limitations
-
-- Far water is still somewhat darker than the bright horizon sky above it.
-- The water is tuned toward turbid coastal water. The "Water turbidity" slider gives darker, bluer deep water when turned down.
-- The scene is open ocean only. There is no shoreline, surf, or objects in the water.
-- Clouds are two flat layers, not volumetric.
-
-## How it was made
-
-I built this with Claude Code (Opus 5.5). I asked for the most realistic water it could produce, in WebGPU, with a floating camera, and left the architecture and implementation to it. It checked its own work by rendering screenshots in headless Chrome and having separate critic subagents review them, so it was not grading its own output. I gave feedback along the way, mainly on the clouds, which led to replacing the volumetric clouds with the flat layers and later fixing their edge aliasing.
-
-## Repository layout
-
-| Path | Contents |
-|---|---|
-| `index.html` | Page shell, HUD, and settings panel styles |
-| `js/main.js` | Device setup, resources, camera, per-frame loop |
-| `js/wgsl/` | Shaders as JavaScript modules: `sim.js` (waves and foam), `sky.js` (atmosphere and clouds), `ocean.js` (surface and sky pass), `post.js` (bloom and tone mapping), `common.js` (shared structs) |
-| `server.mjs` | Tiny static server for development |
-| `build.mjs` | Builds `ocean.html` and `ocean.min.html` |
-| `docs/` | README images |
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+The original WebGPU renderer was built with Claude Code (Opus 5.5). This project extends it into a native macOS ocean wallpaper. Code is MIT licensed; see [LICENSE](LICENSE). NASA/Gaia-derived imagery has separate [credits and usage guidance](macos/Assets/Galaxy/CREDITS.md). Imported research retains its original files and attribution under [research/](research/README.md).

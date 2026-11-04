@@ -1,0 +1,11 @@
+# Rejected wave mip scheduling experiments
+
+The interleaved kernel advances the independent displacement/derivative/moment chains at each mip level together, reusing the twelve original per-texture blocks verbatim. This reduces nine collective threadgroup barriers to three, with the same 2,016-byte static threadgroup allocation.
+
+The SIMD kernel keeps only the first 8x8 level in threadgroup memory, synchronizes once, and lets one 32-lane SIMD group finish the remaining levels through register shuffles. Logical tile coordinates are derived from SIMD IDs; all shuffle participants reconverge before shuffling. The other whole SIMD group returns only after the sole threadgroup barrier. Half conversion uses the original textureHalf routine at every removed memory boundary. Static threadgroup storage falls to 1,536 bytes. This experimental mode requires a pipeline threadExecutionWidth of 32 and throws a clear error otherwise. It was not adopted as a portable default.
+
+Both candidates passed fourteen strict image/intermediate comparisons, including long uptime and narrow/portrait/ultrawide layouts, without creating windows. Twenty-four interleaved full-frame runs failed to establish a useful performance win: the first interleaved batch was highly variable, stable-time median improved only 0.22%, and the SIMD candidate worsened median 1.85%. All sources were restored to the accepted headless renderer.
+
+To reproduce in a disposable checkout, put OceanRenderer.swift and test.sh under macos/, the two candidate shaders under macos/Shaders/, and the three Python drivers under macos/Tests/. Keep the normal SIM_MIPS_FUSED4.metal unchanged. This snapshot already includes the windowless backend and the drivers require zero windows. Run the normal build, then verify_wave_barriers.py or verify_wave_simd.py. benchmark.py --baseline wavebarriers --rounds 2 compares nine versus three barriers; --baseline wavesimd --rounds 2 compares nine versus one. Add --time 600.05 for the later animation path. Only the selected source is compiled; the manifest and shader resource slots are unchanged.
+
+Full raw timing data, quality results and restoration checks are in docs/optimization-report-2026-10-23-wave-mip-scheduling.json. No instruction-count, register-pressure, DRAM, power or battery-life improvement is claimed.

@@ -1,0 +1,309 @@
+{
+  "date": "2026-10-23",
+  "device": "Apple M1",
+  "method": "Four interleaved ABBA runs; 60 warmup frames and 120 measured frames per run; fixed simulation dt; ordinary command-buffer GPU timing, counters disabled. CPU encoding excludes queue commit and resize.",
+  "acceptedChanges": [
+    "Skip zero-weight cubic/gradient texture reads.",
+    "Scissor visible sky cache below its useful horizon region.",
+    "Cache fixed camera and environment uniform data; update changing fields directly.",
+    "Scale projected-grid density with viewport dimensions and preserve aspect ratios within integer rounding."
+  ],
+  "metrics": {
+    "gpuMeanMs": {
+      "reference": 9.4081618085814,
+      "optimized": 8.784673439125374,
+      "reductionPercent": 6.627100831613342
+    },
+    "gpuMedianMs": {
+      "reference": 8.438020886387676,
+      "optimized": 8.110687485896051,
+      "reductionPercent": 3.8792674834413288
+    },
+    "gpuP95Ms": {
+      "reference": 14.30206251097843,
+      "optimized": 12.674583296757191,
+      "reductionPercent": 11.379332267440212
+    },
+    "cpuEncodeMeanMs": {
+      "reference": 0.8079248286473255,
+      "optimized": 0.7264048569292451,
+      "reductionPercent": 10.090044126328667
+    },
+    "cpuEncodeMedianMs": {
+      "reference": 0.8537500398233533,
+      "optimized": 0.7620833930559456,
+      "reductionPercent": 10.736942019513595
+    }
+  },
+  "runs": [
+    {
+      "cpuEncodeMeanMs": 0.7914079847978428,
+      "cpuEncodeMedianMs": 0.8272917475551367,
+      "device": "Apple M1",
+      "errors": [],
+      "gpuMeanMs": 9.411404517595656,
+      "gpuMedianMs": 8.4530416643247,
+      "gpuP95Ms": 14.284500037319958,
+      "gpuStagesMs": {},
+      "height": 800,
+      "profiled": false,
+      "samples": 120,
+      "triangles": 98304,
+      "width": 1280,
+      "reference": true
+    },
+    {
+      "cpuEncodeMeanMs": 0.7426742968770365,
+      "cpuEncodeMedianMs": 0.8242917247116566,
+      "device": "Apple M1",
+      "errors": [],
+      "gpuMeanMs": 8.785543751825267,
+      "gpuMedianMs": 8.057749946601689,
+      "gpuP95Ms": 12.678166618570685,
+      "gpuStagesMs": {},
+      "height": 800,
+      "profiled": false,
+      "samples": 120,
+      "triangles": 98304,
+      "width": 1280,
+      "reference": false
+    },
+    {
+      "cpuEncodeMeanMs": 0.7101354169814537,
+      "cpuEncodeMedianMs": 0.6998750614002347,
+      "device": "Apple M1",
+      "errors": [],
+      "gpuMeanMs": 8.783803126425482,
+      "gpuMedianMs": 8.163625025190413,
+      "gpuP95Ms": 12.670999974943697,
+      "gpuStagesMs": {},
+      "height": 800,
+      "profiled": false,
+      "samples": 120,
+      "triangles": 98304,
+      "width": 1280,
+      "reference": false
+    },
+    {
+      "cpuEncodeMeanMs": 0.8244416724968081,
+      "cpuEncodeMedianMs": 0.8802083320915699,
+      "device": "Apple M1",
+      "errors": [],
+      "gpuMeanMs": 9.404919099567147,
+      "gpuMedianMs": 8.423000108450651,
+      "gpuP95Ms": 14.319624984636903,
+      "gpuStagesMs": {},
+      "height": 800,
+      "profiled": false,
+      "samples": 120,
+      "triangles": 98304,
+      "width": 1280,
+      "reference": true
+    }
+  ],
+  "quality": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "sunset",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "swell_phase_45",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "swell_phase_120",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "daylight",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "rough_cloudy",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "ultrawide",
+        "width": 1907,
+        "height": 537,
+        "triangles": 104448,
+        "comparedHalfFloatValues": 4096236,
+        "changedValues": 0
+      },
+      {
+        "case": "portrait",
+        "width": 759,
+        "height": 1349,
+        "triangles": 99712,
+        "comparedHalfFloatValues": 4095564,
+        "changedValues": 0
+      },
+      {
+        "case": "wide_16_9",
+        "width": 1349,
+        "height": 759,
+        "triangles": 100096,
+        "comparedHalfFloatValues": 4095564,
+        "changedValues": 0
+      }
+    ]
+  },
+  "fftExperiment": {
+    "adopted": false,
+    "reason": "Equivalent output but no meaningful speed improvement in this experiment.",
+    "report": {
+      "cases": [
+        {
+          "assembledMaxAbsoluteError": 0,
+          "case": "zero",
+          "differentHalfValues": 0,
+          "doubleDFTMaxAbsoluteError": 0,
+          "rowMaxAbsoluteError": 0
+        },
+        {
+          "assembledMaxAbsoluteError": 0,
+          "case": "impulse",
+          "differentHalfValues": 0,
+          "doubleDFTMaxAbsoluteError": 0,
+          "rowMaxAbsoluteError": 0
+        },
+        {
+          "assembledMaxAbsoluteError": 0,
+          "case": "frequency",
+          "differentHalfValues": 0,
+          "doubleDFTMaxAbsoluteError": 6.578976070523157e-10,
+          "rowMaxAbsoluteError": 0
+        },
+        {
+          "assembledMaxAbsoluteError": 0,
+          "case": "random",
+          "differentHalfValues": 0,
+          "doubleDFTMaxAbsoluteError": 1.343340875169241e-09,
+          "rowMaxAbsoluteError": 0
+        }
+      ],
+      "device": "Apple M1",
+      "referenceMedianMs": 0.9061575510713737,
+      "referenceSamplesMs": [
+        0.8371757794520818,
+        0.8382851556234527,
+        0.8485833313898183,
+        0.8630039046693128,
+        0.9061575510713737,
+        0.906585937627824,
+        0.9092526051972527,
+        0.9296601565438323
+      ],
+      "simdMedianMs": 0.9081783864530735,
+      "simdSamplesMs": [
+        0.8242460935434792,
+        0.8321276036440395,
+        0.8423958352068439,
+        0.8688749985594768,
+        0.9081783864530735,
+        0.9245598957932089,
+        0.9537252590234857,
+        1.0228229148196988
+      ],
+      "simdWidth": 32,
+      "speedup": 0.9977748475279266
+    },
+    "repeatReport": {
+      "cases": [
+        {
+          "assembledMaxAbsoluteError": 0,
+          "case": "zero",
+          "differentHalfValues": 0,
+          "doubleDFTMaxAbsoluteError": 0,
+          "rowMaxAbsoluteError": 0
+        },
+        {
+          "assembledMaxAbsoluteError": 0,
+          "case": "impulse",
+          "differentHalfValues": 0,
+          "doubleDFTMaxAbsoluteError": 0,
+          "rowMaxAbsoluteError": 0
+        },
+        {
+          "assembledMaxAbsoluteError": 0,
+          "case": "frequency",
+          "differentHalfValues": 0,
+          "doubleDFTMaxAbsoluteError": 6.578976070523157e-10,
+          "rowMaxAbsoluteError": 0
+        },
+        {
+          "assembledMaxAbsoluteError": 0,
+          "case": "random",
+          "differentHalfValues": 0,
+          "doubleDFTMaxAbsoluteError": 1.343340875169241e-09,
+          "rowMaxAbsoluteError": 0
+        }
+      ],
+      "device": "Apple M1",
+      "referenceMedianMs": 0.8607695308455732,
+      "referenceSamplesMs": [
+        0.8284062496386468,
+        0.8445546882285271,
+        0.8448450535070151,
+        0.8459973942080978,
+        0.8607695308455732,
+        0.8928151073632762,
+        0.9009609348140657,
+        0.9017239572131075
+      ],
+      "simdMedianMs": 0.8811953121039551,
+      "simdSamplesMs": [
+        0.8228437509387732,
+        0.8377942685910966,
+        0.8402343737543561,
+        0.8435976560576819,
+        0.8811953121039551,
+        0.8908125018933788,
+        0.9164583316305652,
+        0.9650312495068647
+      ],
+      "simdWidth": 32,
+      "speedup": 0.9768203700384958
+    }
+  },
+  "sources": {
+    "macos/Shaders/OCEAN.metal": "e918db9a0295ab7a1d697fccedbd20e2d642a6eabc9fc6d73b6317bb72ff9ebb",
+    "macos/Tests/OCEAN_REFERENCE.metal": "1bfdce412394033fe4641b9cb6ae3608031182a98be834cb9098431db131625d",
+    "macos/OceanRenderer.swift": "ec5511914572c54a0aadbc1fb0b55e66d4734f10be43ffd31b2f9c70beb51317",
+    "macos/ViewportLayout.swift": "29524a1f8140e6d29ef33f81c97b4c302eea4e54effe27179cbbd47f25b7fcc3"
+  },
+  "nextCandidates": [
+    "Measure constant ambient-light sampling hoisted from per-pixel ocean shading.",
+    "Use 16-bit viewport indices where the vertex count permits.",
+    "Prebind static compute resources to reduce CPU argument encoding.",
+    "Investigate higher-quality scaling on large displays without reducing current detail."
+  ],
+  "limitations": [
+    "Local development measurements, not a power or battery benchmark.",
+    "One Apple M1 tested; other GPU generations and physical external monitors remain unverified.",
+    "HDR comparisons cover the captured states, not every possible weather combination."
+  ],
+  "liveResizeCheck": "Native preview visually checked before and after AppKit zoom; scene filled both viewport aspect ratios."
+}

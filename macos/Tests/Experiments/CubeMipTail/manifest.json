@@ -1,0 +1,92 @@
+{
+  "SIM_INIT": [
+    "main_"
+  ],
+  "SIM_EVOLVE": [
+    "main_"
+  ],
+  "FFT_ROWS": [
+    "main_"
+  ],
+  "FFT_COLS": [
+    "main_"
+  ],
+  "SIM_MIPS": [
+    "main_"
+  ],
+  "FOAM_TEX": [
+    "main_"
+  ],
+  "RGBA8_MIPS": [
+    "main_"
+  ],
+  "FOAM_UPDATE": [
+    "main_"
+  ],
+  "ARRAY16_MIPS": [
+    "main_"
+  ],
+  "TRANS_LUT": [
+    "main_"
+  ],
+  "MS_LUT": [
+    "main_"
+  ],
+  "SKYVIEW_LUT": [
+    "main_"
+  ],
+  "ENV_CUBE": [
+    "main_"
+  ],
+  "CUBE_MIPS": [
+    "main_"
+  ],
+  "SUN_VIS": [
+    "main_"
+  ],
+  "SKY_BG": [
+    "vs",
+    "fs"
+  ],
+  "SKY_CACHED": [
+    "vs",
+    "fs"
+  ],
+  "OCEAN": [
+    "vs",
+    "fs"
+  ],
+  "BLOOM_DOWN": [
+    "vs",
+    "fs"
+  ],
+  "BLOOM_UP": [
+    "vs",
+    "fs"
+  ],
+  "COMPOSITE": [
+    "vs",
+    "fs"
+  ],
+  "LIGHTING": [
+    "main_"
+  ],
+  "SIM_MIPS_FUSED4": [
+    "main_"
+  ],
+  "ARRAY16_MIPS_FUSED4": [
+    "main_"
+  ],
+  "ARRAY16_MIPS_FUSED5": [
+    "main_"
+  ],
+  "DISPLACEMENT_BOUNDS": [
+    "main_"
+  ],
+  "DISPLACEMENT_BOUNDS_FINAL": [
+    "main_"
+  ],
+  "CUBE_MIPS_FUSED_TAIL": [
+    "main_"
+  ]
+}

@@ -39,6 +39,23 @@ struct VO { @builtin(position) pos: vec4f, @location(0) ndc: vec2f };
 }
 `;
 
+// A cheap background pass samples the slowly refreshed, view-aligned sky.
+export const SKY_CACHED = /* wgsl */ `
+@group(0) @binding(0) var sky: texture_2d<f32>;
+@group(0) @binding(1) var samp: sampler;
+struct VO { @builtin(position) pos: vec4f, @location(0) uv: vec2f };
+@vertex fn vs(@builtin(vertex_index) i: u32) -> VO {
+  let p = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
+  var o: VO;
+  o.pos = vec4f(p * 2.0 - 1.0, 0.0, 1.0);
+  o.uv = vec2f(p.x, 1.0 - p.y);
+  return o;
+}
+@fragment fn fs(in: VO) -> @location(0) vec4f {
+  return textureSample(sky, samp, in.uv);
+}
+`;
+
 export const OCEAN = FRAME_WGSL + ATMO_CORE_WGSL + RENDER_BINDINGS + /* wgsl */ `
 @group(0) @binding(4) var dispTex: texture_2d_array<f32>;
 @group(0) @binding(5) var derivTex: texture_2d_array<f32>;
@@ -52,6 +69,29 @@ export const OCEAN = FRAME_WGSL + ATMO_CORE_WGSL + RENDER_BINDINGS + /* wgsl */ 
 const ENV_MAXMIP: f32 = ${ENV_MIPS - 1}.0;
 const ENV_TEXELS_PER_RAD: f32 = ${ENV_SIZE}.0 / 1.5708;
 const TEX_N: f32 = ${N}.0;
+
+// Cubic B-spline reconstruction of the coarse wave bands. Bilinear slopes
+// and slope moments expose square texel boundaries in glossy reflections.
+// Four hardware-filtered taps give continuous first derivatives across cells.
+fn cubicWave(t: texture_2d_array<f32>, uv: vec2f, layer: u32) -> vec4f {
+  let size = vec2f(textureDimensions(t, 0));
+  let p = uv * size - 0.5;
+  let base = floor(p);
+  let f = fract(p);
+  let w0 = (1.0 - f) * (1.0 - f) * (1.0 - f) / 6.0;
+  let w1 = (3.0 * f * f * f - 6.0 * f * f + 4.0) / 6.0;
+  let w2 = (-3.0 * f * f * f + 3.0 * f * f + 3.0 * f + 1.0) / 6.0;
+  let w3 = f * f * f / 6.0;
+  let g0 = w0 + w1;
+  let g1 = w2 + w3;
+  let h0 = (base - 1.0 + w1 / g0 + 0.5) / size;
+  let h1 = (base + 1.0 + w3 / g1 + 0.5) / size;
+  return mix(
+    mix(textureSampleLevel(t, sampR, h0, layer, 0.0),
+        textureSampleLevel(t, sampR, vec2f(h1.x, h0.y), layer, 0.0), g1.x),
+    mix(textureSampleLevel(t, sampR, vec2f(h0.x, h1.y), layer, 0.0),
+        textureSampleLevel(t, sampR, h1, layer, 0.0), g1.x), g1.y);
+}
 
 struct VSOut {
   @builtin(position) pos: vec4f,
@@ -76,7 +116,12 @@ struct VSOut {
     let texel = F.cascL[c >> 2u][c & 3u] / TEX_N;
     let lod = log2(max(eff / texel, 1.0)) + 0.5;
     if (lod < 8.0) {
-      disp += textureSampleLevel(dispTex, sampR, xz * F.cascInvL[c >> 2u][c & 3u], c, lod).xyz;
+      let uv = xz * F.cascInvL[c >> 2u][c & 3u];
+      var wave = textureSampleLevel(dispTex, sampR, uv, c, lod);
+      if (c < 2u && lod < 1.0) {
+        wave = mix(cubicWave(dispTex, uv, c), wave, smoothstep(0.0, 1.0, lod));
+      }
+      disp += wave.xyz;
     }
   }
   var o: VSOut;
@@ -113,7 +158,16 @@ fn foamPattern(xz: vec2f, t: f32) -> f32 {
 }
 
 @fragment fn fs(in: VSOut) -> @location(0) vec4f {
+  if (F.post.w > 7.5 && F.post.w < 8.5) { return vec4f(0.01, 0.02, 0.03, 1.0); }
   let xz = in.xz;
+  // Derive a continuous ocean footprint from the viewing ray. Implicit UV
+  // derivatives change at the displaced mesh's triangle and LOD boundaries.
+  let ndc = vec2f(in.pos.x * F.screen.z * 2.0 - 1.0, 1.0 - in.pos.y * F.screen.w * 2.0);
+  let ray = F.camFwd.xyz + ndc.x * F.camRight.xyz + ndc.y * F.camUp.xyz;
+  let rayY = min(ray.y, -0.005);
+  let rayT = length(in.rel) / length(ray);
+  let oceanDx = rayT * (F.camRight.xz - ray.xz * F.camRight.y / rayY) * (2.0 * F.screen.z);
+  let oceanDy = rayT * (F.camUp.xz - ray.xz * F.camUp.y / rayY) * (2.0 * F.screen.w);
   var s = vec2f(0.0);
   var jxx = 0.0;
   var jzz = 0.0;
@@ -125,9 +179,21 @@ fn foamPattern(xz: vec2f, t: f32) -> f32 {
   for (var c = 0u; c < ${CASCADES}u; c++) {
     let uv = xz * F.cascInvL[c >> 2u][c & 3u];
     let gk = mix(1.0, gust, select(0.0, select(0.5, 1.0, c >= 4u), c >= 3u));
-    let dv = textureSample(derivTex, sampR, uv, c) * gk;
-    let mv = textureSample(momTex, sampR, uv, c) * (gk * gk);
-    let av = textureSample(dispTex, sampR, uv, c) * gk;
+    let dx = oceanDx * F.cascInvL[c >> 2u][c & 3u];
+    let dy = oceanDy * F.cascInvL[c >> 2u][c & 3u];
+    var dv = textureSampleGrad(derivTex, sampR, uv, c, dx, dy);
+    var mv = textureSampleGrad(momTex, sampR, uv, c, dx, dy);
+    var av = textureSampleGrad(dispTex, sampR, uv, c, dx, dy);
+    let footprint = max(length(dx), length(dy)) * TEX_N;
+    if (c < 2u) {
+      let blend = smoothstep(1.0, 2.0, footprint);
+      dv = mix(cubicWave(derivTex, uv, c), dv, blend);
+      mv = mix(cubicWave(momTex, uv, c), mv, blend);
+      av = mix(cubicWave(dispTex, uv, c), av, blend);
+    }
+    dv *= gk;
+    mv *= gk * gk;
+    av *= gk;
     s += dv.xy;
     jxx += dv.z;
     jzz += dv.w;
@@ -147,11 +213,9 @@ fn foamPattern(xz: vec2f, t: f32) -> f32 {
   let jz = max(1.0 + jzz, 0.15);
   let sl = vec2f(s.x / jx, s.y / jz);
   let nrm = normalize(vec3f(-sl.x, 1.0, -sl.y));
-  // specular anti-aliasing: slope variation across the pixel widens the lobe
-  let dsx = dpdx(sl);
-  let dsy = dpdy(sl);
-  let aa = vec3f(dsx.x * dsx.x + dsy.x * dsy.x, dsx.y * dsx.y + dsy.y * dsy.y, dsx.x * dsx.y + dsy.x * dsy.y) * 0.5;
-  cov += aa * min(1.0, 0.03 / max(max(aa.x, aa.y), 1e-8));
+  // The mip-filtered slope moments already account for unresolved variation.
+  // Screen derivatives of the interpolated slopes jump at mesh/LOD edges and
+  // introduce a stationary grid into roughness and reflected light.
   let J = (1.0 + jxx) * (1.0 + jzz) - jxz * jxz;
 
   let sunE = sunIlluminance() * sunVis[0];

@@ -1,0 +1,443 @@
+{
+  "date": "2026-10-30",
+  "objective": "Continuous Sun and Moon motion through a local day/night cycle with a fixed ocean viewpoint",
+  "passed": true,
+  "change": "Smooth the refraction correction below the horizon; visible sunrise/sunset correction and event times remain unchanged. Add temporal CPU and rendered-disk regression tests.",
+  "beforeMaximumDegreesPerMinute": {
+    "sun": 0.764681465,
+    "moon": 0.72952377
+  },
+  "motionVerification": {
+    "passed": true,
+    "trajectory": {
+      "dailyCalculations": 2,
+      "daySamples": 622,
+      "fixtures": [
+        {
+          "anchorUTC": 1793394900,
+          "body": "sun",
+          "heading": 270,
+          "name": "sun_before",
+          "pixel": [
+            308.43891817034705,
+            242.95701923723908
+          ],
+          "sunAltitude": 6.041465140426956,
+          "utc": 1793394950,
+          "verifyFrame": 8
+        },
+        {
+          "anchorUTC": 1793394900,
+          "body": "sun",
+          "heading": 270,
+          "name": "sun_after",
+          "pixel": [
+            385.43683864303307,
+            315.0316961600192
+          ],
+          "sunAltitude": 0.7600128124748032,
+          "utc": 1793396750,
+          "verifyFrame": 188
+        },
+        {
+          "anchorUTC": 1793412600,
+          "body": "moon",
+          "heading": 60,
+          "name": "moon_before",
+          "pixel": [
+            641.6468093769948,
+            262.11857319457914
+          ],
+          "sunAltitude": -48.08673432827056,
+          "utc": 1793412650,
+          "verifyFrame": 8
+        },
+        {
+          "anchorUTC": 1793412600,
+          "body": "moon",
+          "heading": 60,
+          "name": "moon_after",
+          "pixel": [
+            697.7056496084754,
+            198.76480398187084
+          ],
+          "sunAltitude": -52.86643462861245,
+          "utc": 1793414450,
+          "verifyFrame": 188
+        }
+      ],
+      "maximumMoonDegreesPerMinute": 0.3095999868970466,
+      "maximumSunDegreesPerMinute": 0.3701638455057384,
+      "nightSamples": 695,
+      "passed": true,
+      "samples": 1441
+    },
+    "renders": [
+      {
+        "anchorUTC": 1793394900,
+        "body": "sun",
+        "heading": 270,
+        "name": "sun_before",
+        "pixel": [
+          308.43891817034705,
+          242.95701923723908
+        ],
+        "sunAltitude": 6.041465140426956,
+        "utc": 1793394950,
+        "verifyFrame": 8,
+        "measuredPixel": [
+          308.41945825141687,
+          242.90645010939377
+        ],
+        "projectionErrorPixels": 0.05418417791020029,
+        "diskPixels": 60,
+        "diskContrast": 55483.16165644531,
+        "diagnostics": {
+          "activationPolicy": 2,
+          "cachedSkyElapsed": 0.1666666753590107,
+          "clockMode": "continuous",
+          "cloudCacheHeight": 400,
+          "cloudCacheWidth": 640,
+          "cloudNoiseBytes": 1048576,
+          "dayNightActive": true,
+          "device": "Apple M1",
+          "elapsed": 0.2666666805744171,
+          "errors": [],
+          "fps": 6.2,
+          "frames": 8,
+          "fusedEvolution": true,
+          "fusedMips": true,
+          "galaxyAtlasHeight": 1024,
+          "galaxyAtlasWidth": 2048,
+          "gpuMs": 101.34,
+          "gpuStagesMs": {},
+          "guardBoundsVerified": false,
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "moonIllumination": 0.735169780484695,
+          "narrowTextureUsage": true,
+          "offscreen": true,
+          "packedJacobian": true,
+          "paused": false,
+          "physicalGuard": false,
+          "renderer": "Metal",
+          "renderTextureUsage": [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "skyAAMask": 0,
+          "solarCacheWrites": 0,
+          "solarCalculations": 1,
+          "specializedSkyAAMask": 0,
+          "spectrumBufferBytes": 0,
+          "stableDetails": false,
+          "starAtlasHeight": 512,
+          "starAtlasWidth": 1024,
+          "starCount": 12000,
+          "sunAltitude": 5.955019309777053,
+          "triangles": 98304,
+          "volumetricClouds": true,
+          "width": 1280,
+          "windowCount": 0
+        }
+      },
+      {
+        "anchorUTC": 1793394900,
+        "body": "sun",
+        "heading": 270,
+        "name": "sun_after",
+        "pixel": [
+          385.43683864303307,
+          315.0316961600192
+        ],
+        "sunAltitude": 0.7600128124748032,
+        "utc": 1793396750,
+        "verifyFrame": 188,
+        "measuredPixel": [
+          385.3878280773121,
+          314.86255469245685
+        ],
+        "projectionErrorPixels": 0.17609903918370737,
+        "diskPixels": 54,
+        "diskContrast": 11837.24181665039,
+        "diagnostics": {
+          "activationPolicy": 2,
+          "cachedSkyElapsed": 6.166666988283396,
+          "clockMode": "continuous",
+          "cloudCacheHeight": 400,
+          "cloudCacheWidth": 640,
+          "cloudNoiseBytes": 1048576,
+          "dayNightActive": true,
+          "device": "Apple M1",
+          "elapsed": 6.266666993498802,
+          "errors": [],
+          "fps": 9.4,
+          "frames": 188,
+          "fusedEvolution": true,
+          "fusedMips": true,
+          "galaxyAtlasHeight": 1024,
+          "galaxyAtlasWidth": 2048,
+          "gpuMs": 92.53,
+          "gpuStagesMs": {},
+          "guardBoundsVerified": false,
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "moonIllumination": 0.7329942541260068,
+          "narrowTextureUsage": true,
+          "offscreen": true,
+          "packedJacobian": true,
+          "paused": false,
+          "physicalGuard": false,
+          "renderer": "Metal",
+          "renderTextureUsage": [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "skyAAMask": 0,
+          "solarCacheWrites": 0,
+          "solarCalculations": 1,
+          "specializedSkyAAMask": 0,
+          "spectrumBufferBytes": 0,
+          "stableDetails": false,
+          "starAtlasHeight": 512,
+          "starAtlasWidth": 1024,
+          "starCount": 12000,
+          "sunAltitude": 0.6704937433057397,
+          "triangles": 98304,
+          "volumetricClouds": true,
+          "width": 1280,
+          "windowCount": 0
+        }
+      },
+      {
+        "anchorUTC": 1793412600,
+        "body": "moon",
+        "heading": 60,
+        "name": "moon_before",
+        "pixel": [
+          641.6468093769948,
+          262.11857319457914
+        ],
+        "sunAltitude": -48.08673432827056,
+        "utc": 1793412650,
+        "verifyFrame": 8,
+        "measuredPixel": [
+          640.7007153871807,
+          263.275598822991
+        ],
+        "projectionErrorPixels": 1.4945909615558062,
+        "diskPixels": 34,
+        "diskContrast": 0.2938178310394287,
+        "diagnostics": {
+          "activationPolicy": 2,
+          "cachedSkyElapsed": 0.1666666753590107,
+          "clockMode": "continuous",
+          "cloudCacheHeight": 400,
+          "cloudCacheWidth": 640,
+          "cloudNoiseBytes": 1048576,
+          "dayNightActive": true,
+          "device": "Apple M1",
+          "elapsed": 0.2666666805744171,
+          "errors": [],
+          "fps": 7.6,
+          "frames": 8,
+          "fusedEvolution": true,
+          "fusedMips": true,
+          "galaxyAtlasHeight": 1024,
+          "galaxyAtlasWidth": 2048,
+          "gpuMs": 95.7,
+          "gpuStagesMs": {},
+          "guardBoundsVerified": false,
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "moonIllumination": 0.7135362239435324,
+          "narrowTextureUsage": true,
+          "offscreen": true,
+          "packedJacobian": true,
+          "paused": false,
+          "physicalGuard": false,
+          "renderer": "Metal",
+          "renderTextureUsage": [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "skyAAMask": 0,
+          "solarCacheWrites": 0,
+          "solarCalculations": 1,
+          "specializedSkyAAMask": 0,
+          "spectrumBufferBytes": 0,
+          "stableDetails": false,
+          "starAtlasHeight": 512,
+          "starAtlasWidth": 1024,
+          "starCount": 12000,
+          "sunAltitude": -48.16995437340496,
+          "triangles": 98304,
+          "volumetricClouds": true,
+          "width": 1280,
+          "windowCount": 0
+        }
+      },
+      {
+        "anchorUTC": 1793412600,
+        "body": "moon",
+        "heading": 60,
+        "name": "moon_after",
+        "pixel": [
+          697.7056496084754,
+          198.76480398187084
+        ],
+        "sunAltitude": -52.86643462861245,
+        "utc": 1793414450,
+        "verifyFrame": 188,
+        "measuredPixel": [
+          696.7119901642669,
+          199.83125028381443
+        ],
+        "projectionErrorPixels": 1.4576236846298118,
+        "diskPixels": 34,
+        "diskContrast": 0.462971598815918,
+        "diagnostics": {
+          "activationPolicy": 2,
+          "cachedSkyElapsed": 6.166666988283396,
+          "clockMode": "continuous",
+          "cloudCacheHeight": 400,
+          "cloudCacheWidth": 640,
+          "cloudNoiseBytes": 1048576,
+          "dayNightActive": true,
+          "device": "Apple M1",
+          "elapsed": 6.266666993498802,
+          "errors": [],
+          "fps": 10.3,
+          "frames": 188,
+          "fusedEvolution": true,
+          "fusedMips": true,
+          "galaxyAtlasHeight": 1024,
+          "galaxyAtlasWidth": 2048,
+          "gpuMs": 89.63,
+          "gpuStagesMs": {},
+          "guardBoundsVerified": false,
+          "height": 800,
+          "indexBits": 16,
+          "indexBytes": 589824,
+          "mipmapRounding": "towardZero",
+          "moonIllumination": 0.7113071774794477,
+          "narrowTextureUsage": true,
+          "offscreen": true,
+          "packedJacobian": true,
+          "paused": false,
+          "physicalGuard": false,
+          "renderer": "Metal",
+          "renderTextureUsage": [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "sharedCubic": true,
+          "skipCloudOctaves": true,
+          "skyAAMask": 0,
+          "solarCacheWrites": 0,
+          "solarCalculations": 1,
+          "specializedSkyAAMask": 0,
+          "spectrumBufferBytes": 0,
+          "stableDetails": false,
+          "starAtlasHeight": 512,
+          "starAtlasWidth": 1024,
+          "starCount": 12000,
+          "sunAltitude": -52.94188036007897,
+          "triangles": 98304,
+          "volumetricClouds": true,
+          "width": 1280,
+          "windowCount": 0
+        }
+      }
+    ],
+    "motionPairs": [
+      {
+        "body": "sun",
+        "minutes": 30.0,
+        "fixedHeading": 270,
+        "expectedDisplacementPixels": [
+          76.99792047268602,
+          72.0746769227801
+        ],
+        "measuredDisplacementPixels": [
+          76.96836982589525,
+          71.95610458306308
+        ]
+      },
+      {
+        "body": "moon",
+        "minutes": 30.0,
+        "fixedHeading": 60,
+        "expectedDisplacementPixels": [
+          56.05884023148053,
+          -63.3537692127083
+        ],
+        "measuredDisplacementPixels": [
+          56.011274777086214,
+          -63.44434853917659
+        ]
+      }
+    ],
+    "scope": "24-hour cached trajectory and actual GPU disk positions/motion. Each late capture runs from the same initial UTC as its early pair for 188 frames, so stale/frozen uniforms or sky cache cannot pass by restarting at the final date. Fixed camera, no windows/network/user-cache writes."
+  },
+  "acceleratedRenderLoop": {
+    "passed": true,
+    "simulatedHours": 24.00000125169754,
+    "solarCalculations": 2,
+    "sunAltitudeSamples": [
+      -45.573423012993146,
+      4.612805742040498,
+      34.27402760215853
+    ],
+    "scope": "Dynamic render-loop/rollover check; accelerated cadence is not a real-time image-quality or performance benchmark."
+  },
+  "regressions": {
+    "cpu": "Offline events, NOAA cross-check, DST, polar cases, 1920 interpolated states, lunar phases, heading, cache recovery, 10000 cached queries passed.",
+    "gpu": "13 synthetic day/night GPU cases passed with Metal API/shader validation.",
+    "userCacheWrites": 0,
+    "automatedWindowCount": 0
+  },
+  "performanceScope": "No added render passes, textures or recurring cache I/O. Existing frame-budget measurements are documented separately; shader-validation motion captures are not speed benchmarks.",
+  "sources": {
+    "macos/CelestialCycle.swift": "a8665165cc3c996fa9a9ae417506d32cc68a8af6bffb7af9b7136b8c6ebc4aec",
+    "macos/OceanRenderer.swift": "7280d60e4146d105fa37ab397788a44761eaca148a925728be547d79ae83a743",
+    "macos/Tests/CelestialMotionTests.swift": "543c596122ea7e901fe543694ce249e04ab0d1758d8a3452467830acdbf13d03",
+    "macos/Tests/verify_celestial_motion.py": "36896a1227dced2435751d042c59e87f03e3c3f36cd6afd2acec0789b0e51701"
+  }
+}

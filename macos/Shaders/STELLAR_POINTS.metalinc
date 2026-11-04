@@ -1,0 +1,23 @@
+constexpr metal::sampler stellarSampler(metal::coord::normalized,
+    metal::s_address::repeat,metal::t_address::clamp_to_edge,
+    metal::filter::linear,metal::mip_filter::linear);
+metal::float3 stellarPointRadiance(metal::float3 dir, float pixelAngle, float night,
+    metal::float4 moon, metal::float3 axisX, metal::float3 axisY, metal::float3 axisZ,
+    metal::texture2d<float> stars) {
+    if (night<0.001 || dir.y<=0.0) return metal::float3(0.0);
+    metal::float3 eq=metal::normalize(metal::float3(metal::dot(dir,axisX),metal::dot(dir,axisY),metal::dot(dir,axisZ)));
+    metal::float2 uv(metal::atan2(eq.y,eq.x)/6.283185307,metal::asin(metal::clamp(eq.z,-1.0,1.0))/3.141592654+0.5);
+    float cosLatitude=metal::sqrt(metal::max(0.0001,1.0-eq.z*eq.z));
+    float footprint=metal::max(pixelAngle*float(stars.get_width())/(6.283185307*metal::max(cosLatitude,0.05)),1.0);
+    float lod=metal::log2(footprint);
+    float core=stars.sample(stellarSampler,uv,metal::level(lod)).r;
+    float halo=stars.sample(stellarSampler,uv,metal::level(lod+2.0)).r;
+    float energy=core*0.95+halo*0.05;
+    if (energy<0.00001) return metal::float3(0.0);
+    metal::float3 cell=metal::floor(eq*90.0);
+    float temperature=metal::fract(metal::sin(metal::dot(cell,metal::float3(12.9898,78.233,37.719)))*43758.5453);
+    metal::float3 tint=metal::mix(metal::float3(1.0,0.84,0.69),metal::float3(0.77,0.86,1.0),metal::smoothstep(0.12,0.82,temperature));
+    float horizon=metal::exp(-0.06/metal::max(dir.y,0.015));
+    float moonWash=moon.w*moon.w*metal::smoothstep(0.0,0.15,moon.y)*metal::pow(metal::max(0.0,metal::dot(dir,moon.xyz)),8.0);
+    return tint*energy*(night*night*night*horizon)*(1.0-moonWash*0.5);
+}

@@ -1,0 +1,768 @@
+{
+  "date": "2026-10-30",
+  "inputs": [
+    {
+      "role": "user-request",
+      "path": "/Users/sairamen/.codex/attachments/f6802b16-fc8f-4365-bd3a-93e64f92ec95/Pasted text.txt",
+      "bytes": 28997,
+      "sha256": "7c9e97cb95e4fa35576af9d4786285402f88219ee01bf7084babdc4dcef294a4"
+    },
+    {
+      "role": "reference",
+      "path": "/Users/sairamen/Downloads/Ocean_Wallpaper_Engineering_Plan.pdf",
+      "bytes": 329928,
+      "sha256": "f617c6d4704a760107aa6cf0ff99b31d422313d1c660214f9cf04e2ecb4af676"
+    },
+    {
+      "role": "reference",
+      "path": "/Users/sairamen/Downloads/Ocean_Wallpaper_Research_Kit.zip",
+      "bytes": 207925,
+      "sha256": "0b1357d1bc9e58aa0568aea506349d344b52b8caadb39076789af2f20cf0189a"
+    }
+  ],
+  "sourceSnapshot": "8739f0793f84b96cb87a21558a117e1714184ad7",
+  "localHEAD": "a07c7fd522ef0a897601c114f927a49d93d95520",
+  "workingTree": "Existing uncommitted native implementation retained; no commit created.",
+  "importValidation": {
+    "manifestFilesVerified": 19,
+    "originalFilesIncludingManifest": 20,
+    "archiveBytesMatch": true
+  },
+  "implemented": [
+    "Pure shared-world demand union with conservative unknown visibility and per-band maximum cadence.",
+    "Independent system sleep, display sleep and inactive-session suspension in native preview.",
+    "Pixel-aligned display tile layout and separately compiled opt-in static diagnostic.",
+    "Current-native six-level bloom dependency model and integration roadmap."
+  ],
+  "validation": {
+    "referenceCPUUnitTests": 17,
+    "referenceCPUUnitTestsPassed": true,
+    "fusedCPUCheck": {
+      "classification": "CPU-only binary64 equations/index checks; WGSL uncompiled and GPU unbenchmarked",
+      "source_commit": "8739f0793f84b96cb87a21558a117e1714184ad7",
+      "passed": true,
+      "cases": [
+        {
+          "cascade": 0,
+          "row": 0,
+          "time_s": 0.0,
+          "choppiness": 0.0,
+          "producer_equation_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          },
+          "fused_vs_split_cpu_row_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          }
+        },
+        {
+          "cascade": 0,
+          "row": 7,
+          "time_s": 0.123,
+          "choppiness": 1.25,
+          "producer_equation_comparison": {
+            "max_absolute_error": 8.005932084973442e-16,
+            "relative_l2_error": 1.0874855830662982e-16
+          },
+          "fused_vs_split_cpu_row_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          }
+        },
+        {
+          "cascade": 1,
+          "row": 128,
+          "time_s": 17.3,
+          "choppiness": 1.6,
+          "producer_equation_comparison": {
+            "max_absolute_error": 3.66205343881779e-15,
+            "relative_l2_error": 1.2262750101650495e-16
+          },
+          "fused_vs_split_cpu_row_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          }
+        },
+        {
+          "cascade": 2,
+          "row": 255,
+          "time_s": 599.999,
+          "choppiness": 1.25,
+          "producer_equation_comparison": {
+            "max_absolute_error": 1.0048591735576161e-14,
+            "relative_l2_error": 9.021961295967986e-17
+          },
+          "fused_vs_split_cpu_row_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          }
+        },
+        {
+          "cascade": 3,
+          "row": 7,
+          "time_s": 0.123,
+          "choppiness": 1.25,
+          "producer_equation_comparison": {
+            "max_absolute_error": 1.139086659085919e-13,
+            "relative_l2_error": 1.1406417633137858e-16
+          },
+          "fused_vs_split_cpu_row_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          }
+        },
+        {
+          "cascade": 4,
+          "row": 0,
+          "time_s": 0.0,
+          "choppiness": 1.6,
+          "producer_equation_comparison": {
+            "max_absolute_error": 2.2914314707516465e-13,
+            "relative_l2_error": 6.197545013430111e-17
+          },
+          "fused_vs_split_cpu_row_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          }
+        },
+        {
+          "cascade": 5,
+          "row": 128,
+          "time_s": 17.3,
+          "choppiness": 1.25,
+          "producer_equation_comparison": {
+            "max_absolute_error": 1.8749713606747085e-12,
+            "relative_l2_error": 1.0895592963307873e-16
+          },
+          "fused_vs_split_cpu_row_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          }
+        },
+        {
+          "cascade": 5,
+          "row": 255,
+          "time_s": 599.999,
+          "choppiness": 1.6,
+          "producer_equation_comparison": {
+            "max_absolute_error": 2.7661201467245607e-12,
+            "relative_l2_error": 1.0881441455564626e-16
+          },
+          "fused_vs_split_cpu_row_comparison": {
+            "max_absolute_error": 0.0,
+            "relative_l2_error": 0.0
+          }
+        }
+      ],
+      "positions_checked_for_unique_row_ownership": 2048,
+      "worst_producer_equation_relative_l2_error": 1.2262750101650495e-16,
+      "worst_fused_split_cpu_row_relative_l2_error": 0.0,
+      "row_fft_vs_independent_direct_dft": {
+        "max_absolute_error": 2.8959990225854128e-11,
+        "relative_l2_error": 5.47735351791061e-13
+      },
+      "limitations": [
+        "Does not compile, parse, or execute the WGSL candidate.",
+        "Does not model FP32 rounding, GPU contraction, register pressure, or occupancy.",
+        "Does not prove GPU barrier uniformity or race freedom.",
+        "Does not validate image quality, GPU speed, or power consumption."
+      ]
+    },
+    "layoutAndDemandTests": "PASS: 72 layouts / 400 tile placements, 11 invalid inputs, conservative shared-world cadence contracts; no windows or GPU work.",
+    "headlessLifecycle": {
+      "passed": true,
+      "cases": [
+        {
+          "case": "sunset",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 0.1666666753590107,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 0.2666666805744171,
+            "errors": [],
+            "fps": 24.2,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 9.69,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 800,
+            "indexBits": 16,
+            "indexBytes": 589824,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 98304,
+            "width": 1280,
+            "windowCount": 0
+          },
+          "windowedParity": {}
+        },
+        {
+          "case": "portrait",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 15.16666667535901,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 15.266666680574417,
+            "errors": [],
+            "fps": 26.6,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 8.77,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": false,
+            "height": 1349,
+            "indexBits": 16,
+            "indexBytes": 598272,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": false,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": false,
+            "triangles": 99712,
+            "width": 759,
+            "windowCount": 0
+          },
+          "windowedParity": {}
+        },
+        {
+          "case": "narrow_stable",
+          "diagnostics": {
+            "activationPolicy": 2,
+            "cachedSkyElapsed": 600.216666675359,
+            "clockMode": "continuous",
+            "device": "Apple M1",
+            "elapsed": 600.3166666805744,
+            "errors": [],
+            "fps": 26.3,
+            "frames": 8,
+            "fusedEvolution": true,
+            "fusedMips": true,
+            "gpuMs": 8.66,
+            "gpuStagesMs": {},
+            "guardBoundsVerified": true,
+            "height": 4048,
+            "indexBits": 16,
+            "indexBytes": 655872,
+            "mipmapRounding": "towardZero",
+            "narrowTextureUsage": true,
+            "offscreen": true,
+            "packedJacobian": true,
+            "paused": false,
+            "physicalGuard": true,
+            "renderer": "Metal",
+            "renderTextureUsage": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ],
+            "sharedCubic": true,
+            "skipCloudOctaves": true,
+            "skyAAMask": 3,
+            "specializedSkyAAMask": 3,
+            "spectrumBufferBytes": 0,
+            "stableDetails": true,
+            "triangles": 109312,
+            "width": 253,
+            "windowCount": 0
+          },
+          "windowedParity": {}
+        }
+      ],
+      "benchmarkSmoke": {
+        "activationPolicy": 2,
+        "cachedSkyElapsed": 2.3000001199543476,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.15730897818381587,
+        "cpuEncodeMedianMs": 0.16033346764743328,
+        "cpuThreadEncodeMeanMs": 0.1569237500000001,
+        "cpuThreadEncodeMedianMs": 0.16004200000000424,
+        "device": "Apple M1",
+        "elapsed": 2.400000125169754,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.46846526938801,
+        "gpuMedianMs": 6.793000036850572,
+        "gpuP95Ms": 10.177999967709184,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "offscreen": true,
+        "packedJacobian": true,
+        "profiled": false,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 12,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "windowCount": 0
+      },
+      "startupFailures": [
+        {
+          "mode": "--verify",
+          "exitCode": 1,
+          "message": "Ocean failed: The file \u201cmissing-564fca41-0a7c-4942-b310-83e88062ec87.metal\u201d couldn\u2019t be opened because there is no such file."
+        },
+        {
+          "mode": "--benchmark",
+          "exitCode": 1,
+          "message": "Ocean failed: The file \u201cmissing-564fca41-0a7c-4942-b310-83e88062ec87.metal\u201d couldn\u2019t be opened because there is no such file."
+        }
+      ],
+      "scope": "No NSWindow or drawable acquisition, application activation policy prohibited; original windowed captures used only as saved fixtures. The 12-sample benchmark is a lifecycle smoke test, not a performance comparison."
+    },
+    "realDisplayLayouts": {
+      "single": {
+        "activationPolicy": 2,
+        "displays": [
+          {
+            "displayID": 1,
+            "name": "Built-in Retina Display",
+            "pixelHeight": 1800,
+            "pixelWidth": 2880,
+            "scale": 2,
+            "tiles": [
+              {
+                "appKitPoints": {
+                  "height": 900,
+                  "width": 1440,
+                  "x": 0,
+                  "y": 0
+                },
+                "column": 0,
+                "pixels": {
+                  "height": 1800,
+                  "width": 2880,
+                  "x": 0,
+                  "y": 0
+                },
+                "quartz": {
+                  "height": 900,
+                  "width": 1440,
+                  "x": 0,
+                  "y": 0
+                },
+                "row": 0
+              }
+            ]
+          }
+        ],
+        "layout": "1x1",
+        "metalCommandBuffersSubmitted": 0,
+        "pixelCoordinateSpace": "nominal AppKit backing pixels, not panel-native hardware resolution",
+        "visibilityMeasured": false,
+        "windowCount": 0
+      },
+      "tiled": {
+        "activationPolicy": 2,
+        "displays": [
+          {
+            "displayID": 1,
+            "name": "Built-in Retina Display",
+            "pixelHeight": 1800,
+            "pixelWidth": 2880,
+            "scale": 2,
+            "tiles": [
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 0,
+                  "y": 600
+                },
+                "column": 0,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 0,
+                  "y": 0
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 0,
+                  "y": 0
+                },
+                "row": 0
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 360,
+                  "y": 600
+                },
+                "column": 1,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 720,
+                  "y": 0
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 360,
+                  "y": 0
+                },
+                "row": 0
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 720,
+                  "y": 600
+                },
+                "column": 2,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 1440,
+                  "y": 0
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 720,
+                  "y": 0
+                },
+                "row": 0
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 1080,
+                  "y": 600
+                },
+                "column": 3,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 2160,
+                  "y": 0
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 1080,
+                  "y": 0
+                },
+                "row": 0
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 0,
+                  "y": 300
+                },
+                "column": 0,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 0,
+                  "y": 600
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 0,
+                  "y": 300
+                },
+                "row": 1
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 360,
+                  "y": 300
+                },
+                "column": 1,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 720,
+                  "y": 600
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 360,
+                  "y": 300
+                },
+                "row": 1
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 720,
+                  "y": 300
+                },
+                "column": 2,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 1440,
+                  "y": 600
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 720,
+                  "y": 300
+                },
+                "row": 1
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 1080,
+                  "y": 300
+                },
+                "column": 3,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 2160,
+                  "y": 600
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 1080,
+                  "y": 300
+                },
+                "row": 1
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 0,
+                  "y": 0
+                },
+                "column": 0,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 0,
+                  "y": 1200
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 0,
+                  "y": 600
+                },
+                "row": 2
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 360,
+                  "y": 0
+                },
+                "column": 1,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 720,
+                  "y": 1200
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 360,
+                  "y": 600
+                },
+                "row": 2
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 720,
+                  "y": 0
+                },
+                "column": 2,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 1440,
+                  "y": 1200
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 720,
+                  "y": 600
+                },
+                "row": 2
+              },
+              {
+                "appKitPoints": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 1080,
+                  "y": 0
+                },
+                "column": 3,
+                "pixels": {
+                  "height": 600,
+                  "width": 720,
+                  "x": 2160,
+                  "y": 1200
+                },
+                "quartz": {
+                  "height": 300,
+                  "width": 360,
+                  "x": 1080,
+                  "y": 600
+                },
+                "row": 2
+              }
+            ]
+          }
+        ],
+        "layout": "4x3",
+        "metalCommandBuffersSubmitted": 0,
+        "pixelCoordinateSpace": "nominal AppKit backing pixels, not panel-native hardware resolution",
+        "visibilityMeasured": false,
+        "windowCount": 0
+      }
+    },
+    "nativeAppBuild": "passed",
+    "adaptedProbeBuild": "passed; macOS 13 deployment target on macOS 26.7",
+    "originalProbe": "compiled and ad-hoc signed; not launched",
+    "shellSyntaxAndPythonCompile": "passed",
+    "rendererHashUnchanged": true
+  },
+  "bloomEvidence": {
+    "report": "docs/research-native-bloom-2026-10-30.json",
+    "sha256": "8f0fec21e8a1f9f010679a325c27f75468056702ce5d4f49ae01652a5fe05f31",
+    "classification": "CPU mathematical dependency support only; not GPU or energy evidence."
+  },
+  "limitations": [
+    "Interactive desktop probe was not launched; Spaces, translucency, reveal and actual power/session notifications remain manual validation.",
+    "Shared multi-display Metal resource ownership and regional GPU rendering remain unimplemented.",
+    "No performance or whole-system energy improvement claimed.",
+    "Supplied WGSL remains reference material; equivalent native fusion was already implemented."
+  ],
+  "sources": {
+    "macos/main.swift": "d850c3d491c34588fff4814a29c846d4ca7b9e6e35cdcc67644e62c65f9e0470",
+    "macos/SharedSurfaceDemand.swift": "cde39400e4885d66571d417c7ff3c403ceb513b01410a65de8344659bd23f179",
+    "macos/Diagnostics/DisplayTileLayout.swift": "0fee9cbb227b24d71feaf96196faed6558319df8eb43ded2c191a6643f76ad6a",
+    "macos/Diagnostics/OcclusionProbe.swift": "71c8a7b62ad4e372660ee5a51d1dc1faf1d999038adb1938f1ba483529ba99a3",
+    "macos/Diagnostics/build-occlusion-probe.sh": "744643e1ddaf2f8b552bae645f585b9f304d5cbd22acfee7b2f3be025f4f56f8",
+    "macos/Tests/DisplayDemandTests.swift": "7570d5fe63aa0a3fe7a90233857d78612fcb5b402d887d7019ca1337c218e8cf",
+    "macos/Tests/analyze_native_bloom.py": "533f7efef3561e267fa4574e71beca69c0871bfeb3f27546bfde6d7880e46b08",
+    "macos/build.sh": "24cf9ba0903e5c5e3c2d5ccf5c710b76fb661fcb20a2d13a24bb5bc268d006b0",
+    "macos/test.sh": "1fb376ef9ba8a028420729124f1bcf2bf5077e5e236170d576f97de482a69160",
+    "package.json": "29802413492423c7f5ab76ad804f8bd8f664b124fb1a1bd5f1211d532aa22333",
+    "docs/engineering-roadmap.md": "fedec1ce20e9d23216a1512a9a069f92f62f66b09df4ddbb22ace16e1e778e0d"
+  },
+  "metalShaders": {
+    "macos/Shaders/ARRAY16_MIPS.metal": "ae058baff48c5440db8e302adf63289aa9426206af57652396fc8520221ed519",
+    "macos/Shaders/ARRAY16_MIPS_FUSED4.metal": "4298590403d904f51acb0fd78b4846256bd811f3da3cd41b00068720eff07e24",
+    "macos/Shaders/ARRAY16_MIPS_FUSED5.metal": "8b8c21f3b022a88d892758938cd3ad89eb5a2bfbbc8a207458e20c24147a7da8",
+    "macos/Shaders/BLOOM_DOWN.metal": "fc86dc9bed4b77b2669df3b03d8b9db33848309808bf701c91abc4dccd79da11",
+    "macos/Shaders/BLOOM_UP.metal": "1b57c28a28a22bc0a9683ccff990fbeaa643cf117fbf03f3b54a7e043850c607",
+    "macos/Shaders/COMPOSITE.metal": "7d6edd463717278b8c5336405f9b2d7d30bc32bb58e1cdf2c3da46ef40844533",
+    "macos/Shaders/CUBE_MIPS.metal": "0d7ec038e745d02fcef57391e1e4bf0c1c64d6455201a0bb5ae0917e9c822812",
+    "macos/Shaders/DISPLACEMENT_BOUNDS.metal": "5acd6ff0b1a56831b112a05e747d9fe5f7fff4f8d4b2053f169f5b2b37bb3544",
+    "macos/Shaders/DISPLACEMENT_BOUNDS_FINAL.metal": "7989655479121bb36fbaedb20e2db2bf56a6b50dbd6c18f82b712d4dc097531b",
+    "macos/Shaders/ENV_CUBE.metal": "f3556f490dbba4e6fcab540167a21c8f7f8eeea74c1a2c391659c607a0a991e0",
+    "macos/Shaders/FFT_COLS.metal": "e3256de5b2eb0c1bafb17fe0945740bf8d826e6792f00d8663a103a3eb72f6fc",
+    "macos/Shaders/FFT_ROWS.metal": "41121a3b6e4478dd0d059381fb6037695f51314258cfb122a723c55c824cccad",
+    "macos/Shaders/FOAM_TEX.metal": "691ff4c8f5f65ea70344486b127fe1b23d6bcf5aed6f76444fbf128592a5da40",
+    "macos/Shaders/FOAM_UPDATE.metal": "50315f19d2c5017ba261263b125cc64532353a39caae6f67d023d46bd71057a5",
+    "macos/Shaders/LIGHTING.metal": "a4fa77d24edc85e1451a1eb641d2de8f5b4113c4171248f29ba105f9050d44c1",
+    "macos/Shaders/MS_LUT.metal": "94e762265fc07f9a570bda986a5150472002859bd23eaa824c995ec176dde18f",
+    "macos/Shaders/OCEAN.metal": "4d2f0e29946d8a31e480c5f58463e5b85210f78f5bf78f6f978424b9752607c9",
+    "macos/Shaders/RGBA8_MIPS.metal": "d31e7e8be792412b0801eae4b364197701ca4203aca40f3df51d91ae90ece7d0",
+    "macos/Shaders/SIM_EVOLVE.metal": "c605f051e7f5631e499f5cd066586d60c76d00659aa6367f6d851d92287acbee",
+    "macos/Shaders/SIM_EVOLVE_ROWS.metal": "5b66102f08959ef477e105b55ae0f337e59186adc9c64a7ff006532efe887ff7",
+    "macos/Shaders/SIM_INIT.metal": "e3ec6cdf2033ef6a926f8831a1146b7a49423788e0d057ec273f0f3b773b6ba5",
+    "macos/Shaders/SIM_MIPS.metal": "b3e297219d85103b59bc3293fd6cc7ce8e62052f50c4bf597ef5514054aad926",
+    "macos/Shaders/SIM_MIPS_FUSED4.metal": "e30f37ea9c085a2572770f04084cdce0b4633c411cb7480b01011b2bdbf919f0",
+    "macos/Shaders/SKYVIEW_LUT.metal": "5c4cb176aea17b965ec6fe77901a165e1c8d9020a83b44251c2a9aa8f5a927d7",
+    "macos/Shaders/SKY_BG.metal": "a3990c8d65406a7741cbaaf0930090b5f6efea19f5d71286c1432554fbfce98c",
+    "macos/Shaders/SKY_CACHED.metal": "e40ab42d7096d89bf99baa83177bcc531d9916b282f47a6a1fbf090e4c4fd577",
+    "macos/Shaders/SUN_VIS.metal": "3698a22c6436736f79a5faff6b08ecce370b38ca3d3a47d9387261e6a39b7d40",
+    "macos/Shaders/TRANS_LUT.metal": "dcf8d6e86a3f5fc65a75935578de6f67cf7d91895d72a9b983a0c576680d547e"
+  }
+}

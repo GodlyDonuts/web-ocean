@@ -1,0 +1,52 @@
+{
+  "passed": false,
+  "cases": [
+    {
+      "case": "sunset",
+      "exactHDR": true,
+      "exactDisplay": true,
+      "exactCloudData": true
+    },
+    {
+      "case": "daylight",
+      "exactHDR": true,
+      "exactDisplay": true,
+      "exactCloudData": true
+    },
+    {
+      "case": "overcast",
+      "exactHDR": true,
+      "exactDisplay": true,
+      "exactCloudData": true
+    },
+    {
+      "case": "clear",
+      "exactHDR": true,
+      "exactDisplay": true,
+      "exactCloudData": true
+    },
+    {
+      "case": "portrait",
+      "exactHDR": true,
+      "exactDisplay": true,
+      "exactCloudData": true
+    },
+    {
+      "case": "ultrawide",
+      "exactHDR": true,
+      "exactDisplay": true,
+      "exactCloudData": true
+    },
+    {
+      "case": "stable_clock",
+      "exactHDR": false,
+      "exactDisplay": true,
+      "exactCloudData": false,
+      "changedHDRValues": 4,
+      "maximumHDRError": 0.001953125,
+      "changedDisplayBytes": 0,
+      "changedCloudBytes": 3
+    }
+  ],
+  "remainingCasesExecuted": false
+}

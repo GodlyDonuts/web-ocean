@@ -1,0 +1,132 @@
+{
+  "classification": "CPU-only binary64 equations/index checks; WGSL uncompiled and GPU unbenchmarked",
+  "source_commit": "8739f0793f84b96cb87a21558a117e1714184ad7",
+  "passed": true,
+  "cases": [
+    {
+      "cascade": 0,
+      "row": 0,
+      "time_s": 0.0,
+      "choppiness": 0.0,
+      "producer_equation_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      },
+      "fused_vs_split_cpu_row_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      }
+    },
+    {
+      "cascade": 0,
+      "row": 7,
+      "time_s": 0.123,
+      "choppiness": 1.25,
+      "producer_equation_comparison": {
+        "max_absolute_error": 4.965068306494546e-16,
+        "relative_l2_error": 7.191410247989239e-17
+      },
+      "fused_vs_split_cpu_row_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      }
+    },
+    {
+      "cascade": 1,
+      "row": 128,
+      "time_s": 17.3,
+      "choppiness": 1.6,
+      "producer_equation_comparison": {
+        "max_absolute_error": 3.580361673049448e-15,
+        "relative_l2_error": 7.474905843157068e-17
+      },
+      "fused_vs_split_cpu_row_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      }
+    },
+    {
+      "cascade": 2,
+      "row": 255,
+      "time_s": 599.999,
+      "choppiness": 1.25,
+      "producer_equation_comparison": {
+        "max_absolute_error": 7.944109290391274e-15,
+        "relative_l2_error": 5.92447985630386e-17
+      },
+      "fused_vs_split_cpu_row_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      }
+    },
+    {
+      "cascade": 3,
+      "row": 7,
+      "time_s": 0.123,
+      "choppiness": 1.25,
+      "producer_equation_comparison": {
+        "max_absolute_error": 5.728578676879116e-14,
+        "relative_l2_error": 5.904699274756626e-17
+      },
+      "fused_vs_split_cpu_row_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      }
+    },
+    {
+      "cascade": 4,
+      "row": 0,
+      "time_s": 0.0,
+      "choppiness": 1.6,
+      "producer_equation_comparison": {
+        "max_absolute_error": 2.2914314707516465e-13,
+        "relative_l2_error": 6.197545013430111e-17
+      },
+      "fused_vs_split_cpu_row_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      }
+    },
+    {
+      "cascade": 5,
+      "row": 128,
+      "time_s": 17.3,
+      "choppiness": 1.25,
+      "producer_equation_comparison": {
+        "max_absolute_error": 1.2862197421537486e-12,
+        "relative_l2_error": 5.924831781158928e-17
+      },
+      "fused_vs_split_cpu_row_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      }
+    },
+    {
+      "cascade": 5,
+      "row": 255,
+      "time_s": 599.999,
+      "choppiness": 1.6,
+      "producer_equation_comparison": {
+        "max_absolute_error": 1.016845989170083e-12,
+        "relative_l2_error": 4.1554267283673035e-17
+      },
+      "fused_vs_split_cpu_row_comparison": {
+        "max_absolute_error": 0.0,
+        "relative_l2_error": 0.0
+      }
+    }
+  ],
+  "positions_checked_for_unique_row_ownership": 2048,
+  "worst_producer_equation_relative_l2_error": 7.474905843157068e-17,
+  "worst_fused_split_cpu_row_relative_l2_error": 0.0,
+  "row_fft_vs_independent_direct_dft": {
+    "max_absolute_error": 2.8961953272081232e-11,
+    "relative_l2_error": 5.477297220689036e-13
+  },
+  "limitations": [
+    "Does not compile, parse, or execute the WGSL candidate.",
+    "Does not model FP32 rounding, GPU contraction, register pressure, or occupancy.",
+    "Does not prove GPU barrier uniformity or race freedom.",
+    "Does not validate image quality, GPU speed, or power consumption."
+  ]
+}

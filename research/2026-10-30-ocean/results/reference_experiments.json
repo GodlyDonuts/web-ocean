@@ -1,0 +1,133 @@
+{
+  "status": "CPU mathematical/reference experiments only; no GPU or macOS measurements",
+  "source_commit": "8739f0793f84b96cb87a21558a117e1714184ad7",
+  "visibility": [
+    {
+      "scenario": "Fully visible",
+      "output_width": 1920,
+      "output_height": 1080,
+      "planning_tile": 32,
+      "tile_conservative_visible_fraction": 1.0,
+      "hdr_required_current_8_level_bloom_fraction": 1.0,
+      "hdr_required_4_level_bloom_fraction": 1.0,
+      "visible_tile_count": 2040,
+      "total_tiles": 2040,
+      "merged_scissor_rectangles": 1
+    },
+    {
+      "scenario": "Opaque center, 64 px border",
+      "output_width": 1920,
+      "output_height": 1080,
+      "planning_tile": 32,
+      "tile_conservative_visible_fraction": 0.1980246913580247,
+      "hdr_required_current_8_level_bloom_fraction": 1.0,
+      "hdr_required_4_level_bloom_fraction": 0.39722993827160497,
+      "visible_tile_count": 416,
+      "total_tiles": 2040,
+      "merged_scissor_rectangles": 4
+    },
+    {
+      "scenario": "Left quarter visible",
+      "output_width": 1920,
+      "output_height": 1080,
+      "planning_tile": 32,
+      "tile_conservative_visible_fraction": 0.25,
+      "hdr_required_current_8_level_bloom_fraction": 0.9989583333333333,
+      "hdr_required_4_level_bloom_fraction": 0.290625,
+      "visible_tile_count": 510,
+      "total_tiles": 2040,
+      "merged_scissor_rectangles": 1
+    },
+    {
+      "scenario": "Top 160 px visible",
+      "output_width": 1920,
+      "output_height": 1080,
+      "planning_tile": 32,
+      "tile_conservative_visible_fraction": 0.14814814814814814,
+      "hdr_required_current_8_level_bloom_fraction": 1.0,
+      "hdr_required_4_level_bloom_fraction": 0.22037037037037038,
+      "visible_tile_count": 300,
+      "total_tiles": 2040,
+      "merged_scissor_rectangles": 1
+    },
+    {
+      "scenario": "Uncertain / transparent center",
+      "output_width": 1920,
+      "output_height": 1080,
+      "planning_tile": 32,
+      "tile_conservative_visible_fraction": 1.0,
+      "hdr_required_current_8_level_bloom_fraction": 1.0,
+      "hdr_required_4_level_bloom_fraction": 1.0,
+      "visible_tile_count": 2040,
+      "total_tiles": 2040,
+      "merged_scissor_rectangles": 1
+    },
+    {
+      "scenario": "OS reports fully occluded",
+      "output_width": 1920,
+      "output_height": 1080,
+      "planning_tile": 32,
+      "tile_conservative_visible_fraction": 0.0,
+      "hdr_required_current_8_level_bloom_fraction": 0.0,
+      "hdr_required_4_level_bloom_fraction": 0.0,
+      "visible_tile_count": 0,
+      "total_tiles": 2040,
+      "merged_scissor_rectangles": 0
+    }
+  ],
+  "temporal_reconstruction": [
+    {
+      "frequency_hz": 0.211,
+      "update_hz": 1,
+      "linear_max_abs_error": 0.211774383927276,
+      "hermite_max_abs_error": 0.007811944743347232
+    },
+    {
+      "frequency_hz": 0.486,
+      "update_hz": 2,
+      "linear_max_abs_error": 0.2775144530741185,
+      "hermite_max_abs_error": 0.013610481778538963
+    },
+    {
+      "frequency_hz": 1.123,
+      "update_hz": 5,
+      "linear_max_abs_error": 0.23877406262981216,
+      "hermite_max_abs_error": 0.009989802736885545
+    }
+  ],
+  "weather_spectrum_transition": {
+    "target_midpoint_energy": 2.5,
+    "sample_count": 1000000,
+    "seed": 20261030,
+    "independent_surface_crossfade_measured_energy": 1.2519842553560832,
+    "same_phase_amplitude_blend_measured_energy": 2.2515418765085666,
+    "same_phase_energy_blend_measured_energy": 2.50171319612063,
+    "interpretation": "CPU Monte Carlo of complex coefficients, not an ocean-image or GPU benchmark"
+  },
+  "derivative_response": [
+    {
+      "grid": 256,
+      "maximum_frequency_bin": 32,
+      "order": 4,
+      "amplitude_error": 0.01178483591305246
+    },
+    {
+      "grid": 256,
+      "maximum_frequency_bin": 32,
+      "order": 6,
+      "amplitude_error": 0.0014868453129862624
+    },
+    {
+      "grid": 128,
+      "maximum_frequency_bin": 32,
+      "order": 4,
+      "amplitude_error": 0.15117363684322482
+    },
+    {
+      "grid": 128,
+      "maximum_frequency_bin": 32,
+      "order": 6,
+      "amplitude_error": 0.06629100052754722
+    }
+  ]
+}

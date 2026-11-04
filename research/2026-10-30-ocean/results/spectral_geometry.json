@@ -1,0 +1,292 @@
+{
+  "source_commit": "8739f0793f84b96cb87a21558a117e1714184ad7",
+  "classification": "CPU reproduction and analytic workload/error models; no GPU measurements",
+  "band_analysis": [
+    {
+      "cascade": 0,
+      "patch_length_m": 1103.0,
+      "min_radial_bin": 0.5,
+      "exclusive_max_radial_bin": 31.320397539044013,
+      "max_integer_axis_bin_present": 31,
+      "occupied_frequency_positions": 3084,
+      "occupied_fraction": 0.04705810546875,
+      "minimum_wavelength_bound_m": 35.21666666666667,
+      "max_continuous_frequency_bound_hz": 0.21055739471333568,
+      "nyquist_rate_bound_hz": 0.42111478942667135,
+      "linear_midpoint_two_percent_rate_hz": 3.301899743048755,
+      "hermite_two_percent_remainder_bound_rate_hz": 0.7947125322013376
+    },
+    {
+      "cascade": 1,
+      "patch_length_m": 211.3,
+      "min_radial_bin": 6.0,
+      "exclusive_max_radial_bin": 31.93450881612091,
+      "max_integer_axis_bin_present": 31,
+      "occupied_frequency_positions": 3088,
+      "occupied_fraction": 0.047119140625,
+      "minimum_wavelength_bound_m": 6.616666666666666,
+      "max_continuous_frequency_bound_hz": 0.4857652217595975,
+      "nyquist_rate_bound_hz": 0.971530443519195,
+      "linear_midpoint_two_percent_rate_hz": 7.617628737730817,
+      "hermite_two_percent_remainder_bound_rate_hz": 1.8334369589132455
+    },
+    {
+      "cascade": 2,
+      "patch_length_m": 39.7,
+      "min_radial_bin": 6.0,
+      "exclusive_max_radial_bin": 32.059219380888294,
+      "max_integer_axis_bin_present": 32,
+      "occupied_frequency_positions": 3124,
+      "occupied_fraction": 0.04766845703125,
+      "minimum_wavelength_bound_m": 1.2383333333333333,
+      "max_continuous_frequency_bound_hz": 1.1229694808954978,
+      "nyquist_rate_bound_hz": 2.2459389617909955,
+      "linear_midpoint_two_percent_rate_hz": 17.61008035585081,
+      "hermite_two_percent_remainder_bound_rate_hz": 4.238454417439465
+    },
+    {
+      "cascade": 3,
+      "patch_length_m": 7.43,
+      "min_radial_bin": 6.0,
+      "exclusive_max_radial_bin": 32.002871500358935,
+      "max_integer_axis_bin_present": 32,
+      "occupied_frequency_positions": 3100,
+      "occupied_fraction": 0.04730224609375,
+      "minimum_wavelength_bound_m": 0.23216666666666666,
+      "max_continuous_frequency_bound_hz": 2.6004053243985013,
+      "nyquist_rate_bound_hz": 5.2008106487970025,
+      "linear_midpoint_two_percent_rate_hz": 40.77879897851059,
+      "hermite_two_percent_remainder_bound_rate_hz": 9.814780919549852
+    },
+    {
+      "cascade": 4,
+      "patch_length_m": 1.393,
+      "min_radial_bin": 6.0,
+      "exclusive_max_radial_bin": 31.9373328238441,
+      "max_integer_axis_bin_present": 31,
+      "occupied_frequency_positions": 3088,
+      "occupied_fraction": 0.047119140625,
+      "minimum_wavelength_bound_m": 0.043616666666666665,
+      "max_continuous_frequency_bound_hz": 6.434252985740483,
+      "nyquist_rate_bound_hz": 12.868505971480966,
+      "linear_midpoint_two_percent_rate_hz": 100.90008146829342,
+      "hermite_two_percent_remainder_bound_rate_hz": 24.284976977813923
+    },
+    {
+      "cascade": 5,
+      "patch_length_m": 0.2617,
+      "min_radial_bin": 6.0,
+      "exclusive_max_radial_bin": 125.44,
+      "max_integer_axis_bin_present": 125,
+      "occupied_frequency_positions": 49360,
+      "occupied_fraction": 0.753173828125,
+      "minimum_wavelength_bound_m": 0.0020862563775510203,
+      "max_continuous_frequency_bound_hz": 227.93185178425273,
+      "nyquist_rate_bound_hz": 455.86370356850546,
+      "linear_midpoint_two_percent_rate_hz": 3574.3609188539435,
+      "hermite_two_percent_remainder_bound_rate_hz": 860.2894205991565
+    }
+  ],
+  "all_bands_occupied_fraction": 0.16490681966145834,
+  "temporal_interpolation": {
+    "examples": [
+      {
+        "cascade": 0,
+        "candidate_endpoint_rate_hz": 1.0,
+        "linear_midpoint_mode_amplitude_error": 0.21091946444746046,
+        "exact_derivative_hermite_midpoint_mode_amplitude_error": 0.007747560374135182,
+        "hermite_uniform_absolute_error_bound_over_mode_amplitude": 0.007977562995748437
+      },
+      {
+        "cascade": 1,
+        "candidate_endpoint_rate_hz": 2.0,
+        "linear_midpoint_mode_amplitude_error": 0.2772604305142734,
+        "exact_derivative_hermite_midpoint_mode_amplitude_error": 0.013584758876589553,
+        "hermite_uniform_absolute_error_bound_over_mode_amplitude": 0.01412452787055409
+      },
+      {
+        "cascade": 2,
+        "candidate_endpoint_rate_hz": 5.0,
+        "linear_midpoint_mode_amplitude_error": 0.23876607936016947,
+        "exact_derivative_hermite_midpoint_mode_amplitude_error": 0.009988921209893503,
+        "hermite_uniform_absolute_error_bound_over_mode_amplitude": 0.010327139555148633
+      }
+    ],
+    "baseline_first_three_cascade_updates_per_second_at_30fps": 90,
+    "candidate_first_three_transform_equivalent_updates_per_second": 16,
+    "assumptions": [
+      "Endpoint fields and their exact temporal derivatives are both transformed.",
+      "Computing temporal derivatives doubles transforms per endpoint update.",
+      "Future wave states are analytic; no presentation delay is necessary.",
+      "Nonlinear moments, Jacobians, shading, and foam need separate treatment.",
+      "Bounds are per harmonic amplitude, not rendered-image error bounds.",
+      "No GPU time, interpolation memory cost, or power saving was measured."
+    ]
+  },
+  "derivative_stencils": [
+    {
+      "grid_size": 128,
+      "axis_frequency_bin": 32,
+      "response_relative_to_exact_spectral_derivative": {
+        "second_order": 0.6366197723675814,
+        "fourth_order": 0.8488263631567752,
+        "sixth_order": 0.9337089994724528
+      },
+      "amplitude_loss": {
+        "second_order": 0.3633802276324186,
+        "fourth_order": 0.15117363684322482,
+        "sixth_order": 0.06629100052754722
+      }
+    },
+    {
+      "grid_size": 256,
+      "axis_frequency_bin": 32,
+      "response_relative_to_exact_spectral_derivative": {
+        "second_order": 0.9003163161571061,
+        "fourth_order": 0.9882151640869475,
+        "sixth_order": 0.9985131546870137
+      },
+      "amplitude_loss": {
+        "second_order": 0.09968368384289394,
+        "fourth_order": 0.01178483591305246,
+        "sixth_order": 0.0014868453129862624
+      }
+    }
+  ],
+  "fft_data_movement": {
+    "coefficient_count": 393216,
+    "current_explicit_bytes_per_coefficient_evolve_rows_columns": 168,
+    "fused_evolve_rows_explicit_bytes_per_coefficient": 104,
+    "current_explicit_bytes_per_frame": 66060288,
+    "fused_explicit_bytes_per_frame": 40894464,
+    "removed_explicit_bytes_per_frame": 25165824,
+    "removed_spec_buffer_allocation_bytes": 12582912,
+    "twiddle_sincos_pairs_source_loop_iterations_per_frame": 3145728,
+    "mixed_5x128_1x256_fft_operation_model_fraction": 0.3489583333333333,
+    "warnings": [
+      "Explicit load/store accounting is not measured DRAM traffic.",
+      "Caches, shared memory, compiler lowering, and synchronization are excluded.",
+      "The source already packs eight real fields into four complex IFFTs.",
+      "The column pass already fuses final texture assembly.",
+      "Mixed grid sizes preserve frequency support, not identical interpolation."
+    ]
+  },
+  "cdlod_reproduction": [
+    {
+      "camera": {
+        "position_m": [
+          0.0,
+          2.4,
+          0.0
+        ],
+        "yaw_deg": 0,
+        "pitch_deg": -5.5,
+        "fovy_deg": 58
+      },
+      "aspect": 1.7777777777777777,
+      "selected_nodes": 906,
+      "nodes_by_lod": {
+        "0": 150,
+        "1": 76,
+        "2": 62,
+        "3": 60,
+        "4": 60,
+        "5": 60,
+        "6": 54,
+        "7": 54,
+        "8": 54,
+        "9": 54,
+        "10": 54,
+        "11": 54,
+        "12": 54,
+        "13": 54,
+        "14": 6,
+        "15": 0,
+        "16": 0
+      },
+      "submitted_triangles": 1855488,
+      "sum_of_unique_vertex_indices_per_instance": 986634
+    },
+    {
+      "camera": {
+        "position_m": [
+          0.0,
+          2.4,
+          0.0
+        ],
+        "yaw_deg": 0,
+        "pitch_deg": -5.5,
+        "fovy_deg": 58
+      },
+      "aspect": 1.6,
+      "selected_nodes": 874,
+      "nodes_by_lod": {
+        "0": 144,
+        "1": 68,
+        "2": 60,
+        "3": 56,
+        "4": 54,
+        "5": 54,
+        "6": 54,
+        "7": 54,
+        "8": 54,
+        "9": 54,
+        "10": 54,
+        "11": 54,
+        "12": 54,
+        "13": 54,
+        "14": 6,
+        "15": 0,
+        "16": 0
+      },
+      "submitted_triangles": 1789952,
+      "sum_of_unique_vertex_indices_per_instance": 951786
+    }
+  ],
+  "projected_grid_candidates": {
+    "candidates": [
+      {
+        "viewport": [
+          2560,
+          1440
+        ],
+        "nominal_screen_cell_px": 4,
+        "full_viewport_grid_cells": [
+          640,
+          360
+        ],
+        "triangles_before_refinement": 460800,
+        "baseline_to_candidate_triangle_ratio": 4.026666666666666
+      },
+      {
+        "viewport": [
+          2560,
+          1440
+        ],
+        "nominal_screen_cell_px": 8,
+        "full_viewport_grid_cells": [
+          320,
+          180
+        ],
+        "triangles_before_refinement": 115200,
+        "baseline_to_candidate_triangle_ratio": 16.106666666666666
+      }
+    ],
+    "warnings": [
+      "These are geometry budgets, not quality-equivalent implementations.",
+      "A full-screen grid includes sky area unless clipped to the ocean domain.",
+      "Projected grid vertices have to cover displaced water, including horizon crests.",
+      "Near/horizon silhouettes and large waves require adaptive refinement/guard bands.",
+      "Fixing the camera does not freeze displaced screen coordinates or their Jacobian.",
+      "A proposed acceptance target is sub-0.25-pixel silhouette/displacement error.",
+      "Triangle ratio is not a GPU speedup prediction."
+    ]
+  },
+  "source_locations": {
+    "bands_and_lengths": "js/main.js:39,427-434; js/wgsl/sim.js:107-113",
+    "dispersion": "js/wgsl/sim.js:8-9,29,146-149",
+    "packed_fields": "js/wgsl/sim.js:156-164,168-252",
+    "buffers_and_dispatch": "js/main.js:104-121,658-685",
+    "cdlod": "js/main.js:309-330,445,488-600,783"
+  }
+}

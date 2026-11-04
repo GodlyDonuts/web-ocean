@@ -1,0 +1,130 @@
+{
+  "device" : "Apple M1",
+  "iterationsPerCommand" : 12,
+  "note" : "Compute-only batch benchmark; full-frame confirmation is required before adoption.",
+  "quality" : [
+    {
+      "changedHalfTextureBytes" : 0,
+      "changedRowBits" : 0,
+      "comparedFloat32Values" : 3145728,
+      "comparedHalfTextureBytes" : 9437184,
+      "layout" : 0
+    },
+    {
+      "changedHalfTextureBytes" : 0,
+      "changedRowBits" : 0,
+      "comparedFloat32Values" : 3145728,
+      "comparedHalfTextureBytes" : 9437184,
+      "layout" : 1
+    },
+    {
+      "changedHalfTextureBytes" : 0,
+      "changedRowBits" : 0,
+      "comparedFloat32Values" : 3145728,
+      "comparedHalfTextureBytes" : 9437184,
+      "layout" : 2
+    },
+    {
+      "changedHalfTextureBytes" : 0,
+      "changedRowBits" : 0,
+      "comparedFloat32Values" : 3145728,
+      "comparedHalfTextureBytes" : 9437184,
+      "layout" : 3
+    },
+    {
+      "changedHalfTextureBytes" : 0,
+      "changedRowBits" : 0,
+      "comparedFloat32Values" : 3145728,
+      "comparedHalfTextureBytes" : 9437184,
+      "layout" : 4
+    },
+    {
+      "changedHalfTextureBytes" : 0,
+      "changedRowBits" : 0,
+      "comparedFloat32Values" : 3145728,
+      "comparedHalfTextureBytes" : 9437184,
+      "layout" : 5
+    }
+  ],
+  "rounds" : 6,
+  "timings" : [
+    {
+      "layout" : 0,
+      "meanPairMs" : 0.74048379610758275,
+      "medianPairMs" : 0.73256250470876694,
+      "runs" : [
+        0.73321875728045904,
+        0.72795833693817258,
+        0.77165624437232816,
+        0.75022916037899756,
+        0.72793402553846442,
+        0.73190625213707483
+      ]
+    },
+    {
+      "layout" : 1,
+      "meanPairMs" : 0.73744444428787881,
+      "medianPairMs" : 0.7159340263266738,
+      "runs" : [
+        0.74921875299575424,
+        0.70578125693524874,
+        0.70930902923767769,
+        0.70452082824582851,
+        0.83327777489709354,
+        0.7225590234156698
+      ]
+    },
+    {
+      "layout" : 2,
+      "meanPairMs" : 0.70768055674206065,
+      "medianPairMs" : 0.70192013906004536,
+      "runs" : [
+        0.69770486637329066,
+        0.74122569640167058,
+        0.7025520802320292,
+        0.70303124569666886,
+        0.70028125386064255,
+        0.7012881978880614
+      ]
+    },
+    {
+      "layout" : 3,
+      "meanPairMs" : 0.71456250023200285,
+      "medianPairMs" : 0.70018229598645121,
+      "runs" : [
+        0.69821874300638831,
+        0.70031944778747857,
+        0.69798263333116972,
+        0.73977430777934694,
+        0.75103472530220949,
+        0.70004514418542385
+      ]
+    },
+    {
+      "layout" : 4,
+      "meanPairMs" : 0.71381307659774196,
+      "medianPairMs" : 0.70574305330713594,
+      "runs" : [
+        0.69690624756428099,
+        0.69698958153215551,
+        0.74102083453908563,
+        0.71321875050974393,
+        0.69826735610452795,
+        0.73647568933665752
+      ]
+    },
+    {
+      "layout" : 5,
+      "meanPairMs" : 0.72549305494046867,
+      "medianPairMs" : 0.72039583271058893,
+      "runs" : [
+        0.75756597410266602,
+        0.71467013913206756,
+        0.72488541870067513,
+        0.71504166893040144,
+        0.71590624672050274,
+        0.72488888205649948
+      ]
+    }
+  ]
+}

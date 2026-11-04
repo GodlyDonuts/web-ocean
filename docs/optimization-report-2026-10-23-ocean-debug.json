@@ -1,0 +1,1001 @@
+{
+  "date": "2026-10-23",
+  "device": "Apple M1",
+  "outcome": "Rejected normal-view diagnostic specialization. Two masks changed HDR output; the bit-identical mask failed to improve GPU performance.",
+  "implementation": {
+    "mask0": "Remove early and late debug branches; failed exact output.",
+    "mask1": "Keep early return, remove late diagnostics; failed storm exact output after four passing scenes.",
+    "mask2": "Remove early return, keep late diagnostics; passed 24 exact cases.",
+    "mask3": "Original full shader, including all diagnostic paths.",
+    "sourceAudit": "Removing only added preprocessor directives exactly reconstructed the accepted shader source. All contributing arithmetic text was unchanged.",
+    "launchConfiguration": "Only exactly-zero dbg settings selected the normal specialization; nonzero/debug-reference settings kept mask 3. Verification-only mask overrides were allowed; other launches used the passing mask 2."
+  },
+  "failedComparisons": {
+    "both_removed": {
+      "changedHDRValues": 9,
+      "maximumHDRError": 6.103515625e-05,
+      "changedDisplayBytes": 1,
+      "changedHDRSamples": [
+        [
+          2163492,
+          0.1162109375,
+          0.11614990234375
+        ],
+        [
+          2262293,
+          0.1104736328125,
+          0.11041259765625
+        ],
+        [
+          2294184,
+          0.060302734375,
+          0.060272216796875
+        ],
+        [
+          2341565,
+          0.06884765625,
+          0.06890869140625
+        ],
+        [
+          2412461,
+          0.08026123046875,
+          0.0802001953125
+        ],
+        [
+          2571696,
+          0.09063720703125,
+          0.0906982421875
+        ],
+        [
+          2850456,
+          0.02691650390625,
+          0.0269317626953125
+        ],
+        [
+          2875753,
+          0.04248046875,
+          0.042510986328125
+        ],
+        [
+          3043400,
+          0.02008056640625,
+          0.0200653076171875
+        ]
+      ]
+    },
+    "late_removed": {
+      "mask": 1,
+      "case": "storm",
+      "changedHDRValues": 2,
+      "maximumHDRError": 0.0001220703125,
+      "changedDisplayBytes": 0,
+      "changedHDRSamples": [
+        [
+          2492581,
+          0.14892578125,
+          0.1488037109375
+        ],
+        [
+          3297197,
+          0.056854248046875,
+          0.05682373046875
+        ]
+      ]
+    }
+  },
+  "validation": {
+    "qualityMask2": {
+      "passed": true,
+      "cases": [
+        {
+          "case": "sunset",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "phase45",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "phase120",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "daylight",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "storm",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "clear",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "low_only",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "high_only",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "ultrawide",
+          "comparedBytes": {
+            "HDR": 8192472,
+            ".bgra8": 4096236,
+            ".mips": 18175264,
+            ".clouds": 5647444,
+            ".bloom": 2721896
+          },
+          "changedBytes": 0,
+          "width": 1907,
+          "height": 537,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "portrait",
+          "comparedBytes": {
+            "HDR": 8191128,
+            ".bgra8": 4095564,
+            ".mips": 18175264,
+            ".clouds": 5650636,
+            ".bloom": 2720608
+          },
+          "changedBytes": 0,
+          "width": 759,
+          "height": 1349,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "index_fallback",
+          "comparedBytes": {
+            "HDR": 8126464,
+            ".bgra8": 4063232,
+            ".mips": 18175264,
+            ".clouds": 5570548,
+            ".bloom": 2668544
+          },
+          "changedBytes": 0,
+          "width": 62,
+          "height": 16384,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "stable",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "month",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "narrow_stable",
+          "comparedBytes": {
+            "HDR": 8193152,
+            ".bgra8": 4096576,
+            ".mips": 18175264,
+            ".clouds": 5638996,
+            ".bloom": 2714656
+          },
+          "changedBytes": 0,
+          "width": 253,
+          "height": 4048,
+          "prunedOceanDebug": true
+        },
+        {
+          "case": "debug_1",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_2",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_3",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_4",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_5",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_6",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_7",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_8",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_stable",
+          "comparedBytes": {
+            "HDR": 8192000,
+            ".bgra8": 4096000,
+            ".mips": 18175264,
+            ".clouds": 5656564,
+            ".bloom": 2729920
+          },
+          "changedBytes": 0,
+          "width": 1280,
+          "height": 800,
+          "prunedOceanDebug": false
+        },
+        {
+          "case": "debug_narrow",
+          "comparedBytes": {
+            "HDR": 8193152,
+            ".bgra8": 4096576,
+            ".mips": 18175264,
+            ".clouds": 5638996,
+            ".bloom": 2714656
+          },
+          "changedBytes": 0,
+          "width": 253,
+          "height": 4048,
+          "prunedOceanDebug": false
+        }
+      ]
+    },
+    "exactComparedBytes": 932053064,
+    "restoration": {
+      "macos/OceanRenderer.swift": "0d6c87e298b2dba3c803e34f793629223af377484fe8541e5610abebcc88b087",
+      "macos/Tests/benchmark.py": "124ab6d6bd03564f35edf55a391e21f96eb432297966806877335f92fd519e61",
+      "macos/Tests/verify_texture_usage.py": "fed5488d0dd3b40efc21c4913002c6ca1e351a5181e901f4cc2d8eced44d9c1f",
+      "macos/test.sh": "9edf0ca119ab3143f2dd6eaed8e4207a8cff77c6950499aa9ced72b9d70bc99b",
+      "macos/Shaders/OCEAN.metal": "4d2f0e29946d8a31e480c5f58463e5b85210f78f5bf78f6f978424b9752607c9",
+      "macos/Shaders/CUBE_MIPS.metal": "0d7ec038e745d02fcef57391e1e4bf0c1c64d6455201a0bb5ae0917e9c822812",
+      "macos/Shaders/BLOOM_DOWN.metal": "fc86dc9bed4b77b2669df3b03d8b9db33848309808bf701c91abc4dccd79da11",
+      "macos/Shaders/ENV_CUBE.metal": "f3556f490dbba4e6fcab540167a21c8f7f8eeea74c1a2c391659c607a0a991e0",
+      "macos/Shaders/FOAM_UPDATE.metal": "50315f19d2c5017ba261263b125cc64532353a39caae6f67d023d46bd71057a5",
+      "macos/Shaders/ARRAY16_MIPS_FUSED5.metal": "8b8c21f3b022a88d892758938cd3ad89eb5a2bfbbc8a207458e20c24147a7da8",
+      "macos/Shaders/FFT_COLS.metal": "e3256de5b2eb0c1bafb17fe0945740bf8d826e6792f00d8663a103a3eb72f6fc",
+      "macos/Shaders/ARRAY16_MIPS.metal": "ae058baff48c5440db8e302adf63289aa9426206af57652396fc8520221ed519",
+      "macos/Shaders/SIM_MIPS.metal": "b3e297219d85103b59bc3293fd6cc7ce8e62052f50c4bf597ef5514054aad926",
+      "macos/Shaders/SIM_EVOLVE.metal": "c605f051e7f5631e499f5cd066586d60c76d00659aa6367f6d851d92287acbee",
+      "macos/Shaders/FFT_ROWS.metal": "41121a3b6e4478dd0d059381fb6037695f51314258cfb122a723c55c824cccad",
+      "macos/Shaders/FOAM_TEX.metal": "691ff4c8f5f65ea70344486b127fe1b23d6bcf5aed6f76444fbf128592a5da40",
+      "macos/Shaders/SIM_MIPS_FUSED4.metal": "e30f37ea9c085a2572770f04084cdce0b4633c411cb7480b01011b2bdbf919f0",
+      "macos/Shaders/ARRAY16_MIPS_FUSED4.metal": "4298590403d904f51acb0fd78b4846256bd811f3da3cd41b00068720eff07e24",
+      "macos/Shaders/TRANS_LUT.metal": "dcf8d6e86a3f5fc65a75935578de6f67cf7d91895d72a9b983a0c576680d547e",
+      "macos/Shaders/SKY_CACHED.metal": "e40ab42d7096d89bf99baa83177bcc531d9916b282f47a6a1fbf090e4c4fd577",
+      "macos/Shaders/RGBA8_MIPS.metal": "d31e7e8be792412b0801eae4b364197701ca4203aca40f3df51d91ae90ece7d0",
+      "macos/Shaders/BLOOM_UP.metal": "1b57c28a28a22bc0a9683ccff990fbeaa643cf117fbf03f3b54a7e043850c607",
+      "macos/Shaders/COMPOSITE.metal": "7d6edd463717278b8c5336405f9b2d7d30bc32bb58e1cdf2c3da46ef40844533",
+      "macos/Shaders/SIM_EVOLVE_ROWS.metal": "5b66102f08959ef477e105b55ae0f337e59186adc9c64a7ff006532efe887ff7",
+      "macos/Shaders/SUN_VIS.metal": "3698a22c6436736f79a5faff6b08ecce370b38ca3d3a47d9387261e6a39b7d40",
+      "macos/Shaders/SIM_INIT.metal": "e3ec6cdf2033ef6a926f8831a1146b7a49423788e0d057ec273f0f3b773b6ba5",
+      "macos/Shaders/DISPLACEMENT_BOUNDS_FINAL.metal": "7989655479121bb36fbaedb20e2db2bf56a6b50dbd6c18f82b712d4dc097531b",
+      "macos/Shaders/SKY_BG.metal": "a3990c8d65406a7741cbaaf0930090b5f6efea19f5d71286c1432554fbfce98c",
+      "macos/Shaders/SKYVIEW_LUT.metal": "5c4cb176aea17b965ec6fe77901a165e1c8d9020a83b44251c2a9aa8f5a927d7",
+      "macos/Shaders/DISPLACEMENT_BOUNDS.metal": "5acd6ff0b1a56831b112a05e747d9fe5f7fff4f8d4b2053f169f5b2b37bb3544",
+      "macos/Shaders/MS_LUT.metal": "94e762265fc07f9a570bda986a5150472002859bd23eaa824c995ec176dde18f",
+      "macos/Shaders/LIGHTING.metal": "a4fa77d24edc85e1451a1eb641d2de8f5b4113c4171248f29ba105f9050d44c1"
+    },
+    "scope": "Strict dedicated quality gate; no relaxed tolerances and no benchmark run for failing masks. Full historical suite was not rerun for the rejected candidate.",
+    "restoredMetalValidation": {
+      "log": "macos/build/ocean-debug-restored-validation.log",
+      "diagnostics": {
+        "cachedSkyElapsed": 600.05,
+        "clockMode": "continuous",
+        "device": "Apple M1",
+        "elapsed": 600.05,
+        "errors": [],
+        "fps": 8.2,
+        "frames": 8,
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMs": 72.93,
+        "gpuStagesMs": {},
+        "guardBoundsVerified": true,
+        "height": 4048,
+        "indexBits": 16,
+        "indexBytes": 655872,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "packedJacobian": true,
+        "paused": false,
+        "physicalGuard": true,
+        "renderer": "Metal",
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 0,
+        "specializedSkyAAMask": 0,
+        "spectrumBufferBytes": 0,
+        "stableDetails": true,
+        "triangles": 109312,
+        "width": 253
+      }
+    }
+  },
+  "benchmarks": {
+    "baseline": "oceandebug",
+    "rounds": 2,
+    "mipMode": 2,
+    "sharedLighting": false,
+    "timings": {
+      "gpuMeanMs": {
+        "referenceAverageMs": 7.022576388165665,
+        "optimizedAverageMs": 7.012910764024127,
+        "reductionPercent": 0.13763644006530296
+      },
+      "gpuMedianMs": {
+        "referenceAverageMs": 6.482770841103047,
+        "optimizedAverageMs": 6.50990623398684,
+        "reductionPercent": -0.4185770799076227
+      },
+      "gpuP95Ms": {
+        "referenceAverageMs": 9.885458275675774,
+        "optimizedAverageMs": 9.958229202311486,
+        "reductionPercent": -0.7361411540704577
+      },
+      "cpuEncodeMeanMs": {
+        "referenceAverageMs": 0.7148178810894024,
+        "optimizedAverageMs": 0.696017619096286,
+        "reductionPercent": 2.6300771833609238
+      },
+      "cpuEncodeMedianMs": {
+        "referenceAverageMs": 0.718531257007271,
+        "optimizedAverageMs": 0.7164895941969007,
+        "reductionPercent": 0.2841439102975074
+      },
+      "cpuThreadEncodeMeanMs": {
+        "referenceAverageMs": 0.7139343812499999,
+        "optimizedAverageMs": 0.6952847229166665,
+        "reductionPercent": 2.6122370379026094
+      },
+      "cpuThreadEncodeMedianMs": {
+        "referenceAverageMs": 0.7179164999999941,
+        "optimizedAverageMs": 0.7158330000000035,
+        "reductionPercent": 0.29021480910252917
+      }
+    },
+    "referenceMedianAverageMs": 6.482770841103047,
+    "optimizedMedianAverageMs": 6.50990623398684,
+    "reductionPercent": -0.4185770799076227,
+    "runs": [
+      {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.794372222541521,
+        "cpuEncodeMedianMs": 0.8545833406969905,
+        "cpuThreadEncodeMeanMs": 0.7935405916666658,
+        "cpuThreadEncodeMedianMs": 0.8536670000000015,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.040870485555691,
+        "gpuMedianMs": 6.487041711807251,
+        "gpuP95Ms": 9.992749895900488,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "oceanDebugMask": 3,
+        "packedJacobian": true,
+        "profiled": false,
+        "prunedOceanDebug": false,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "reference": true,
+        "query": {
+          "fixedDt": "0.0333333333",
+          "frames": "180",
+          "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/oceandebug-2-rounds/run-0.json",
+          "pruneOceanDebug": "0"
+        }
+      },
+      {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.7220319375240555,
+        "cpuEncodeMedianMs": 0.7175416685640812,
+        "cpuThreadEncodeMeanMs": 0.7212323000000019,
+        "cpuThreadEncodeMedianMs": 0.715582999999981,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 6.990373263640019,
+        "gpuMedianMs": 6.515583256259561,
+        "gpuP95Ms": 9.895875002257526,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "oceanDebugMask": 2,
+        "packedJacobian": true,
+        "profiled": false,
+        "prunedOceanDebug": true,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "reference": false,
+        "query": {
+          "fixedDt": "0.0333333333",
+          "frames": "180",
+          "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/oceandebug-2-rounds/run-1.json",
+          "pruneOceanDebug": "1"
+        }
+      },
+      {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.7346881980386873,
+        "cpuEncodeMedianMs": 0.722541706636548,
+        "cpuThreadEncodeMeanMs": 0.7337885333333314,
+        "cpuThreadEncodeMedianMs": 0.7222500000000309,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 6.9933118056117864,
+        "gpuMedianMs": 6.52854167856276,
+        "gpuP95Ms": 9.857875062152743,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "oceanDebugMask": 2,
+        "packedJacobian": true,
+        "profiled": false,
+        "prunedOceanDebug": true,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "reference": false,
+        "query": {
+          "fixedDt": "0.0333333333",
+          "frames": "180",
+          "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/oceandebug-2-rounds/run-2.json",
+          "pruneOceanDebug": "1"
+        }
+      },
+      {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.7021513854851946,
+        "cpuEncodeMedianMs": 0.6892916280776262,
+        "cpuThreadEncodeMeanMs": 0.7016635249999991,
+        "cpuThreadEncodeMedianMs": 0.6887499999999989,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.0121899266572045,
+        "gpuMedianMs": 6.479833391495049,
+        "gpuP95Ms": 9.864958235993981,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "oceanDebugMask": 3,
+        "packedJacobian": true,
+        "profiled": false,
+        "prunedOceanDebug": false,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "reference": true,
+        "query": {
+          "fixedDt": "0.0333333333",
+          "frames": "180",
+          "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/oceandebug-2-rounds/run-3.json",
+          "pruneOceanDebug": "0"
+        }
+      },
+      {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.7127756873766581,
+        "cpuEncodeMedianMs": 0.7992082973942161,
+        "cpuThreadEncodeMeanMs": 0.7121781333333334,
+        "cpuThreadEncodeMedianMs": 0.7985830000000078,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.044592702489656,
+        "gpuMedianMs": 6.50108337868005,
+        "gpuP95Ms": 10.05141669884324,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "oceanDebugMask": 2,
+        "packedJacobian": true,
+        "profiled": false,
+        "prunedOceanDebug": true,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "reference": false,
+        "query": {
+          "fixedDt": "0.0333333333",
+          "frames": "180",
+          "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/oceandebug-2-rounds/run-4.json",
+          "pruneOceanDebug": "1"
+        }
+      },
+      {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.6736958350908632,
+        "cpuEncodeMedianMs": 0.669625005684793,
+        "cpuThreadEncodeMeanMs": 0.6728260749999992,
+        "cpuThreadEncodeMedianMs": 0.6690409999999929,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.025368400112105,
+        "gpuMedianMs": 6.458333344198763,
+        "gpuP95Ms": 9.852624963968992,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "oceanDebugMask": 3,
+        "packedJacobian": true,
+        "profiled": false,
+        "prunedOceanDebug": false,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "reference": true,
+        "query": {
+          "fixedDt": "0.0333333333",
+          "frames": "180",
+          "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/oceandebug-2-rounds/run-5.json",
+          "pruneOceanDebug": "0"
+        }
+      },
+      {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.6890520812400306,
+        "cpuEncodeMedianMs": 0.6606250535696745,
+        "cpuThreadEncodeMeanMs": 0.6877073333333352,
+        "cpuThreadEncodeMedianMs": 0.660207999999983,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.01187674033766,
+        "gpuMedianMs": 6.505874916911125,
+        "gpuP95Ms": 9.831500006839633,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "oceanDebugMask": 3,
+        "packedJacobian": true,
+        "profiled": false,
+        "prunedOceanDebug": false,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "reference": true,
+        "query": {
+          "fixedDt": "0.0333333333",
+          "frames": "180",
+          "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/oceandebug-2-rounds/run-6.json",
+          "pruneOceanDebug": "0"
+        }
+      },
+      {
+        "cachedSkyElapsed": 5.900000307708979,
+        "clockMode": "continuous",
+        "cpuEncodeMeanMs": 0.614574653445743,
+        "cpuEncodeMedianMs": 0.6266667041927576,
+        "cpuThreadEncodeMeanMs": 0.6139399249999994,
+        "cpuThreadEncodeMedianMs": 0.6269159999999943,
+        "device": "Apple M1",
+        "elapsed": 6.000000312924385,
+        "errors": [],
+        "fusedEvolution": true,
+        "fusedMips": true,
+        "gpuMeanMs": 7.023365284355047,
+        "gpuMedianMs": 6.494416622444987,
+        "gpuP95Ms": 10.027750045992434,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "mipmapRounding": "towardZero",
+        "narrowTextureUsage": true,
+        "oceanDebugMask": 2,
+        "packedJacobian": true,
+        "profiled": false,
+        "prunedOceanDebug": true,
+        "renderTextureUsage": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "samples": 120,
+        "sharedCubic": true,
+        "skipCloudOctaves": true,
+        "skyAAMask": 3,
+        "specializedSkyAAMask": 3,
+        "spectrumBufferBytes": 0,
+        "stableDetails": false,
+        "triangles": 98304,
+        "verboseBindings": false,
+        "width": 1280,
+        "reference": false,
+        "query": {
+          "fixedDt": "0.0333333333",
+          "frames": "180",
+          "report": "/Users/sairamen/projects/Wallpaper/web-ocean/macos/build/benchmarks/oceandebug-2-rounds/run-7.json",
+          "pruneOceanDebug": "1"
+        }
+      }
+    ]
+  },
+  "interpretation": "The passing mask saved no useful GPU time. Its approximately 0.4% median regression and 0.7% p95 regression do not justify production specialization. CPU timing differences are not a claimed shader benefit.",
+  "limitations": [
+    "Only one M1; shader compilation, instruction scheduling, and frequency can vary across devices.",
+    "The failed masks have logically inactive source branches removed, but observed pixel differences were sufficient to reject them; the compiler-level cause was not isolated.",
+    "Candidate timing uses ordinary unprofiled command-buffer measurements, 60 warmup plus 120 measured frames per run.",
+    "No power, memory-traffic, compiler instruction-count or register-pressure measurements."
+  ],
+  "nextAction": "Inspect high-cost texture reconstruction and ocean shading paths for redundant sampling or shared calculations without revisiting debug-path pruning.",
+  "archivedSources": {
+    "macos/Tests/Experiments/OceanDebug/OCEAN.metal": "3c38a1f50aaa1b69a8f380d8e985ac69bf6cfa2527bd5a247eedfe516e0c9480",
+    "macos/Tests/Experiments/OceanDebug/benchmark.py": "bb4c23ccc7a84ba417ded6bff8392fc7349c82c2b92e2c04106c7cbaa6d09e9f",
+    "macos/Tests/Experiments/OceanDebug/both_removed-verification.log": "725c3ed2da6e9584043849fb27519de99113974cca1b042f1b1329df23025501",
+    "macos/Tests/Experiments/OceanDebug/mask2-quality.json": "76d0cd2419a28f08d46c24975b51016a9a82b74ac1cefef43c695cfa5aeb55d3",
+    "macos/Tests/Experiments/OceanDebug/README.md": "241c8809c17f55f2705db70ea6a72f23a0f4649848785c1d118893accd4d9a43",
+    "macos/Tests/Experiments/OceanDebug/OceanRenderer.swift": "dadd50806a9b2be6b9b84b9c4282f4c42b4aa919893be5938eb72903d0ff3375",
+    "macos/Tests/Experiments/OceanDebug/late_removed-verification.log": "a7b01a5ec0c25c848f213aeb62d168a8d3a64432e969f28fbfe4e2b93f82fdda",
+    "macos/Tests/Experiments/OceanDebug/test.sh": "9edf0ca119ab3143f2dd6eaed8e4207a8cff77c6950499aa9ced72b9d70bc99b",
+    "macos/Tests/Experiments/OceanDebug/verify_ocean_debug.py": "e1ea615b7fed3c617e41607d9f3088ace86ca847c2c8f9864558b4b878520e28"
+  },
+  "readmeHash": "cd135e8c9de701ff4a1c91a72b27e594398e919a28f074583e3b9bb012bcad1e"
+}

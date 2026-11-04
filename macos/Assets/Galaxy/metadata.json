@@ -1,0 +1,17 @@
+{
+  "sourceURL": "https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004851/milkyway_2020_4k.exr",
+  "sourcePage": "https://svs.gsfc.nasa.gov/4851/",
+  "sourceSHA256": "2eb802d6e68d170b410f766c7fec07f7518619f6b6708fdc81e9302d93e74fdb",
+  "credit": "NASA/Goddard Space Flight Center Scientific Visualization Studio; Gaia DR2: ESA/Gaia/DPAC. Visualization: Ernie Wright.",
+  "description": "Milky Way background excluding bright Hipparcos/Tycho stars.",
+  "projection": "plate carree, ICRF/J2000; RA 0 at image centre, increasing left; north at top",
+  "width": 2048,
+  "height": 1024,
+  "metalPixelFormat": "rg11b10Float",
+  "byteOrder": "little endian",
+  "linearExposureScale": 0.3,
+  "bytes": 8388608,
+  "sha256": "2a81539b09f50c8f8e38f8fbf3a4164b1f8b270f6c5f6c2a3470537f8c2b4e42",
+  "relativeL2EncodingError": 0.004302475786223587,
+  "runtimeDependencies": "None. Native Metal uploads packed linear data directly; ffmpeg/NumPy only needed to regenerate."
+}

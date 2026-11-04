@@ -1,0 +1,190 @@
+{
+  "date": "2026-10-23",
+  "device": "Apple M1",
+  "experiment": "Five raw environment samples cached in RGBA32Float texture, combined with 16-bit indices",
+  "benchmark": {
+    "baseline": "previous",
+    "referenceMedianAverageMs": 8.141229103785008,
+    "optimizedMedianAverageMs": 8.158958342391998,
+    "reductionPercent": -0.21777103163387324,
+    "runs": [
+      {
+        "cpuEncodeMeanMs": 0.7184243004303426,
+        "cpuEncodeMedianMs": 0.7359166629612446,
+        "device": "Apple M1",
+        "errors": [],
+        "gpuMeanMs": 8.845159372625252,
+        "gpuMedianMs": 8.168583270162344,
+        "gpuP95Ms": 12.5459999544546,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 32,
+        "indexBytes": 1179648,
+        "profiled": false,
+        "samples": 120,
+        "triangles": 98304,
+        "width": 1280,
+        "reference": true
+      },
+      {
+        "cpuEncodeMeanMs": 0.7511093843883524,
+        "cpuEncodeMedianMs": 0.7595416391268373,
+        "device": "Apple M1",
+        "errors": [],
+        "gpuMeanMs": 8.8003840278058,
+        "gpuMedianMs": 8.132249931804836,
+        "gpuP95Ms": 12.641458422876894,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "profiled": false,
+        "samples": 120,
+        "triangles": 98304,
+        "width": 1280,
+        "reference": false
+      },
+      {
+        "cpuEncodeMeanMs": 0.7145892382444193,
+        "cpuEncodeMedianMs": 0.7250416092574596,
+        "device": "Apple M1",
+        "errors": [],
+        "gpuMeanMs": 8.833353815134615,
+        "gpuMedianMs": 8.18566675297916,
+        "gpuP95Ms": 12.664416572079062,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "profiled": false,
+        "samples": 120,
+        "triangles": 98304,
+        "width": 1280,
+        "reference": false
+      },
+      {
+        "cpuEncodeMeanMs": 0.6700579959821577,
+        "cpuEncodeMedianMs": 0.698499963618815,
+        "device": "Apple M1",
+        "errors": [],
+        "gpuMeanMs": 8.780670484217504,
+        "gpuMedianMs": 8.113874937407672,
+        "gpuP95Ms": 12.672374956309795,
+        "gpuStagesMs": {},
+        "height": 800,
+        "indexBits": 32,
+        "indexBytes": 1179648,
+        "profiled": false,
+        "samples": 120,
+        "triangles": 98304,
+        "width": 1280,
+        "reference": true
+      }
+    ]
+  },
+  "quality": {
+    "passed": true,
+    "cases": [
+      {
+        "case": "sunset",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "swell_phase_45",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "swell_phase_120",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "daylight",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "rough_cloudy",
+        "width": 1280,
+        "height": 800,
+        "triangles": 98304,
+        "indexBits": 16,
+        "indexBytes": 589824,
+        "comparedHalfFloatValues": 4096000,
+        "changedValues": 0
+      },
+      {
+        "case": "ultrawide",
+        "width": 1907,
+        "height": 537,
+        "triangles": 104448,
+        "indexBits": 16,
+        "indexBytes": 626688,
+        "comparedHalfFloatValues": 4096236,
+        "changedValues": 0
+      },
+      {
+        "case": "portrait",
+        "width": 759,
+        "height": 1349,
+        "triangles": 99712,
+        "indexBits": 16,
+        "indexBytes": 598272,
+        "comparedHalfFloatValues": 4095564,
+        "changedValues": 0
+      },
+      {
+        "case": "wide_16_9",
+        "width": 1349,
+        "height": 759,
+        "triangles": 100096,
+        "indexBits": 16,
+        "indexBytes": 600576,
+        "comparedHalfFloatValues": 4095564,
+        "changedValues": 0
+      },
+      {
+        "case": "index_fallback",
+        "width": 62,
+        "height": 16384,
+        "triangles": 125952,
+        "indexBits": 32,
+        "indexBytes": 1511424,
+        "comparedHalfFloatValues": 4063232,
+        "changedValues": 0
+      }
+    ]
+  },
+  "decision": "Disable shared lighting cache by default: no measurable speed improvement. Retain 16-bit indices for half index-buffer storage and bandwidth with identical topology; no standalone frame-time speedup claimed.",
+  "defaultIndexBytesBefore": 1179648,
+  "defaultIndexBytesAfter": 589824,
+  "coverageFix": "Retain full sky background for views narrower than 1:2. Extreme wave-displaced mesh coverage remains unresolved.",
+  "sources": {
+    "macos/OceanRenderer.swift": "c2b89e5d36cbae2659c54528c39efb15b427ebe7f141a9ce767a7afcf3356b3b",
+    "macos/Shaders/OCEAN.metal": "aeb2e4bebf80c9febc192399ddaf8428853b52cedef31ca26f3bc55ab381b16e",
+    "macos/Shaders/LIGHTING.metal": "a4fa77d24edc85e1451a1eb641d2de8f5b4113c4171248f29ba105f9050d44c1",
+    "macos/ViewportMesh.swift": "869fee48ff7a7af9eb5920025ffe8ebb24d77730e643c9294b0b3c463dab58d6"
+  }
+}

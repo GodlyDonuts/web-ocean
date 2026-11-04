@@ -4,8 +4,8 @@ export const LOGN = 8;
 export const CASCADES = 6;
 export const SKY_W = 256;      // sky-view LUT size
 export const SKY_H = 144;
-export const ENV_SIZE = 256;   // environment cube face size
-export const ENV_MIPS = 9;
+export const ENV_SIZE = 128;   // environment cube face size
+export const ENV_MIPS = 8;
 
 // Per-frame uniform block shared by every render / sky shader.
 // Layout must match the Float32Array offsets in main.js (FR_* constants).
@@ -13,7 +13,7 @@ export const FRAME_WGSL = /* wgsl */ `
 struct Frame {
   viewProj: mat4x4f,   // camera-relative view-projection (reverse-Z, infinite)
   camPos:   vec4f,     // xyz metres, w = time (s)
-  camRight: vec4f,     // xyz * tan(fovX/2)
+  camRight: vec4f,     // xyz * tan(fovX/2), w = environment update face
   camUp:    vec4f,     // xyz * tan(fovY/2)
   camFwd:   vec4f,     // xyz
   sunDir:   vec4f,     // xyz towards sun, w = solar illuminance scale

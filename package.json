@@ -1,13 +1,27 @@
 {
   "name": "web-ocean",
   "version": "1.0.0",
-  "description": "Real-time WebGPU ocean renderer: FFT waves, whitecaps, physically based sunset sky.",
+  "description": "Native macOS Metal ocean wallpaper preview, with a retained WebGPU reference renderer.",
   "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "macos:build": "zsh macos/build.sh",
+    "macos": "npm run macos:build && open macos/build/Ocean.app",
+    "macos:verify": "npm run macos:build && MTL_DEBUG_LAYER=1 MTL_SHADER_VALIDATION=1 macos/build/Ocean.app/Contents/MacOS/Ocean --verify",
+    "macos:test": "zsh macos/test.sh",
+    "macos:benchmark": "npm run macos:build && python3 macos/Tests/benchmark.py",
+    "macos:daylight:test": "zsh macos/test-daylight.sh",
+    "macos:clouds:test": "npm run macos:build && python3 macos/Tests/verify_volumetric_clouds.py && python3 macos/Tests/verify_cloud_motion.py",
+    "macos:probe:build": "zsh macos/Diagnostics/build-occlusion-probe.sh",
+    "macos:probe:layout": "npm run macos:probe:build && macos/build/OcclusionProbe.app/Contents/MacOS/OcclusionProbe --describe-layout",
+    "macos:weather:test": "zsh macos/test-weather.sh",
+    "macos:storm:review": "npm run macos:build && python3 macos/Tests/verify_storm_rework.py",
+    "macos:unit": "zsh macos/test-unit.sh",
+    "macos:night:test": "npm run macos:build && python3 macos/Tests/verify_night_water.py",
+    "macos:check": "zsh macos/test-current.sh"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

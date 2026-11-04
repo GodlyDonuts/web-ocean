@@ -1,0 +1,317 @@
+{
+  "classification": "Actual repository JavaScript functions executed unchanged on CPU; not a GPU benchmark",
+  "upstream_commit_label": "8739f0793f84b96cb87a21558a117e1714184ad7",
+  "source_files": {
+    "main": "/workspace/scratch/fa29a3716dcf/web-ocean/js/main.js",
+    "common": "/workspace/scratch/fa29a3716dcf/web-ocean/js/wgsl/common.js"
+  },
+  "source_sha256": {
+    "main": "3fc8591e491b90d81121b2f182ad5e900d87d08599c38a3feacb22790e96d25a",
+    "common": "d12dc06cc1025bc9f5e903eb8434e2b7b9b0a61a070630c136bfc22dd7cf5e2d"
+  },
+  "extraction": [
+    {
+      "name": "P",
+      "file": "js/main.js",
+      "firstLine": 20,
+      "lastLine": 38,
+      "sha256": "9040a2416ef6001766a73fb50dc722df0c6270dd172471971fd7f1763866fc84"
+    },
+    {
+      "name": "D2R",
+      "file": "js/main.js",
+      "firstLine": 13,
+      "lastLine": 13,
+      "sha256": "7805fcb080c73f8ff97e065f629966c10846326b3126b3b33d27a8aabb868fa5"
+    },
+    {
+      "name": "CASC_L",
+      "file": "js/main.js",
+      "firstLine": 39,
+      "lastLine": 39,
+      "sha256": "ba43b5dcda66c9f80d045c5b550c91a99d994801a461dc332792d5c445241885"
+    },
+    {
+      "name": "CASCADES",
+      "file": "js/wgsl/common.js",
+      "firstLine": 4,
+      "lastLine": 4,
+      "sha256": "52cdcd140abfbdb046daa2066062dfdbf03499cbe3891dd7089f89fd46e82547"
+    },
+    {
+      "name": "C",
+      "file": "js/main.js",
+      "firstLine": 104,
+      "lastLine": 104,
+      "sha256": "cb6e66f04e5c34cd4f1bd165e00ad20ee8f038cdcb73adbacfb7227aab9a7468"
+    },
+    {
+      "name": "GRID",
+      "file": "js/main.js",
+      "firstLine": 310,
+      "lastLine": 310,
+      "sha256": "81a87b5ce9db10f36126123d5215b00b8804fde961549e42133decbb5cd2e696"
+    },
+    {
+      "name": "LEAF",
+      "file": "js/main.js",
+      "firstLine": 311,
+      "lastLine": 311,
+      "sha256": "ed5eabe4442a2b032a42563fa9e9bc54c061b5ad4f7eb8175a40e4f44c47a16a"
+    },
+    {
+      "name": "R0",
+      "file": "js/main.js",
+      "firstLine": 312,
+      "lastLine": 312,
+      "sha256": "8be79ee0522004ff878939ee83b1e190e83419af162c88ad00d44991f050c631"
+    },
+    {
+      "name": "LODS",
+      "file": "js/main.js",
+      "firstLine": 313,
+      "lastLine": 313,
+      "sha256": "52699771d2974cd69eafc974f24c742ec48c68a19e886f05323ee34c48f5e8f1"
+    },
+    {
+      "name": "MAX_DIST",
+      "file": "js/main.js",
+      "firstLine": 314,
+      "lastLine": 314,
+      "sha256": "e6edfcece2c1684bd2e5104d0b642f75a0f953bd27f9bcb040a64e9a4ab17260"
+    },
+    {
+      "name": "MAX_NODES",
+      "file": "js/main.js",
+      "firstLine": 315,
+      "lastLine": 315,
+      "sha256": "49bd70a762965505e150ceb70cfe118824c3bb12c4d9699c5fb757f88a03e1ac"
+    },
+    {
+      "name": "HB",
+      "file": "js/main.js",
+      "firstLine": 493,
+      "lastLine": 493,
+      "sha256": "aa0b4ac26c82a31b8e5c98f455dafc4f5a33d1861a5c84aa637c295385ab8206"
+    },
+    {
+      "name": "XB",
+      "file": "js/main.js",
+      "firstLine": 494,
+      "lastLine": 494,
+      "sha256": "f14d564ccdfb89b9f40c4f4a3c6350c4b5e539d3ce7dd2ede6dc1fd3337efbb4"
+    },
+    {
+      "name": "FOAM_LEVEL_SIZE",
+      "file": "js/main.js",
+      "firstLine": 182,
+      "lastLine": 182,
+      "sha256": "d0ed7b6e0cc33d4caf63fc3146d5dbf84d8ad3b21d158f8f71ad5c7f9918359f"
+    },
+    {
+      "name": "cam",
+      "file": "js/main.js",
+      "firstLine": 445,
+      "lastLine": 445,
+      "sha256": "d74d67a29abfe8e66c06b11f38aff8493a46e671a79873573d7fad603df42ca2"
+    },
+    {
+      "name": "instData",
+      "file": "js/main.js",
+      "firstLine": 329,
+      "lastLine": 329,
+      "sha256": "1fa6b4584a986b8f5d405d97721893c9b1ce7dcc665ac2c9bbcc422893faeb7e"
+    },
+    {
+      "name": "frameF",
+      "file": "js/main.js",
+      "firstLine": 421,
+      "lastLine": 421,
+      "sha256": "75b30f6ea9c63067c88d1635cc015a03f6b623006d999d9dc3aaca59def72ceb"
+    },
+    {
+      "name": "proj",
+      "file": "js/main.js",
+      "firstLine": 423,
+      "lastLine": 423,
+      "sha256": "8862304a4c22438a13b9a2beebb92801c7e6438de56cd2ee504910982fdea965"
+    },
+    {
+      "name": "ranges",
+      "file": "js/main.js",
+      "firstLine": 490,
+      "lastLine": 490,
+      "sha256": "6903e18c8982bc575698e8dccc861cdf3d5b0e2a08f8b0e4a0d89de09b1b3a4b"
+    },
+    {
+      "name": "planes",
+      "file": "js/main.js",
+      "firstLine": 492,
+      "lastLine": 492,
+      "sha256": "7a3c5fbad84b6174a212449d079a03baccf61f09e70deb3ba803cb2c40f9674d"
+    },
+    {
+      "name": "nodeCount",
+      "file": "js/main.js",
+      "firstLine": 495,
+      "lastLine": 495,
+      "sha256": "2f029209c4604d56a0b5afac3fceab951113e6026b9f26df1f4e28664693672f"
+    },
+    {
+      "name": "ranges initialization",
+      "file": "js/main.js",
+      "firstLine": 491,
+      "lastLine": 491,
+      "sha256": "fb2be93ff921c9ae39ad1b3bbdc2b5877f2b46c49b5ba4a8e6030398da1d2a8d"
+    },
+    {
+      "name": "mat4Mul",
+      "file": "js/main.js",
+      "firstLine": 56,
+      "lastLine": 64,
+      "sha256": "be1c5f77fe49fa1743a41a3a05d1ffbe7c250c635dfecb55375b92b48e6d522a"
+    },
+    {
+      "name": "writeFrame",
+      "file": "js/main.js",
+      "firstLine": 560,
+      "lastLine": 600,
+      "sha256": "2401fbc978fe1aadaf776a5eabd8ec0b3959ea24d00c08684b34f3f7514d0ef9"
+    },
+    {
+      "name": "sphereHit",
+      "file": "js/main.js",
+      "firstLine": 497,
+      "lastLine": 502,
+      "sha256": "c006a35323967ae90714a0d334f9d86f3ae5861d936015291fe1109603297496"
+    },
+    {
+      "name": "inFrustum",
+      "file": "js/main.js",
+      "firstLine": 503,
+      "lastLine": 513,
+      "sha256": "3c1096da23b4b7ddabab7764f7982ac1b0c5d5fb4bfa42efa1ecee5a884cb069"
+    },
+    {
+      "name": "addNode",
+      "file": "js/main.js",
+      "firstLine": 514,
+      "lastLine": 519,
+      "sha256": "da1d0c0a1c0676d7bc9fe0447fd971fb542f778aeb5563fb4a821716e695436a"
+    },
+    {
+      "name": "selectNode",
+      "file": "js/main.js",
+      "firstLine": 520,
+      "lastLine": 532,
+      "sha256": "33e091d2ba9b7b6cc084e1d46be44b5fb7e3f2aaa47dfbdfe05eb565be72d0e7"
+    },
+    {
+      "name": "selectAll",
+      "file": "js/main.js",
+      "firstLine": 533,
+      "lastLine": 552,
+      "sha256": "6bd245fef78df714af9a1fd65d5ea71571bb35b36759ec4a2495924bc2557ff4"
+    }
+  ],
+  "results": [
+    {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "aspect": 1.7777777777777777,
+      "camera": {
+        "position_m": [
+          0,
+          2.4,
+          0
+        ],
+        "yaw_deg": 0,
+        "pitch_deg": -5.5,
+        "fovy_deg": 58.00000000000001
+      },
+      "selected_nodes": 906,
+      "nodes_by_lod": {
+        "0": 150,
+        "1": 76,
+        "2": 62,
+        "3": 60,
+        "4": 60,
+        "5": 60,
+        "6": 54,
+        "7": 54,
+        "8": 54,
+        "9": 54,
+        "10": 54,
+        "11": 54,
+        "12": 54,
+        "13": 54,
+        "14": 6,
+        "15": 0,
+        "16": 0
+      },
+      "triangles_per_grid_instance": 2048,
+      "submitted_triangles": 1855488,
+      "sum_of_unique_vertex_indices_per_instance": 986634,
+      "node_capacity": 8192,
+      "node_capacity_reached": false,
+      "grid_quads_per_axis": 32,
+      "lod_levels": 17,
+      "max_distance_m": 160000
+    },
+    {
+      "viewport": [
+        2560,
+        1600
+      ],
+      "aspect": 1.6,
+      "camera": {
+        "position_m": [
+          0,
+          2.4,
+          0
+        ],
+        "yaw_deg": 0,
+        "pitch_deg": -5.5,
+        "fovy_deg": 58.00000000000001
+      },
+      "selected_nodes": 874,
+      "nodes_by_lod": {
+        "0": 144,
+        "1": 68,
+        "2": 60,
+        "3": 56,
+        "4": 54,
+        "5": 54,
+        "6": 54,
+        "7": 54,
+        "8": 54,
+        "9": 54,
+        "10": 54,
+        "11": 54,
+        "12": 54,
+        "13": 54,
+        "14": 6,
+        "15": 0,
+        "16": 0
+      },
+      "triangles_per_grid_instance": 2048,
+      "submitted_triangles": 1789952,
+      "sum_of_unique_vertex_indices_per_instance": 951786,
+      "node_capacity": 8192,
+      "node_capacity_reached": false,
+      "grid_quads_per_axis": 32,
+      "lod_levels": 17,
+      "max_distance_m": 160000
+    }
+  ],
+  "interpretation": [
+    "Default camera, default settings, and no user movement; no URL overrides.",
+    "The repository's Float32Array matrices and Float64Array culling planes are preserved.",
+    "Only the WebGPU uniform upload is stubbed out.",
+    "Triangle counts are submitted index/instance work before GPU clipping, culling, and rasterization.",
+    "Unique vertex-index count is not a measured number of vertex-shader invocations.",
+    "Counts do not establish frame time, power use, or the speedup of any alternative geometry."
+  ]
+}

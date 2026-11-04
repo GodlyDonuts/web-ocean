@@ -1,0 +1,5 @@
+# Packed HDR radiance must remain byte-for-byte intact, not text-diffed.
+*.r11g11b10f binary
+*.png binary
+*.jpg binary
+*.mp4 binary

@@ -1,4 +1,5 @@
 node_modules/
+macos/build/
 # local screenshot captures written by server.mjs (/__shot) and test shots
 shots/
 # local tooling
@@ -9,3 +10,12 @@ Thumbs.db
 .vscode/
 .idea/
 *.log
+# Shader migration tooling (not part of the native app build)
+tools/wgsl-to-metal/target/
+
+# Python reference models and tests
+__pycache__/
+*.py[cod]
+
+# Local Python verification environment
+.venv/

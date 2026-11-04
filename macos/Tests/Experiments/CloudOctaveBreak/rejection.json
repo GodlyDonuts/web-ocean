@@ -1,0 +1,7 @@
+{
+  "decision": "Rejected early loop break: stable-time data differed. Retain the coordinate recurrence and predicate only noise/accumulation.",
+  "stableTimeSeconds": 600.05,
+  "changedCachedSkyHalfFloats": 102,
+  "changedEnvironmentHalfFloats": 7,
+  "changedDisplayBytes": 10
+}

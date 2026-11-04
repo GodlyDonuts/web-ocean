@@ -1,0 +1,1 @@
+This preliminary snapshot is superseded by macos/Tests/Experiments/WaveMipScheduling/ and docs/optimization-report-2026-10-23-wave-mip-scheduling.json. Both interleaved and SIMD variants were tested and not retained. Preserve the headless renderer when reproducing experiments; automated runs must never create windows.

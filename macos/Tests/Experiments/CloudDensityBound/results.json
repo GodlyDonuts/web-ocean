@@ -1,0 +1,171 @@
+{
+  "cases" : [
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 0.05000000074505806,
+      "earlySaturated" : 0,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 0
+    },
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 0.40000000596046448,
+      "earlySaturated" : 448,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 0
+    },
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 1,
+      "earlySaturated" : 41776,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 0
+    },
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 0.05000000074505806,
+      "earlySaturated" : 0,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 45
+    },
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 0.40000000596046448,
+      "earlySaturated" : 422,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 45
+    },
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 1,
+      "earlySaturated" : 41737,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 45
+    },
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 0.05000000074505806,
+      "earlySaturated" : 0,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 599.95000000000005
+    },
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 0.40000000596046448,
+      "earlySaturated" : 429,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 599.95000000000005
+    },
+    {
+      "changedBits" : 0,
+      "changedValues" : 0,
+      "comparedValues" : 65536,
+      "coverage" : 1,
+      "earlySaturated" : 41733,
+      "invalidClassifications" : 0,
+      "maximumError" : 0,
+      "stable" : false,
+      "time" : 599.95000000000005
+    },
+    {
+      "changedBits" : 766,
+      "changedValues" : 766,
+      "comparedValues" : 65536,
+      "coverage" : 0.05000000074505806,
+      "earlySaturated" : 0,
+      "invalidClassifications" : 0,
+      "maximumError" : 1.1920928955078125e-07,
+      "stable" : true,
+      "time" : 600.04999999999995
+    },
+    {
+      "changedBits" : 12857,
+      "changedValues" : 12857,
+      "comparedValues" : 65536,
+      "coverage" : 0.40000000596046448,
+      "earlySaturated" : 428,
+      "invalidClassifications" : 0,
+      "maximumError" : 1.1920928955078125e-07,
+      "stable" : true,
+      "time" : 600.04999999999995
+    },
+    {
+      "changedBits" : 13850,
+      "changedValues" : 13850,
+      "comparedValues" : 65536,
+      "coverage" : 1,
+      "earlySaturated" : 41733,
+      "invalidClassifications" : 0,
+      "maximumError" : 1.7881393432617188e-07,
+      "stable" : true,
+      "time" : 600.04999999999995
+    },
+    {
+      "changedBits" : 721,
+      "changedValues" : 721,
+      "comparedValues" : 65536,
+      "coverage" : 0.05000000074505806,
+      "earlySaturated" : 0,
+      "invalidClassifications" : 0,
+      "maximumError" : 1.1920928955078125e-07,
+      "stable" : true,
+      "time" : 2592000
+    },
+    {
+      "changedBits" : 12753,
+      "changedValues" : 12753,
+      "comparedValues" : 65536,
+      "coverage" : 0.40000000596046448,
+      "earlySaturated" : 375,
+      "invalidClassifications" : 0,
+      "maximumError" : 1.1920928955078125e-07,
+      "stable" : true,
+      "time" : 2592000
+    },
+    {
+      "changedBits" : 14013,
+      "changedValues" : 14013,
+      "comparedValues" : 65536,
+      "coverage" : 1,
+      "earlySaturated" : 41406,
+      "invalidClassifications" : 0,
+      "maximumError" : 1.7881393432617188e-07,
+      "stable" : true,
+      "time" : 2592000
+    }
+  ],
+  "device" : "Apple M1",
+  "passed" : false
+}
