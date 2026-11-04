@@ -42,6 +42,13 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     private var rainDepth:MTLDepthStencilState!
     private var rainBuffer:MTLBuffer!
     private var compositePipeline: MTLRenderPipelineState!
+    private var mirrorPipeline: MTLRenderPipelineState!
+    // Wallpaper presentation: the layout view sizes the shared HDR frame; every
+    // visible surface receives a composite of that one frame.
+    var presentationSurfaces: [MTKView] = []
+    weak var layoutView: MTKView?
+    var pixelBudget: Double = 1280*800
+    var horizonUV: Float { Float(0.5*(1-tan(5.5*Double.pi/180)/tan(29*Double.pi/180))) }
     private var oceanDepth: MTLDepthStencilState!
     private var skyDepth: MTLDepthStencilState!
     private var clampSampler: MTLSamplerState!
@@ -353,6 +360,12 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         upPipeline = try renderPipeline("BLOOM_UP", additive: true)
         rainPipeline=try renderPipeline("RAIN",samples:4,depth:true,premultiplied:true)
         compositePipeline = try renderPipeline("COMPOSITE", format: .bgra8Unorm)
+        let mirror = MTLRenderPipelineDescriptor()
+        mirror.label = "COMPOSITE mirror"
+        mirror.vertexFunction = libraries["COMPOSITE"]!.makeFunction(name: "vs")
+        mirror.fragmentFunction = libraries["COMPOSITE"]!.makeFunction(name: "fs_mirror")
+        mirror.colorAttachments[0].pixelFormat = .bgra8Unorm
+        mirrorPipeline = try device.makeRenderPipelineState(descriptor: mirror)
         let d = MTLDepthStencilDescriptor()
         d.depthCompareFunction = .greater; d.isDepthWriteEnabled = true
         oceanDepth = device.makeDepthStencilState(descriptor: d)
@@ -771,7 +784,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             layout = ViewportLayout(pointWidth:testWidth,pointHeight:testHeight,backingScale:1)
         } else {
             layout = ViewportLayout(pointWidth:Double(view.bounds.width),pointHeight:Double(view.bounds.height),
-                                    backingScale:Double(view.window?.backingScaleFactor ?? 2))
+                                    backingScale:Double(view.window?.backingScaleFactor ?? 2),pixelBudget:pixelBudget)
         }
         let w = layout.width, h = layout.height
         guard w != width || h != height else { return }
@@ -804,13 +817,24 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         guard !isPaused, gate.wait(timeout: .now()) == .success else { return }
         var committed = false
         defer { if !committed { gate.signal() } }
-        do { try updateSize(view) } catch { record(error.localizedDescription); return }
+        do { try updateSize(layoutView ?? view) } catch { record(error.localizedDescription); return }
         let drawable: CAMetalDrawable?
         let display: MTLTexture
+        var surfaceDrawables: [CAMetalDrawable] = []
         if OceanRunMode.offscreen {
             drawable = nil
             guard let target = offscreenDisplay else { return }
             display = target
+        } else if !presentationSurfaces.isEmpty {
+            drawable = nil
+            for surface in presentationSurfaces {
+                // The driving view owns its MTKView drawable; paused views are
+                // presented through their layers so no drawable is retained.
+                let next = surface === view ? surface.currentDrawable : (surface.layer as? CAMetalLayer)?.nextDrawable()
+                if let next { surfaceDrawables.append(next) }
+            }
+            guard let first = surfaceDrawables.first else { return }
+            display = first.texture
         } else {
             guard let next = view.currentDrawable else { return }
             drawable = next
@@ -976,12 +1000,16 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         for m in stride(from: bloomLevels-1, through: 1, by: -1) {
             render(command, target: bloom[m-1], pipeline: upPipeline, label: "bloom up", resources: [.texture(bloom[m]),.sampler(linearSampler),.buffer(bloomUniforms[bloomLevels+m])], load: .load)
         }
-        render(command, target: display, pipeline: compositePipeline, label: "composite", resources: [.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)])
+        if surfaceDrawables.isEmpty {
+            render(command, target: display, pipeline: compositePipeline, label: "composite", resources: [.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)])
+        }
+        for surface in surfaceDrawables { encodeSurfaceComposite(command, target: surface.texture) }
         let verify = verificationEnabled && (sequenceFrames.isEmpty ? frameIndex == max(8,min(3600,Int(options["verifyFrame"] ?? "") ?? 8)) : sequenceFrames.contains(frameIndex))
         let readbacks: [Readback]
         do { readbacks = verify ? try encodeReadbacks(command, display:display) : [] }
         catch { record(error.localizedDescription); return }
         if let drawable { command.present(drawable) }
+        for surface in surfaceDrawables { command.present(surface) }
         let profileLabels = profiler?.labels ?? []
         let renderedFrame = frameIndex
         let cpuEncodeMs = benchmarkEnabled ? (CACurrentMediaTime()-now)*1000 : 0
@@ -1008,6 +1036,34 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         initialized = true
         committed = true
         command.commit()
+    }
+
+    // Aspect-fill mapping of the shared frame. Wider targets crop around the
+    // horizon; narrower targets crop the sides. Equal sizes stay 1:1.
+    static func surfaceMapping(source: SIMD2<Float>, target: SIMD2<Float>, horizon: Float) -> SIMD4<Float> {
+        guard source.x > 0, source.y > 0, target.x > 0, target.y > 0 else { return SIMD4(1,1,0,0) }
+        let a = source.x/source.y, b = target.x/target.y
+        if abs(a-b) < 1e-4 { return SIMD4(1,1,0,0) }
+        if b > a { let k = a/b; return SIMD4(1,k,0,horizon*(1-k)) }
+        let k = b/a; return SIMD4(k,1,0.5*(1-k),0)
+    }
+
+    private func encodeSurfaceComposite(_ command: MTLCommandBuffer, target: MTLTexture) {
+        if target.width == width && target.height == height {
+            render(command, target: target, pipeline: compositePipeline, label: "composite", resources: [.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)])
+            return
+        }
+        let p = MTLRenderPassDescriptor()
+        p.colorAttachments[0].texture = target
+        p.colorAttachments[0].loadAction = .dontCare; p.colorAttachments[0].storeAction = .store
+        guard let e = command.makeRenderCommandEncoder(descriptor: p) else { record("Cannot create surface pass"); return }
+        e.label = "surface composite"
+        e.setRenderPipelineState(mirrorPipeline)
+        bind([.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)], to: e)
+        var mapping = OceanRenderer.surfaceMapping(source: SIMD2(Float(width),Float(height)), target: SIMD2(Float(target.width),Float(target.height)), horizon: horizonUV)
+        e.setFragmentBytes(&mapping, length: MemoryLayout<SIMD4<Float>>.size, index: 4)
+        e.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+        e.endEncoding()
     }
 
     private func visibleSkyPipeline() -> MTLRenderPipelineState {

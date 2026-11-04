@@ -118,6 +118,24 @@ struct fsInput {
 struct fsOutput {
     metal::float4 member_1 [[color(0)]];
 };
+// Shared display transform: bloom, weather glow, exposure, vignette, AgX and dither.
+metal::float4 compositeFinish(metal::float3 c, metal::float3 b, metal::float2 uv, metal::float2 pos,
+                              metal::float2 dims, constant P& U) {
+    c = metal::mix(c, b, U.p.y);
+    c = precipitation(c, uv, dims, U);
+    c = c * U.p.x;
+    metal::float2 d = (uv - metal::float2(0.5)) * metal::float2(dims.x / dims.y, 1.0);
+    c = c * (1.0 - (U.p.w * metal::dot(d, d)));
+    c = c * metal::float3(1.0 + U.q.z, 1.0, 1.0 - U.q.z);
+    float lum = metal::dot(c, metal::float3(0.2126, 0.7152, 0.0722));
+    c = metal::mix(c, metal::float3(lum), metal::smoothstep(0.7, 6.0, lum) * 0.55);
+    metal::float3 o_1 = agx(c);
+    o_1 = agxLook(o_1, U.q.x, U.q.y);
+    o_1 = agxEotf(o_1);
+    float n = (ign(pos + metal::float2(U.p.z * 5.588238)) + ign(((pos * 1.37) + metal::float2(17.0)) + metal::float2(U.p.z * 3.1))) - 1.0;
+    o_1 = o_1 + metal::float3(n / 255.0);
+    return metal::float4(metal::clamp(o_1, metal::float3(0.0), metal::float3(1.0)), 1.0);
+}
 fragment fsOutput fs(
   fsInput varyings_1 [[stage_in]]
 , metal::float4 pos [[position]]
@@ -126,52 +144,26 @@ fragment fsOutput fs(
 , metal::sampler samp [[sampler(2)]]
 , constant P& U [[buffer(3)]]
 ) {
-    const VO in = { pos, varyings_1.uv };
-    metal::float3 c = {};
-    metal::float3 o_1 = {};
     metal::float2 dims = static_cast<metal::float2>(metal::uint2(hdr.get_width(), hdr.get_height()));
-    metal::int2 pc = naga_f2i32(in.pos.xy);
-    metal::float4 _e9 = hdr.read(metal::uint2(pc), 0);
-    c = _e9.xyz;
-    metal::float4 _e16 = bloom.sample(samp, in.uv, metal::level(0.0));
-    metal::float3 b = _e16.xyz * 0.125;
-    metal::float3 _e20 = c;
-    float _e24 = U.p.y;
-    c = metal::mix(_e20, b, _e24);
-    c=precipitation(c,in.uv,dims,U);
-    metal::float3 _e26 = c;
-    float _e30 = U.p.x;
-    c = _e26 * _e30;
-    metal::float2 d = (in.uv - metal::float2(0.5)) * metal::float2(dims.x / dims.y, 1.0);
-    metal::float3 _e42 = c;
-    float _e46 = U.p.w;
-    c = _e42 * (1.0 - (_e46 * metal::dot(d, d)));
-    metal::float3 _e52 = c;
-    float _e56 = U.q.z;
-    float _e62 = U.q.z;
-    c = _e52 * metal::float3(1.0 + _e56, 1.0, 1.0 - _e62);
-    metal::float3 _e68 = c;
-    float lum = metal::dot(_e68, metal::float3(0.2126, 0.7152, 0.0722));
-    metal::float3 _e74 = c;
-    c = metal::mix(_e74, metal::float3(lum), metal::smoothstep(0.7, 6.0, lum) * 0.55);
-    metal::float3 _e82 = c;
-    metal::float3 _e83 = agx(_e82);
-    o_1 = _e83;
-    metal::float3 _e85 = o_1;
-    float _e89 = U.q.x;
-    float _e93 = U.q.y;
-    metal::float3 _e94 = agxLook(_e85, _e89, _e93);
-    o_1 = _e94;
-    metal::float3 _e95 = o_1;
-    metal::float3 _e96 = agxEotf(_e95);
-    o_1 = _e96;
-    float _e102 = U.p.z;
-    float _e107 = ign(in.pos.xy + metal::float2(_e102 * 5.588238));
-    float _e118 = U.p.z;
-    float _e123 = ign(((in.pos.xy * 1.37) + metal::float2(17.0)) + metal::float2(_e118 * 3.1));
-    float n = (_e107 + _e123) - 1.0;
-    metal::float3 _e127 = o_1;
-    o_1 = _e127 + metal::float3(n / 255.0);
-    metal::float3 _e132 = o_1;
-    return fsOutput { metal::float4(metal::clamp(_e132, metal::float3(0.0), metal::float3(1.0)), 1.0) };
+    metal::int2 pc = naga_f2i32(pos.xy);
+    metal::float3 c = hdr.read(metal::uint2(pc), 0).xyz;
+    metal::float3 b = bloom.sample(samp, varyings_1.uv, metal::level(0.0)).xyz * 0.125;
+    return fsOutput { compositeFinish(c, b, varyings_1.uv, pos.xy, dims, U) };
+}
+// Additional displays reuse the same HDR frame with an aspect-fill mapping:
+// one simulation and one scene render, one cheap resample per extra screen.
+fragment fsOutput fs_mirror(
+  fsInput varyings_1 [[stage_in]]
+, metal::float4 pos [[position]]
+, metal::texture2d<float, metal::access::sample> hdr [[texture(0)]]
+, metal::texture2d<float, metal::access::sample> bloom [[texture(1)]]
+, metal::sampler samp [[sampler(2)]]
+, constant P& U [[buffer(3)]]
+, constant metal::float4& M [[buffer(4)]]
+) {
+    metal::float2 uv = varyings_1.uv * M.xy + M.zw;
+    metal::float2 dims = static_cast<metal::float2>(metal::uint2(hdr.get_width(), hdr.get_height()));
+    metal::float3 c = hdr.sample(samp, uv, metal::level(0.0)).xyz;
+    metal::float3 b = bloom.sample(samp, uv, metal::level(0.0)).xyz * 0.125;
+    return fsOutput { compositeFinish(c, b, uv, pos.xy, dims, U) };
 }

@@ -13,6 +13,18 @@ jobs:
       - uses: actions/checkout@v4
       - run: system_profiler SPDisplaysDataType || true
       - run: zsh macos/build.sh
+      - run: zsh macos/test-unit.sh
+      - name: Wallpaper-mode smoke test (desktop window, status item, screenshot)
+        run: |
+          mkdir -p macos/build/gallery
+          macos/build/Ocean.app/Contents/MacOS/Ocean --diagnostics '--query=weather=0' > macos/build/gallery/wallpaper.log 2>&1 &
+          pid=$!
+          sleep 14
+          screencapture -x macos/build/gallery/wallpaper-desktop.png || true
+          kill -0 $pid
+          kill $pid || true
+          grep "Ocean diagnostics" macos/build/gallery/wallpaper.log | tail -2
+          ! grep -q '"errors":\[".' macos/build/gallery/wallpaper.log
       - run: python3 -m pip install --break-system-packages -r requirements-dev.txt
       - run: python3 macos/Tests/render_gallery.py
       - if: always()
