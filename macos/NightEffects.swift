@@ -106,3 +106,26 @@ enum StormEvents {
         return SIMD3(strength, NightEffects.hash(index, 0x5B09), (NightEffects.hash(index, 0x5B0A) - 0.5) * 0.9)
     }
 }
+
+/// Noctilucent clouds: electric-blue mesospheric ripples, still sunlit at 82 km while
+/// the sea is in deep twilight. Summer only, 50-70 degrees latitude, about every other night.
+enum Noctilucent {
+    static func strength(date: Date, zone: TimeZone, latitude: Double?, sunAltitude: Double, override: Double? = nil) -> Double {
+        let twilight = smooth(-3.5, -6.5, sunAltitude) * (1 - smooth(-13, -17, sunAltitude))
+        if let override, override.isFinite { return max(0, min(2, override)) * twilight }
+        guard let latitude, twilight > 0 else { return 0 }
+        let lat = abs(latitude)
+        let band = smooth(46, 52, lat) * (1 - smooth(66, 72, lat))
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
+        let day = Double(calendar.ordinality(of: .day, in: .year, for: date.addingTimeInterval(-12*3600)) ?? 1)
+        var d = abs(day - (latitude >= 0 ? 185 : 4)); d = min(d, 365.25 - d)
+        let season = exp(-0.5*(d/22)*(d/22))
+        let night = NightEffects.nightIndex(date, zone: zone)
+        guard NightEffects.hash(night, 0xC1) < 0.45 else { return 0 }
+        return band * season * twilight * (0.5 + 0.5*NightEffects.hash(night, 0xC2))
+    }
+
+    private static func smooth(_ a: Double, _ b: Double, _ x: Double) -> Double {
+        let t = max(0, min(1, (x - a)/(b - a))); return t*t*(3 - 2*t)
+    }
+}

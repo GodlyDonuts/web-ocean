@@ -49,7 +49,18 @@ struct NightEffectsTests {
             if StormEvents.waterspout(time: time, severity: 0.1) != nil { calm += 1 }
         }
         check(calm == 0 && spouts > 1000 && spouts < 4000, "waterspout frequency \(spouts)")
+        let london = TimeZone(identifier: "Europe/London")!
+        check(Noctilucent.strength(date: Date(timeIntervalSince1970: 0), zone: london, latitude: 0, sunAltitude: -10, override: 1) > 0.99, "nlc override")
+        check(Noctilucent.strength(date: Date(timeIntervalSince1970: 0), zone: london, latitude: 56, sunAltitude: 5, override: 1) == 0, "nlc needs deep twilight")
+        var summer = 0, winter = 0, tropics = 0
+        for n in 0..<50 {
+            let july = Date(timeIntervalSince1970: 1781051400 + Double(n)*86400), december = Date(timeIntervalSince1970: 1796862600 + Double(n)*86400)
+            if Noctilucent.strength(date: july, zone: london, latitude: 56, sunAltitude: -10) > 0.05 { summer += 1 }
+            if Noctilucent.strength(date: december, zone: london, latitude: 56, sunAltitude: -10) > 0.01 { winter += 1 }
+            if Noctilucent.strength(date: july, zone: london, latitude: 15, sunAltitude: -10) > 0.01 { tropics += 1 }
+        }
+        check(summer > 8 && summer < 35 && winter == 0 && tropics == 0, "noctilucent season summer \(summer) winter \(winter) tropics \(tropics)")
         if failures > 0 { exit(1) }
-        print("PASS: nightly aurora/meteor/bioluminescence schedule, overrides, latitude frequencies, shower calendar, seabird flocks, waterspouts.")
+        print("PASS: nightly aurora/meteor/bioluminescence schedule, overrides, latitude frequencies, shower calendar, seabird flocks, waterspouts, noctilucent clouds.")
     }
 }

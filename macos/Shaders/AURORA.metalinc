@@ -177,3 +177,25 @@ inline float waterspout(float3 ray, float4 sp, float t) {
         * (0.5 + 0.5 * fxNoise(float2(rel * 80.0 + t * 0.7, el * 200.0)));
     return metal::clamp((body + spray * 0.8) * sp.x, 0.0, 0.92);
 }
+
+// Noctilucent clouds: a sunlit sheet at 82 km seen low toward the hidden Sun, with
+// large bands and fine billows that compress toward the horizon like a real shell.
+inline float noctilucent(float3 ray, float3 sun, float t) {
+    float el = metal::asin(metal::clamp(ray.y, -1.0, 1.0));
+    if (el > 0.32 || el < 0.01) return 0.0;
+    float2 h = metal::normalize(ray.xz + float2(1e-6, 0.0));
+    float2 s = metal::normalize(sun.xz + float2(1e-6, 0.0));
+    float az = metal::acos(metal::clamp(metal::dot(h, s), -1.0, 1.0));
+    float spread = 1.0 - metal::smoothstep(0.55, 1.45, az);
+    if (spread <= 0.0) return 0.0;
+    float d = 1.0 / metal::max(metal::sin(el) + 0.03, 0.04);
+    float2 p = h * d * 3.0;
+    float2 wind = float2(t * 0.004, t * 0.0015);
+    float body = metal::smoothstep(0.32, 0.72, fxNoise(p * 0.6 + wind * 0.5));
+    float bands = 0.5 + 0.5 * metal::sin(metal::dot(p, float2(1.7, 0.6)) * 6.0 + fxNoise(p * 1.3 + wind) * 4.0);
+    float fine = metal::smoothstep(0.03, 0.08, el);
+    float billows = 0.5 + 0.5 * metal::sin(metal::dot(p, float2(-0.5, 1.9)) * 17.0 + fxNoise(p * 3.1 - wind) * 3.0);
+    float tex = body * (0.35 + 0.65 * bands) * metal::mix(1.0, 0.55 + 0.45 * billows, fine);
+    float vertical = metal::smoothstep(0.01, 0.035, el) * (1.0 - metal::smoothstep(0.12, 0.32, el));
+    return tex * spread * vertical;
+}

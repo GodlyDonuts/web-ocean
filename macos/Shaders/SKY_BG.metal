@@ -717,7 +717,17 @@ metal::float3 sunDisk(
     float cover = F.celestial.w>0.5 ? metal::smoothstep(F.celestial.y-pix,F.celestial.y+pix,moonAng) : 1.0;
     float _e66 = camR(F);
     metal::float3 _e70 = sampleTrans(_e66, metal::max(dir_5.y, -0.01), transLUT, sampC);
-    return ((rad * limb) * edge * cover) * _e70;
+    // Green flash: as the last limb sinks, dispersion separates a green upper rim.
+    float alt=metal::asin(metal::clamp(_e3.y,-1.0,1.0));
+    float flash=metal::smoothstep(-1.1*diskRadius,-0.8*diskRadius,alt)
+        *(1.0-metal::smoothstep(-0.5*diskRadius,0.1*diskRadius,alt));
+    metal::float3 tint=metal::float3(1.0);
+    if (flash>0.0) {
+        float rise=(dir_5.y-_e3.y)/diskRadius;
+        float rim=metal::smoothstep(0.35,0.95,rise)*flash;
+        tint=metal::mix(tint,metal::float3(0.05,2.6,0.9)*metal::dot(_e70,metal::float3(0.2126,0.7152,0.0722))/metal::max(_e70,metal::float3(0.02)),rim*0.9);
+    }
+    return ((rad * limb) * edge * cover) * _e70 * tint;
 }
 
 // Solar corona, streamers and prominences around the Moon at totality.
