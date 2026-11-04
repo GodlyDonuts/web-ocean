@@ -32,6 +32,8 @@ scenes = {
     'meteor_shower_b': {**ny, 'utc': utc('2026-12-14T07:00:00Z'), 'heading': 120, 'clouds': 0.05, 'veil': 0.05, 'aurora': 0, 'meteors': 60, 'time': 47.9},
     'aurora_max': {'dayNight': 1, 'latitude': 69.6, 'longitude': 18.9, 'timeZone': 'Europe/Oslo', 'utc': utc('2026-12-15T21:00:00Z'), 'heading': 200, 'clouds': 0.05, 'aurora': 4, 'meteors': 0},
     'bioluminescent_surf': {**ny, 'utc': utc('2026-11-10T04:00:00Z'), 'heading': 270, 'windSpeed': 13, 'bio': 1.5, 'aurora': 0},
+    'sun_shafts': {'sunElev': 5, 'clouds': 0.7, 'veil': 0.2},
+    'storm_breaking': {'storm': 0.45, 'sunElev': 7, 'clouds': 0.85},
     'everything_night': {'dayNight': 1, 'latitude': 66.0, 'longitude': -18.0, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-14T02:00:00Z'), 'heading': 20, 'clouds': 0.1, 'windSpeed': 12, 'aurora': 1.6, 'meteors': 60, 'bio': 1.2},
 }
 selected = sys.argv[1:] or list(scenes)
@@ -60,7 +62,7 @@ if pngs:
     for i, t in enumerate(thumbs): sheet.paste(t, ((i % cols)*640, (i//cols)*400))
     sheet.save(out/'contact.png')
 night = {k: v for k, v in scenes['everything_night'].items() if k != 'time'}
-benchmarks = {'default': {}, 'night_effects_off': {**night, 'aurora': 0, 'meteors': 0, 'bio': 0}, 'night_effects_on': night}
+benchmarks = {'default': {}, 'night_effects_off': {**night, 'aurora': 0, 'meteors': 0, 'bio': 0}, 'night_effects_on': night, 'shafts_off': {**scenes['sun_shafts'], 'shafts': 0}, 'shafts_on': scenes['sun_shafts']}
 bench_results = {}
 for label, extra in benchmarks.items():
     bench = out/f'benchmark-{label}.json'
