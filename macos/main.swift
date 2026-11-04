@@ -96,6 +96,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         guard let device = MTLCreateSystemDefaultDevice() else { showError("This Mac does not support Metal."); return }
         self.device = device
+        let options = self.options
         func dimension(_ key: String, fallback: Double, minimum: Double) -> CGFloat {
             guard let number = Double(options[key] ?? ""), number.isFinite, number > 0 else { return CGFloat(fallback) }
             return CGFloat(max(minimum,min(8192,number)))
@@ -143,7 +144,6 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         } catch { showError(error.localizedDescription) }
         if OceanRunMode.offscreen { return }
-        let options = self.options
         let weather=WeatherProvider();weatherProvider=weather
         weather.onChange={ [weak self] value in self?.renderer?.setLocalWeather(value) }
         weather.onStatus={ [weak self] text in if self?.followsWeather == true { self?.weatherStatus?.title=text } }
