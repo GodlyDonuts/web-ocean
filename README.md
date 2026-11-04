@@ -21,6 +21,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Pause when covered, display/system sleep, lock, screensaver, inactive session or manual pause | Implemented |
 | Adaptive governor: frame rate and pixel budget follow battery, Low Power Mode, thermal state, display refresh and desktop coverage | Implemented; see [`PerformancePolicy.swift`](macos/PerformancePolicy.swift) |
 | Aurora arcs, meteor showers (real annual calendar) and bioluminescent surf, scheduled per local night | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`NightEffects.swift`](macos/NightEffects.swift) |
+| Crepuscular sun rays, 22° ice halos and sun dogs in cirrus (sun and moon), primary/secondary rainbows opposite the sun in sunlit rain | Implemented; see [`SHAFTS.metal`](macos/Shaders/SHAFTS.metal), [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc) |
 | Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
 | Shared multi-display renderer | Implemented: one simulation and HDR frame, cheap per-display composite (`fs_mirror`) |
 
@@ -39,7 +40,7 @@ open macos/build/Ocean.app
 
 No npm packages, Python, Rust, development server or downloaded assets are required for the native build. Swift builds the app bundle; packaged Metal sources compile into retained pipeline states at startup. The included galaxy asset is ready to use. See its [credits and provenance](macos/Assets/Galaxy/CREDITS.md).
 
-The app runs as a wallpaper with a menu bar (wave) icon: pause, daylight/weather, frame rate (Adaptive/60/30/20/15), quality budget, displays and Open at Login. `macos/build/Ocean.app/Contents/MacOS/Ocean --preview` opens the resizable development window instead. The camera remains fixed. Night events can be forced for previews with `--query=aurora=2&meteors=40&bio=1` (0 disables).
+The app runs as a wallpaper with a menu bar (wave) icon: pause, daylight/weather, frame rate (Adaptive/60/30/20/15), quality budget, displays and Open at Login. `macos/build/Ocean.app/Contents/MacOS/Ocean --preview` opens the resizable development window instead. The camera remains fixed. Night events can be forced for previews with `--query=aurora=2&meteors=40&bio=1` (0 disables); `shafts=0` disables sun rays.
 
 `python3 macos/Tests/render_gallery.py` renders a windowless scene gallery plus day/night-effects GPU benchmarks; the `GPU gallery` workflow runs it, the unit tests and a live wallpaper smoke test on GitHub's macOS runner on every push.
 
