@@ -14,7 +14,7 @@ struct EquatorialSample: Codable {
     let moonDistanceKm: Double
 }
 struct SolarDay: Codable {
-    static let version = 1
+    static let version = 2
     let version: Int
     let location: ObserverLocation
     let timeZoneID: String
@@ -53,6 +53,9 @@ struct CelestialState {
     let moonRadius: Double
     let sunAltitude: Double // geometric degrees
     let night: Double
+    let lunarShadow: SIMD3<Double> // centre of Earth's shadow, offset like the apparent Moon
+    let solarObscuration: Double // fraction of the solar disk covered by the Moon
+    let lunarUmbra: Double // fraction of the lunar disk inside Earth's umbra
 }
 
 // Pure offline astronomy. Solar coordinates: USNO approximate almanac equations.
@@ -70,10 +73,43 @@ enum CelestialMath {
         let d=days(time),g=radians(357.529+0.98560028*d),q=radians(280.459+0.98564736*d)
         let longitude=q+rad*(1.915*sin(g)+0.020*sin(2*g)),e=radians(23.439-0.00000036*d)
         let sun=equatorial(longitude:longitude,latitude:0,obliquity:e)
-        let m=radians(134.963+13.064993*d),f=radians(93.272+13.229350*d)
-        let l=radians(218.316+13.176396*d)+rad*6.289*sin(m)
-        let b=rad*5.128*sin(f)
-        return EquatorialSample(time:time,sun:sun,moon:equatorial(longitude:l,latitude:b,obliquity:e),sunDistanceAU:1.00014-0.01671*cos(g)-0.00014*cos(2*g),moonDistanceKm:385001-20905*cos(m))
+        let moon=lunar(d+69.0/86400) // Delta T: the lunar theory runs in terrestrial time
+        return EquatorialSample(time:time,sun:sun,moon:equatorial(longitude:moon.longitude,latitude:moon.latitude,obliquity:e),sunDistanceAU:1.00014-0.01671*cos(g)-0.00014*cos(2*g),moonDistanceKm:moon.distance)
+    }
+    // Leading periodic terms of Meeus' lunar theory (Astronomical Algorithms ch. 47):
+    // (coefficient, D, M, M', F). About 0.01 degrees, enough to place real eclipses.
+    static let lunarLongitude: [(Double,Double,Double,Double,Double)] = [
+        (6.288774,0,0,1,0),(1.274027,2,0,-1,0),(0.658314,2,0,0,0),(0.213618,0,0,2,0),(-0.185116,0,1,0,0),(-0.114332,0,0,0,2),
+        (0.058793,2,0,-2,0),(0.057066,2,-1,-1,0),(0.053322,2,0,1,0),(0.045758,2,-1,0,0),(-0.040923,0,1,-1,0),(-0.034720,1,0,0,0),
+        (-0.030383,0,1,1,0),(0.015327,2,0,0,-2),(-0.012528,0,0,1,2),(0.010980,0,0,1,-2),(0.010675,4,0,-1,0),(0.010034,0,0,3,0),
+        (0.008548,4,0,-2,0),(-0.007888,2,1,-1,0),(-0.006766,2,1,0,0),(-0.005163,1,0,-1,0),(0.004987,1,1,0,0),(0.004036,2,-1,1,0)]
+    static let lunarLatitude: [(Double,Double,Double,Double,Double)] = [
+        (5.128122,0,0,0,1),(0.280602,0,0,1,1),(0.277693,0,0,1,-1),(0.173237,2,0,0,-1),(0.055413,2,0,-1,1),(0.046271,2,0,-1,-1),
+        (0.032573,2,0,0,1),(0.017198,0,0,2,1),(0.009266,2,0,1,-1),(0.008822,0,0,2,-1),(0.008216,2,-1,0,-1),(0.004324,2,0,-2,-1),(0.004200,2,0,1,1)]
+    static let lunarDistance: [(Double,Double,Double,Double,Double)] = [
+        (-20905.355,0,0,1,0),(-3699.111,2,0,-1,0),(-2955.968,2,0,0,0),(-569.925,0,0,2,0),(48.888,0,1,0,0),(-3.149,0,0,0,2),
+        (246.158,2,0,-2,0),(-152.138,2,-1,-1,0),(-170.733,2,0,1,0),(-204.586,2,-1,0,0),(-129.620,0,1,-1,0),(108.743,1,0,0,0),
+        (104.755,0,1,1,0),(10.321,2,0,0,-2),(79.661,0,0,1,-2),(-34.782,4,0,-1,0),(-23.210,0,0,3,0),(-21.636,4,0,-2,0),
+        (24.208,2,1,-1,0),(30.824,2,1,0,0),(-8.379,1,0,-1,0),(-16.675,1,1,0,0),(-12.831,2,-1,1,0)]
+    static func lunar(_ d: Double) -> (longitude: Double, latitude: Double, distance: Double) {
+        let D=radians(297.8502+12.19074912*d),M=radians(357.5291+0.98560028*d)
+        let Mp=radians(134.9634+13.06499295*d),F=radians(93.2721+13.22935024*d)
+        func arg(_ t: (Double,Double,Double,Double,Double)) -> Double { t.1*D+t.2*M+t.3*Mp+t.4*F }
+        let l=lunarLongitude.reduce(218.3165+13.17639648*d) { $0+$1.0*sin(arg($1)) }
+        let b=lunarLatitude.reduce(0.0) { $0+$1.0*sin(arg($1)) }
+        let r=lunarDistance.reduce(385000.56) { $0+$1.0*cos(arg($1)) }
+        return (radians(l),b*rad,r)
+    }
+    static func separation(_ a: SIMD3<Double>, _ b: SIMD3<Double>) -> Double {
+        atan2(simd_length(simd_cross(a,b)),simd_dot(a,b))
+    }
+    /// Area shared by two disks of angular radii r1, r2 whose centres are d apart.
+    static func overlap(_ r1: Double, _ r2: Double, _ d: Double) -> Double {
+        if d>=r1+r2 { return 0 }
+        if d<=abs(r1-r2) { let r=min(r1,r2); return Double.pi*r*r }
+        let a=r1*r1*acos(max(-1,min(1,(d*d+r1*r1-r2*r2)/(2*d*r1))))
+        let b=r2*r2*acos(max(-1,min(1,(d*d+r2*r2-r1*r1)/(2*d*r2))))
+        return a+b-0.5*sqrt(max(0,(-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2)))
     }
     static func sidereal(_ time: Double, longitude: Double) -> Double {
         radians(280.46061837+360.98564736629*days(time)+longitude)
@@ -119,10 +155,15 @@ enum CelestialMath {
         let east=SIMD3(-sin(theta),cos(theta),0),north=SIMD3(-sin(phi)*cos(theta),-sin(phi)*sin(theta),cos(phi))
         let right=east*cos(h)-north*sin(h),forward=east*sin(h)+north*cos(h)
         let basis=simd_double3x3(columns:(SIMD3(right.x,up.x,-forward.x),SIMD3(right.y,up.y,-forward.y),SIMD3(right.z,up.z,-forward.z)))
-        let sun=basis*s.sun,moon=simd_normalize(basis*s.moon*s.moonDistanceKm-SIMD3(0,6378.137,0))
+        let sun=basis*s.sun,topocentric=basis*s.moon*s.moonDistanceKm-SIMD3(0,6378.137,0),moon=simd_normalize(topocentric)
+        let sunRadius=0.2666/s.sunDistanceAU*rad,moonRadius=asin(1737.4/simd_length(topocentric))
+        let shadow=simd_normalize(-sun*s.moonDistanceKm-SIMD3(0,6378.137,0)),apparentMoon=refracted(moon)
+        let umbra=1.02*asin(6378.137/s.moonDistanceKm)-sunRadius
+        let obscured=overlap(sunRadius,moonRadius,separation(sun,moon))/(Double.pi*sunRadius*sunRadius)
+        let umbral=overlap(moonRadius,umbra,separation(shadow,moon))/(Double.pi*moonRadius*moonRadius)
         let phase=max(0,min(1,(1-simd_dot(s.sun,s.moon))*0.5))
         let altitude=asin(max(-1,min(1,sun.y)))/rad
-        return CelestialState(skyBasis:basis,sun:sun,apparentSun:refracted(sun),moon:refracted(moon),moonIllumination:phase,sunRadius:0.2666/s.sunDistanceAU*rad,moonRadius:asin(1737.4/s.moonDistanceKm),sunAltitude:altitude,night:1-smooth(-12,-3,altitude))
+        return CelestialState(skyBasis:basis,sun:sun,apparentSun:refracted(sun),moon:apparentMoon,moonIllumination:phase,sunRadius:sunRadius,moonRadius:moonRadius,sunAltitude:altitude,night:1-smooth(-12,-3,altitude),lunarShadow:simd_normalize(apparentMoon+shadow-moon),solarObscuration:min(1,obscured),lunarUmbra:min(1,umbral))
     }
     static func interpolate(_ day: SolarDay, time: Double) -> EquatorialSample {
         // Normally one direct lookup into 25 hourly samples; DST days can have
