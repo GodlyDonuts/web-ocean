@@ -47,7 +47,7 @@ enum NightEffects {
         let chance = 0.22 + 0.68*polar
         let auto = activity < chance ? (0.35 + 0.65*(1 - activity/chance))*(0.55 + 0.45*polar) : 0
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = zone
-        let day = Double(calendar.ordinality(of: .day, in: .year, for: date) ?? 1)
+        let day = Double(calendar.ordinality(of: .day, in: .year, for: date.addingTimeInterval(-12*3600)) ?? 1)
         let bloom = hash(night, 0xB1)
         return Levels(aurora: clamp(aurora, 4) ?? auto,
                       meteors: clamp(meteors, 60) ?? showerRate(dayOfYear: day),
