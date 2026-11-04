@@ -80,9 +80,9 @@ fragment fsOutput fs(
         color=metal::max(color+_e4.xyz*bow*(1.0-volume),metal::float3(0.0));
     }
     if (F[38].w>0.001 && volume<0.999 && ray.y>0.0) {
-        float nlc=noctilucent(ray,F[42].xyz,F[48].y)*F[38].w;
+        float nlc=noctilucent(ray,F[42].xyz,F[48].y,2.0*metal::length(F[6].xyz)*F[9].w)*F[38].w;
         float lum=metal::dot(_e4.xyz,metal::float3(0.2126,0.7152,0.0722));
-        color+=metal::float3(0.42,0.68,1.0)*(lum*3.0+0.0004)*nlc*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
+        color+=metal::float3(0.3,0.62,1.0)*(lum*5.0+0.0006)*nlc*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
     }
     if (F[38].x>0.001 && volume<0.999) {
         float spout=waterspout(ray,F[38],F[48].y)*(1.0-volume);

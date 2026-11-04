@@ -721,13 +721,16 @@ metal::float3 sunDisk(
     float alt=metal::asin(metal::clamp(_e3.y,-1.0,1.0));
     float flash=metal::smoothstep(-1.1*diskRadius,-0.8*diskRadius,alt)
         *(1.0-metal::smoothstep(-0.5*diskRadius,0.1*diskRadius,alt));
-    metal::float3 tint=metal::float3(1.0);
+    metal::float3 col=((rad * limb) * edge * cover) * _e70;
     if (flash>0.0) {
+        // The last sliver is far dimmer than the full disk; keep it in the
+        // tone curve's saturated range so it reads as green, not white.
         float rise=(dir_5.y-_e3.y)/diskRadius;
-        float rim=metal::smoothstep(0.35,0.95,rise)*flash;
-        tint=metal::mix(tint,metal::float3(0.05,2.6,0.9)*metal::dot(_e70,metal::float3(0.2126,0.7152,0.0722))/metal::max(_e70,metal::float3(0.02)),rim*0.9);
+        float rim=metal::smoothstep(-0.2,0.4,rise)*flash;
+        float l=metal::dot(col,metal::float3(0.2126,0.7152,0.0722));
+        col=metal::mix(col,metal::float3(0.08,1.0,0.4)*metal::min(l,2.0),rim);
     }
-    return ((rad * limb) * edge * cover) * _e70 * tint;
+    return col;
 }
 
 // Solar corona, streamers and prominences around the Moon at totality.
