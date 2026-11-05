@@ -1,0 +1,34 @@
+name: Native macOS Wallpaper
+
+on:
+  push:
+    branches:
+      - feature/native-macos-wallpaper
+  pull_request:
+    paths:
+      - 'wallpaper/macos/**'
+      - '.github/workflows/native-wallpaper.yml'
+      - 'ocean.min.html'
+
+jobs:
+  frame-governor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Scheduler regression tests
+        run: node --test wallpaper/macos/FrameGovernor.test.mjs
+
+  macos-app:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build native app
+        run: bash wallpaper/macos/build.sh
+      - name: Verify app structure and signing
+        run: |
+          test -x dist/OceanWallpaper.app/Contents/MacOS/OceanWallpaper
+          test -s dist/OceanWallpaper.app/Contents/Resources/ocean.html
+          codesign --verify --verbose=2 dist/OceanWallpaper.app
