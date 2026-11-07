@@ -31,3 +31,5 @@
 Dated JSON reports preserve GPU readbacks, scene settings, bounds and benchmark scope. PNG and MP4 files are curated native captures or browser reference images; filenames identify the feature/revision. The [archived renderer notes](renderer-history.md) preserve detailed optimization decisions and original measurements. They include older commands and appearances: use the testing guide to select current gates.
 
 Recent visual evidence: [star/cloud integration](night-sky-integration-comparison.png), [storm-water correction](night-water-comparison.png), [storm formation](storm-formation.mp4) and [rain motion](storm-rain-motion.mp4).
+
+- [Regional rendering, native screensaver and lock-screen still](regional-rendering.md) — visibility evidence, bloom support, retained imagery, installation and validation.

@@ -78,3 +78,7 @@ MTL_DEBUG_LAYER=1 MTL_SHADER_VALIDATION=1 macos/build/Ocean.app/Contents/MacOS/O
 ```
 
 The fixture creates a replacement MTKView with an intentionally wrong drawable size while retaining the shared HDR dimensions, and checks that the budget is applied. It creates no window. [Desktop host verification](wallpaper-host.md) distinguishes this test from actual display hot-plug and login behavior. The GPU workflow uses a supported arm64 runner and runs windowless checks; it does not automatically place wallpaper windows on a desktop.
+
+## Regional rendering and system integration
+
+See [regional rendering](regional-rendering.md) for the visible-pixel GPU parity, native screensaver lifecycle and resource benchmark commands. The maintained `test-current.sh` includes these regressions. Automated checks create no windows and do not select/install the screensaver or change the system wallpaper. Interactive visibility, Spaces, WindowServer costs, screen-saver host sandbox behavior and the actual lock-screen image require a real session review.

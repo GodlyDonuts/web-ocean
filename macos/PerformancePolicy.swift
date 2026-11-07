@@ -95,3 +95,20 @@ enum DesktopCoverage {
         return max(1.0/Double(columns*rows),area/Double(screen.width*screen.height))
     }
 }
+
+// A saver host may keep calling at its original cadence after a policy change.
+// Bound submissions without replaying missed frames or tying motion to callback count.
+struct FrameSubmissionCadence {
+    private var next: Double?
+    private var lastTime: Double?
+    private var rate=0
+    mutating func shouldSubmit(at time: Double, framesPerSecond: Int) -> Bool {
+        guard time.isFinite,(1...120).contains(framesPerSecond) else { return false }
+        if rate != framesPerSecond || lastTime.map({time<$0}) == true { next=nil;rate=framesPerSecond }
+        lastTime=time
+        let interval=1.0/Double(framesPerSecond),deadline=next ?? time
+        guard time+0.0002>=deadline else { return false }
+        next=deadline+(floor(max(0,time-deadline)/interval)+1)*interval
+        return true
+    }
+}

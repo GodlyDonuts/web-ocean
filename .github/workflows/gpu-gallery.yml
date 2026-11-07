@@ -49,6 +49,10 @@ jobs:
             macos/build/weather/verification.json
             macos/build/coverage/report.json
             macos/build/headless/report.json
+            macos/build/saver-efficiency/*verification.json
+            macos/build/saver-efficiency/*.log
+            macos/build/regional/verification.json
+            macos/build/regional/*.log
             macos/build/wallpaper-lifecycle/verification.json
             macos/build/daylight-time/*.json
             macos/build/daylight-time/*.log

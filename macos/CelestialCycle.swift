@@ -232,6 +232,7 @@ enum CelestialMath {
 final class CelestialCycle {
     private struct Archive: Codable { let days: [SolarDay] }
     private let cacheURL: URL?
+    private let protectCache: Bool
     private var archive: [SolarDay]=[]
     private(set) var day: SolarDay?
     private(set) var calculationCount=0
@@ -240,8 +241,8 @@ final class CelestialCycle {
     private var moonNightSpan: (start: Double,end: Double)?
     var location: ObserverLocation? { didSet { if oldValue != location { day=nil;moonNightSpan=nil } } }
     var heading=270.0 // geographic west, fixed view; camera does not chase the sun
-    init(cacheURL: URL? = nil) {
-        self.cacheURL=cacheURL
+    init(cacheURL: URL? = nil, protectCache: Bool = true) {
+        self.cacheURL=cacheURL;self.protectCache=protectCache
         if let url=cacheURL,let data=try? Data(contentsOf:url),let saved=try? JSONDecoder().decode(Archive.self,from:data) {
             archive=Array(saved.days.filter{$0.isValid}.suffix(8))
         }
@@ -254,7 +255,7 @@ final class CelestialCycle {
             do {
                 try FileManager.default.createDirectory(at:url.deletingLastPathComponent(),withIntermediateDirectories:true)
                 let encoder=JSONEncoder();encoder.outputFormatting=[.prettyPrinted,.sortedKeys]
-                try encoder.encode(Archive(days:archive)).write(to:url,options:[.atomic,.completeFileProtectionUnlessOpen])
+                try encoder.encode(Archive(days:archive)).write(to:url,options:protectCache ? [.atomic,.completeFileProtectionUnlessOpen] : [.atomic])
                 cacheWriteCount+=1;cacheError=nil
             } catch { cacheError=error.localizedDescription }
         }

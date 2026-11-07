@@ -3,9 +3,9 @@ set -eu
 cd "$(dirname "$0")/.."
 app_path="$PWD/macos/build/Ocean.app"
 mkdir -p "$app_path/Contents/MacOS" "$app_path/Contents/Resources/Shaders"
-xcrun swiftc -O macos/main.swift macos/SharedSurfaceDemand.swift macos/CelestialCycle.swift macos/ObserverLocationProvider.swift macos/Weather.swift macos/WeatherProvider.swift macos/OceanRenderer.swift macos/CloudNoise.swift macos/StarField.swift macos/GalaxyAtlas.swift macos/GPUProfiler.swift macos/ViewportLayout.swift macos/ViewportMesh.swift macos/MipmapRounding.swift macos/AnimationClock.swift macos/PerformancePolicy.swift \
+xcrun swiftc -O macos/main.swift macos/SharedSurfaceDemand.swift macos/CelestialCycle.swift macos/ObserverLocationProvider.swift macos/Weather.swift macos/WeatherProvider.swift macos/OceanRenderer.swift macos/CloudNoise.swift macos/StarField.swift macos/GalaxyAtlas.swift macos/GPUProfiler.swift macos/ViewportLayout.swift macos/ViewportMesh.swift macos/MipmapRounding.swift macos/AnimationClock.swift macos/PerformancePolicy.swift macos/RegionalRendering.swift macos/WallpaperIntegration.swift macos/AutomaticScreenSaverSetup.swift macos/ScreenSaverEnvironment.swift \
   -o "$app_path/Contents/MacOS/Ocean" \
-  -framework AppKit -framework Metal -framework MetalKit -framework QuartzCore -framework IOKit -framework ServiceManagement \
+  -framework AppKit -framework ScreenSaver -framework Metal -framework MetalKit -framework QuartzCore -framework IOKit -framework ServiceManagement \
   -target "$(uname -m)-apple-macosx13.0"
 # Remove deleted effects from previously built bundles as well.
 find "$app_path/Contents/Resources/Shaders" -type f \( -name '*.metal' -o -name '*.metalinc' \) -delete
@@ -15,5 +15,7 @@ rm -f "$app_path/Contents/Resources/ocean.html"
 mkdir -p "$app_path/Contents/Resources/Assets/Galaxy"
 cp macos/Assets/Galaxy/* "$app_path/Contents/Resources/Assets/Galaxy/"
 cp macos/Info.plist "$app_path/Contents/Info.plist"
+zsh macos/build-screensaver.sh
+ditto "$PWD/macos/build/Ocean.saver" "$app_path/Contents/Resources/Ocean.saver"
 codesign --force --sign - "$app_path"
 echo "Built $app_path (native Metal)"

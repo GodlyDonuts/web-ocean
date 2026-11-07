@@ -16,7 +16,7 @@ def matching_pids():
  rows=subprocess.check_output(['ps','-axo','pid=,args='],text=True).splitlines()
  return {int(r.strip().split(None,1)[0]) for r in rows if r.strip().split(None,1)[-1].startswith(binary+' --diagnostics')}
 existing=matching_pids()
-subprocess.run(['open','-n','-g','-a',str(app),'--stdout',str(log.resolve()),'--stderr',str(err.resolve()),'--args','--diagnostics','--query=dayNight=0&weather=0'],check=True)
+subprocess.run(['open','-n','-g','-a',str(app),'--stdout',str(log.resolve()),'--stderr',str(err.resolve()),'--args','--diagnostics','--query=dayNight=0&weather=0&systemIntegration=0'],check=True)
 pid=None;samples=[];start=time.monotonic()
 try:
  while time.monotonic()-start<a.seconds:
@@ -30,7 +30,7 @@ try:
   time.sleep(.5)
  lines=log.read_text().splitlines() if log.exists() else []
  diagnostics=[json.loads(s.removeprefix('Ocean diagnostics: ')) for s in lines if s.startswith('Ocean diagnostics: ')]
- assert len(diagnostics)>=2 and all(not d['errors'] and d['frames']==0 and d['paused'] for d in diagnostics),'Desktop was not fully covered/idle; no idle measurement claimed'
+ assert len(diagnostics)>=2 and all(not d['errors'] and d['frames']==0 and d['paused'] and not d.get('screenLocked',False) for d in diagnostics),'Desktop was not fully covered/idle; no idle measurement claimed'
  steady=[s for s in samples if s['t']>=8];assert len(steady)>=8
  first,last=steady[0],steady[-1];dt=last['t']-first['t']
  result={'passed':True,'CPUPercentOneCore':(last['cpuNs']-first['cpuNs'])/1e9/dt*100,

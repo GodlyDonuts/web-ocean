@@ -52,3 +52,5 @@ Historical `Tests/Experiments/` sources are comparison candidates and rejected t
 ## Desktop host
 
 See [wallpaper-host.md](wallpaper-host.md) for view rebuilding, drawable budgets, conservative visibility and the remaining real-display verification matrix. Decorative sky events and wildlife introduced in the initial PR have been removed; the scene shader manifest and astronomy remain those of the established main renderer.
+
+The [regional rendering and system integration guide](regional-rendering.md) describes the conservative single-display presentation strips, regional scene shading, retained HDR, native shared-world saver and automatic saver/lock-screen setup.

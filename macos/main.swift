@@ -15,8 +15,8 @@ enum OceanRunMode {
 // Borderless, click-through window at desktop level: below Finder icons,
 // present on every Space, never key, never in Mission Control's window cycle.
 final class WallpaperWindow: NSWindow {
-    init(screen: NSScreen) {
-        super.init(contentRect: screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+    init(screen: NSScreen, frame: CGRect? = nil) {
+        super.init(contentRect: frame ?? screen.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopWindow)))
         collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenNone]
         ignoresMouseEvents = true
@@ -25,7 +25,7 @@ final class WallpaperWindow: NSWindow {
         backgroundColor = .black
         isReleasedWhenClosed = false
         animationBehavior = .none
-        setFrame(screen.frame, display: false)
+        setFrame(frame ?? screen.frame, display: false)
     }
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
@@ -35,6 +35,7 @@ private struct WallpaperSurface {
     let screen: NSScreen
     let window: NSWindow
     let view: MTKView
+    let region: CGRect
 }
 
 final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
@@ -42,8 +43,15 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var viewport: MTKView!
     private var device: MTLDevice?
     private var surfaces: [WallpaperSurface] = []
+    private var wallpaperLayoutView: MTKView?
+    private var wallpaperUsesTiles=false
+    private let wallpaperIntegration=WallpaperIntegration()
+    private var stillTimer: Timer?
+    private var refreshingCoverage=false
+    private var lastVisibilityDescription=""
     private var renderer: OceanRenderer?
     private var suspension = SurfaceSuspensionState()
+    private var saverActivity=SaverActivityTracker()
     private var automationTimer: Timer?
     private var followsWeather=true
     private var weatherProvider:WeatherProvider?
@@ -60,6 +68,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // Wallpaper performance state.
     private var statusItem: NSStatusItem?
     private var performanceStatus: NSMenuItem?
+    private var integrationStatus: NSMenuItem?
     private var pauseItem: NSMenuItem?
     private var loginItem: NSMenuItem?
     private var rateItems: [NSMenuItem] = []
@@ -111,7 +120,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         if OceanRunMode.wallpaper {
             buildSurfaces()
-            viewport = surfaces.first?.view
+            viewport = wallpaperLayoutView ?? surfaces.first?.view
         }
         if viewport == nil {
             viewport = makeView(frame: NSRect(x:0,y:0,width:dimension("width",fallback:1200,minimum:640),
@@ -150,6 +159,10 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
                 automationTimer?.tolerance = 0
             } else {
+                if let session=CGSessionCopyCurrentDictionary() as? [String:Any] {
+                    suspension.set(.screenLocked,active:(session["CGSSessionScreenIsLocked"] as? Bool) == true)
+                    suspension.set(.inactiveSession,active:(session[kCGSessionOnConsoleKey as String] as? Bool) == false)
+                }
                 if OceanRunMode.wallpaper { installWallpaperControls() }
                 updatePlayback()
             }
@@ -189,6 +202,11 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             workspace.addObserver(self,selector:#selector(powerOrSessionChanged(_:)),name:name,object:nil)
         }
         let distributed = DistributedNotificationCenter.default()
+        if OceanRunMode.wallpaper {
+            for name in [ScreenSaverActivity.rendered,ScreenSaverActivity.stopped] {
+                distributed.addObserver(self,selector:#selector(saverRenderingChanged(_:)),name:name,object:nil)
+            }
+        }
         for name in ["com.apple.screenIsLocked","com.apple.screenIsUnlocked","com.apple.screensaver.didstart","com.apple.screensaver.didstop"] {
             distributed.addObserver(self,selector:#selector(lockOrScreenSaverChanged(_:)),name:Notification.Name(name),object:nil)
         }
@@ -214,32 +232,49 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func buildSurfaces() {
         guard let device else { return }
-        rebuildingSurfaces=true
-        defer { rebuildingSurfaces=false }
+        rebuildingSurfaces=true;defer { rebuildingSurfaces=false }
         for surface in surfaces {
             surface.view.isPaused=true;surface.view.delegate=nil
             surface.window.orderOut(nil);surface.window.close()
         }
-        surfaces.removeAll()
+        surfaces.removeAll();wallpaperLayoutView=nil;wallpaperUsesTiles=false
         let screens = allDisplays ? NSScreen.screens : Array(NSScreen.screens.prefix(1))
-        for screen in screens {
-            let window = WallpaperWindow(screen: screen)
-            let view = makeView(frame: NSRect(origin: .zero, size: screen.frame.size), device: device)
-            window.contentView = view
-            window.delegate = self
-            window.orderFrontRegardless()
-            surfaces.append(WallpaperSurface(screen: screen, window: window, view: view))
+        if screens.count==1,let screen=screens.first,options["regionalRendering"] == "1" {
+            let layout=ViewportLayout(pointWidth:screen.frame.width,pointHeight:screen.frame.height,
+                                      backingScale:screen.backingScaleFactor,pixelBudget:decision.pixelBudget)
+            wallpaperUsesTiles=layout.width==1280 && layout.height==800
+            if wallpaperUsesTiles {
+                let canvas=makeView(frame:CGRect(origin:.zero,size:screen.frame.size),device:device)
+                canvas.isPaused=true;wallpaperLayoutView=canvas
+            }
         }
-        viewport=surfaces.first?.view
+        for screen in screens {
+            for column in 0..<(wallpaperUsesTiles ? 4 : 1) {
+                let region=wallpaperUsesTiles ? CGRect(x:Double(column)/4,y:0,width:0.25,height:1) : RegionalRendering.full
+                let frame=CGRect(x:screen.frame.minX+region.minX*screen.frame.width,y:screen.frame.minY,
+                                 width:screen.frame.width*region.width,height:screen.frame.height)
+                let window=WallpaperWindow(screen:screen,frame:frame)
+                let view=makeView(frame:CGRect(origin:.zero,size:frame.size),device:device)
+                // Tile presentation is a byte-exact crop of one tone-mapped image.
+                if wallpaperUsesTiles { view.framebufferOnly=false }
+                window.contentView=view;window.delegate=self;window.orderFrontRegardless()
+                surfaces.append(WallpaperSurface(screen:screen,window:window,view:view,region:region))
+            }
+        }
+        viewport=wallpaperLayoutView ?? surfaces.first?.view
         sizeSecondaryDrawables()
-        renderer?.layoutView = surfaces.first?.view
+        renderer?.layoutView=wallpaperLayoutView ?? surfaces.first?.view
+        renderer?.presentationRegions=wallpaperUsesTiles ? Dictionary(uniqueKeysWithValues:surfaces.map { (ObjectIdentifier($0.view),$0.region) }) : [:]
     }
 
     private func sizeSecondaryDrawables() {
-        for surface in surfaces.dropFirst() {
-            let layout = ViewportLayout(pointWidth: Double(surface.screen.frame.width), pointHeight: Double(surface.screen.frame.height),
-                                        backingScale: Double(surface.screen.backingScaleFactor), pixelBudget: decision.pixelBudget)
-            surface.view.drawableSize = CGSize(width: layout.width, height: layout.height)
+        for (index,surface) in surfaces.enumerated() {
+            if wallpaperUsesTiles { surface.view.drawableSize=RegionalRendering.tileCrop(surface.region,width:1280,height:800).size }
+            else if index>0 {
+                let layout=ViewportLayout(pointWidth:surface.screen.frame.width,pointHeight:surface.screen.frame.height,
+                                          backingScale:surface.screen.backingScaleFactor,pixelBudget:decision.pixelBudget)
+                surface.view.drawableSize=CGSize(width:layout.width,height:layout.height)
+            }
         }
     }
 
@@ -288,6 +323,14 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(.separator())
         let login = NSMenuItem(title: "Open at Login", action: #selector(toggleLogin), keyEquivalent: "")
         login.target = self; menu.addItem(login); loginItem = login
+        let integration=NSMenuItem(title:"Preparing Ocean screen saver…",action:nil,keyEquivalent:"")
+        menu.addItem(integration);integrationStatus=integration
+        for (title,action) in [("Update Lock Screen Image",#selector(enableSystemWallpaper)),
+                               ("Restore Previous Wallpaper and Screen Saver",#selector(restoreSystemWallpaper)),
+                               ("Repair Screen Saver Setup",#selector(installScreenSaver))] {
+            let command=NSMenuItem(title:title,action:action,keyEquivalent:"")
+            command.target=self;menu.addItem(command)
+        }
         menu.addItem(withTitle: "Quit Ocean", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         item.menu = menu
         statusItem = item
@@ -300,7 +343,55 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
                      NSWorkspace.didUnhideApplicationNotification, NSWorkspace.activeSpaceDidChangeNotification] {
             workspace.addObserver(self, selector: #selector(performanceInputsChanged), name: name, object: nil)
         }
+        wallpaperIntegration.screenSaverSetup.canReloadSaver={ [weak self] in
+            guard let self else { return false }
+            return !self.suspension.isSuspended(.screenLocked) && !self.suspension.isSuspended(.screenSaver)
+        }
+        wallpaperIntegration.screenSaverSetup.onStatus={ [weak self] text in
+            self?.integrationStatus?.title=text
+            if CommandLine.arguments.contains("--diagnostics") { print("Ocean integration: \(text)") }
+        }
         refreshCoverage()
+        if options["systemIntegration"] != "0" {
+            ScreenSaverEnvironment.publishFromApp()
+            wallpaperIntegration.screenSaverSetup.enableIfNeeded()
+            stillTimer=Timer.scheduledTimer(withTimeInterval:900,repeats:true) { [weak self] _ in self?.updateSystemWallpaper() }
+            stillTimer?.tolerance=60
+            DispatchQueue.main.asyncAfter(deadline:.now()+2) { [weak self] in self?.updateSystemWallpaper() }
+        }
+    }
+
+    @objc private func enableSystemWallpaper() {
+        defaults.set(true,forKey:"OceanSyncSystemWallpaper")
+        if stillTimer==nil {
+            stillTimer=Timer.scheduledTimer(withTimeInterval:900,repeats:true) { [weak self] _ in self?.updateSystemWallpaper() }
+            stillTimer?.tolerance=60
+        }
+        updateSystemWallpaper()
+    }
+    @objc private func updateSystemWallpaper() {
+        guard options["systemIntegration"] != "0",defaults.object(forKey:"OceanSyncSystemWallpaper") as? Bool != false,!suspension.isSuspended,let renderer,renderer.snapshotRequested==nil else { return }
+        renderer.snapshotRequested={ [weak self] data,width,height in
+            guard let self else { return }
+            self.wallpaperIntegration.publish(data,width:width,height:height,screens:self.surfaces.map(\.screen))
+        }
+        // A covered desktop still needs a single complete still. This path does
+        // not acquire a drawable or start a display link for a hidden wallpaper.
+        if renderer.isPaused { renderer.draw(in:viewport) }
+        DispatchQueue.main.asyncAfter(deadline:.now()+0.25) { [weak self] in
+            guard let self,!self.suspension.isSuspended,let renderer=self.renderer,
+                  renderer.isPaused,renderer.snapshotRequested != nil else { return }
+            renderer.draw(in:self.viewport)
+        }
+    }
+    @objc private func restoreSystemWallpaper() {
+        stillTimer?.invalidate();stillTimer=nil
+        defaults.set(false,forKey:"OceanSyncSystemWallpaper")
+        renderer?.snapshotRequested=nil
+        wallpaperIntegration.restore()
+    }
+    @objc private func installScreenSaver() {
+        wallpaperIntegration.screenSaverSetup.enableIfNeeded(force:true)
     }
 
     private func refreshMenuState() {
@@ -335,8 +426,10 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // Samples on-screen window bounds (no Screen Recording permission needed)
     // to estimate how much of each desktop is uncovered.
     private func refreshCoverage() {
-        guard OceanRunMode.wallpaper else { return }
+        guard OceanRunMode.wallpaper,!refreshingCoverage else { return }
+        refreshingCoverage=true;defer { refreshingCoverage=false }
         let now = CACurrentMediaTime()
+        suspension.set(.saverRendering,active:saverActivity.isActive(at:now))
         if now-lastPowerCheck > 10 {
             lastPowerCheck = now
             if let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
@@ -362,7 +455,20 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let f = surface.screen.frame
             let cg = CGRect(x: f.minX, y: primaryHeight-f.maxY, width: f.width, height: f.height)
             let id = (surface.screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? 0
-            visibleFraction[id] = DesktopCoverage.visibleFraction(of: cg, covers: covers)
+            if visibleFraction[id]==nil { visibleFraction[id] = DesktopCoverage.visibleFraction(of: cg, covers: covers) }
+        }
+        if wallpaperUsesTiles {
+            let visible=surfaces.filter { $0.window.occlusionState.contains(.visible) }
+            renderer?.visibleRegion=visible.reduce(CGRect.null) { $0.union($1.region) }
+            if let screen=surfaces.first?.screen,
+               let id=(screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value {
+                visibleFraction[id]=visible.isEmpty ? 0 : max(visibleFraction[id] ?? 1,1.0/1440)
+            }
+        } else { renderer?.visibleRegion=RegionalRendering.full }
+        let description="surfaces=\(surfaces.filter { $0.window.occlusionState.contains(.visible) }.count)/\(surfaces.count), tiled=\(wallpaperUsesTiles), region=\(renderer?.visibleRegion ?? RegionalRendering.full)"
+        if description != lastVisibilityDescription {
+            lastVisibilityDescription=description
+            if CommandLine.arguments.contains("--diagnostics") { print("Ocean visibility: \(description)") }
         }
         var input = PerformanceInputs()
         input.requestedFPS = requestedFPS
@@ -376,11 +482,11 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let budgetChanged = next.pixelBudget != decision.pixelBudget
         decision = next
         renderer?.governor = "\(next.framesPerSecond) FPS, \(next.reason), visible \(Int((input.visibleFraction*100).rounded()))%"
-        if budgetChanged { renderer?.pixelBudget = next.pixelBudget; sizeSecondaryDrawables() }
+        if budgetChanged { renderer?.pixelBudget = next.pixelBudget;buildSurfaces() }
         updatePlayback()
         // Reveal notifications refresh immediately. Poll slowly while fully hidden
         // as a fallback, retaining fast coverage tracking for visible slivers.
-        let interval = PerformancePolicy.coveragePollInterval(framesPerSecond:next.framesPerSecond)
+        let interval = PerformancePolicy.coveragePollInterval(framesPerSecond:suspension.isSuspended ? 0 : next.framesPerSecond)
         if coverageTimer?.timeInterval != interval {
             coverageTimer?.invalidate()
             coverageTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in self?.refreshCoverage() }
@@ -448,6 +554,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func applyDaylightTime(_ selection: DaylightTime) {
         daylightTime=selection;renderer?.setDaylightTime(selection)
         defaults.set(selection.value,forKey:"OceanDaylightTime");refreshDaylightTimeMenu()
+        if OceanRunMode.wallpaper { updateSystemWallpaper() }
     }
     @objc private func chooseDaylightTime(_ item: NSMenuItem) {
         guard let value=item.representedObject as? String,let selection=DaylightTime(value:value) else { return }
@@ -507,6 +614,13 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         if !suspension.isSuspended { locationProvider?.refresh();weatherProvider?.refresh() }
         updatePlayback()
+        if !suspension.isSuspended,OceanRunMode.wallpaper { updateSystemWallpaper() }
+    }
+    @objc private func saverRenderingChanged(_ notification: Notification) {
+        guard let token=notification.object as? String,token.count<=128 else { return }
+        if notification.name==ScreenSaverActivity.rendered { saverActivity.rendered(token:token,at:CACurrentMediaTime()) }
+        else { saverActivity.stopped(token:token) }
+        refreshCoverage()
     }
     @objc private func lockOrScreenSaverChanged(_ notification: Notification) {
         switch notification.name.rawValue {
@@ -517,6 +631,8 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         default: return
         }
         updatePlayback()
+        if !suspension.isSuspended,OceanRunMode.wallpaper { updateSystemWallpaper() }
+        if notification.name.rawValue=="com.apple.screenIsUnlocked",OceanRunMode.wallpaper { wallpaperIntegration.screenSaverSetup.refreshRuntimeIfNeeded() }
     }
 
     private func updatePlayback() {
@@ -537,18 +653,21 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // clock; all visible surfaces receive a composite of the same HDR image.
     private func updateWallpaperPlayback(_ renderer: OceanRenderer) {
         let fps = decision.framesPerSecond
-        let requests = surfaces.map { surface -> SurfaceDemandRequest in
+        renderer.hostLocked=suspension.isSuspended(.screenLocked)
+        renderer.hostSaverRendering=suspension.isSuspended(.saverRendering)
+        let requests = surfaces.enumerated().map { index,surface -> SurfaceDemandRequest in
             let id = (surface.screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? 0
             let osVisible = surface.window.occlusionState.contains(.visible)
             let uncovered = (visibleFraction[id] ?? 1) > 0
-            return SurfaceDemandRequest(surfaceID: "display-\(id)", worldID: "ocean", visibility: osVisible && uncovered ? .visible : .occluded,
+            return SurfaceDemandRequest(surfaceID: "display-\(id)-surface-\(index)", worldID: "ocean", visibility: osVisible && (wallpaperUsesTiles || uncovered) ? .visible : .occluded,
                                         framesPerSecond: max(1, fps), requiredWaveBands: 0x3f)
         }
         let demand = SharedSurfaceDemand.plan(requests, suspended: suspension.isSuspended || fps == 0)
         let active = demand["ocean"]?.surfaceIDs ?? []
         let visibleViews = zip(surfaces, requests).filter { active.contains($0.1.surfaceID) }.map { $0.0.view }
         renderer.presentationSurfaces = visibleViews
-        renderer.layoutView = surfaces.first?.view
+        renderer.layoutView = wallpaperLayoutView ?? surfaces.first?.view
+        renderer.presentationRegions=wallpaperUsesTiles ? Dictionary(uniqueKeysWithValues:surfaces.map { (ObjectIdentifier($0.view),$0.region) }) : [:]
         let driver = visibleViews.first
         for surface in surfaces {
             let drives = surface.view === driver
@@ -561,6 +680,9 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         renderer.isPaused = driver == nil
         let state: String
         if suspension.isSuspended(.userPaused) { state = "Paused" }
+        else if suspension.isSuspended(.screenLocked) { state="Idle · screen locked" }
+        else if suspension.isSuspended(.screenSaver) || suspension.isSuspended(.saverRendering) { state="Idle · Ocean screen saver" }
+        else if suspension.isSuspended(.inactiveSession) { state="Idle · session inactive" }
         else if driver == nil { state = "Idle · desktop covered" }
         else { state = "Live · \(fps) FPS · \(decision.reason)" }
         if performanceStatus?.title != state { performanceStatus?.title = state }

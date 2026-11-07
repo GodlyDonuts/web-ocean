@@ -22,3 +22,7 @@ run_unit ViewportMeshTests macos/ViewportMesh.swift
 run_unit DisplayDemandTests macos/Diagnostics/DisplayTileLayout.swift macos/SharedSurfaceDemand.swift
 run_unit AnimationClockTests macos/AnimationClock.swift
 run_unit PerformancePolicyTests macos/PerformancePolicy.swift
+run_unit RegionalRenderingTests macos/RegionalRendering.swift
+run_unit AutomaticScreenSaverSetupTests macos/AutomaticScreenSaverSetup.swift macos/CelestialCycle.swift
+run_unit ScreenSaverEnvironmentTests macos/ScreenSaverEnvironment.swift macos/CelestialCycle.swift macos/ObserverLocationProvider.swift macos/Weather.swift macos/WeatherProvider.swift
+run_unit SaverSchedulingTests macos/SharedSurfaceDemand.swift macos/PerformancePolicy.swift

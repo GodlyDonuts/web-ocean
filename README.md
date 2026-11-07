@@ -23,6 +23,9 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Desktop windows behind icons, menu bar controls and shared HDR presentation across displays | Implemented on this branch; real display arrangements need manual verification |
 | Adaptive frame rate and resolution for coverage, power and thermal state | Implemented with conservative visibility checks |
 | Pause on occlusion, minimization, lock, screensaver, sleep and inactive session | Implemented |
+| Regional scene shading experiment | GPU pixel checks pass; opt-in pending OS visibility proof |
+| Native Ocean screensaver / system wallpaper still | Automatic installation/selection and system still synchronization |
+| Screensaver efficiency | Battery/thermal limits, lightweight preview and wallpaper handoff |
 | Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
 | Shared simulation/HDR across displays | Host implemented; physical multi-monitor verification remains open |
 | Regional rendering demand | Planned; pure demand/layout contracts and a diagnostic exist |
@@ -118,3 +121,5 @@ See [contribution guidance](CONTRIBUTING.md) for changes, bug reports and eviden
 ## Origins and license
 
 The original WebGPU renderer was built with Claude Code (Opus 5.5). This project extends it into a native macOS ocean wallpaper. Code is MIT licensed; see [LICENSE](LICENSE). NASA/Gaia-derived imagery has separate [credits and usage guidance](macos/Assets/Galaxy/CREDITS.md). Imported research retains its original files and attribution under [research/](research/README.md).
+
+Regional rendering, the native screensaver and lock-screen still synchronization are documented in [the integration guide](docs/regional-rendering.md).

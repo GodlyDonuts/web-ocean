@@ -23,3 +23,5 @@ The host's shared-frame approach resamples/crops one fixed scene, so it does not
 Automated: CPU visibility/governor tests, recreated-primary drawable sizing without windows, failure-injected gallery tests, core GPU daylight/weather/waterline/lifecycle tests, and matched scene captures against main. Results for this change are recorded in the [cleanup validation](pr2-cleanup-validation.md).
 
 Still requires a real interactive Mac setup: two monitors with differing aspect ratios/scales/refresh rates; main-display changes; connecting/disconnecting a display; toggling All Displays/Main Display Only; Space and fullscreen transitions; narrow desktop reveals; sleep/wake, lock/unlock and screensaver; installed/signed Open at Login; and whole-system power/reveal latency. Pure layout tests and hosted paravirtual Metal do not prove those behaviors.
+
+Ocean now also installs/selects its native saver and maintains a system-wallpaper still on normal startup. See [automatic integration and regional rendering](regional-rendering.md) for private-store compatibility guards, restoration and the remaining interactive checks.
