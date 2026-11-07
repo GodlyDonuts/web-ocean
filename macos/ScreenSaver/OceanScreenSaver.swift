@@ -21,6 +21,7 @@ private final class SaverWorld {
     init(view: MTKView,preview: Bool) throws {
         self.preview=preview
         renderer=try OceanRenderer(view:view,diagnostics:false,options:[:])
+        renderer.usesLayerDrawables=true
         refreshPolicy(at:CACurrentMediaTime())
         if let saved=ScreenSaverEnvironment.read() {
             renderer.setDaylightTime(DaylightTime(value:saved.daylightTime) ?? DaylightTime())

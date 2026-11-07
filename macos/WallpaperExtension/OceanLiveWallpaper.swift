@@ -21,63 +21,6 @@ enum OceanRunMode { static let offscreen=false }
     var configuration: some AppExtensionConfiguration { OceanWallpaperConfiguration() }
 }
 
-// Request objects contain Swift value wrappers. Read named fields, with bounded
-// recursion; reject missing destinations rather than guess a screen geometry.
-func field(_ object:Any,_ name:String,depth:Int=0) -> Any? {
-    guard depth<8 else { return nil }
-    let mirror=Mirror(reflecting:object)
-    for child in mirror.children where child.label==name { return child.value }
-    for child in mirror.children { if let result=field(child.value,name,depth:depth+1) { return result } }
-    return nil
-}
-func requestID(_ object:Any?) -> String? {
-    guard let object else { return nil }
-    let description=String(describing:Mirror(reflecting:object).children.first?.value ?? object)
-    guard let range=description.range(of:"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}",options:.regularExpression) else { return nil }
-    return String(description[range])
-}
-struct OceanRequest {
-    var size: CGSize
-    var scale:CGFloat
-    var display:UInt32
-    var suspended:Bool
-    var idle:Bool
-    init?(_ value:Any?) {
-        guard let value,let destination=field(value,"destination"),let size=field(destination,"size") as? CGSize,
-              size.width.isFinite,size.height.isFinite,size.width>0,size.height>0,size.width<20000,size.height<20000 else { return nil }
-        self.size=size
-        scale=(field(destination,"scaleFactor") as? CGFloat) ?? 1
-        scale=max(1,min(4,scale))
-        display=(field(destination,"directDisplayID") as? UInt32) ?? 0
-        let state=field(value,"activityState").map { String(describing:$0).lowercased() } ?? "unknown"
-        suspended=state.contains("suspend")
-        let mode=field(value,"presentationMode").map { String(describing:$0).lowercased() } ?? "unknown"
-        idle=mode.contains("idle") || mode.contains("saver")
-    }
-}
-
-final class OceanRemoteSurface {
-    let view:MTKView
-    let context:AnyObject
-    var request:OceanRequest
-    init?(_ request:OceanRequest) {
-        guard let device=MTLCreateSystemDefaultDevice() else { return nil }
-        self.request=request
-        view=MTKView(frame:CGRect(origin:.zero,size:request.size),device:device)
-        view.colorPixelFormat = .bgra8Unorm;view.framebufferOnly=true
-        view.autoResizeDrawable=false;view.isPaused=true;view.enableSetNeedsDisplay=false
-        guard let layer=view.layer as? CAMetalLayer else { return nil }
-        layer.frame=CGRect(origin:.zero,size:request.size);layer.contentsScale=request.scale
-        layer.presentsWithTransaction=false;layer.displaySyncEnabled=true
-        let root=CALayer();root.frame=layer.frame;root.isOpaque=true
-        root.backgroundColor=NSColor(calibratedRed:0.012,green:0.03,blue:0.06,alpha:1).cgColor
-        root.addSublayer(layer)
-        guard let context=OceanCreateRemoteContext(root,request.scale,request.display) else { return nil }
-        self.context=context as AnyObject
-        CATransaction.flush()
-    }
-}
-
 final class OceanWallpaperWorld:NSObject {
     static var shared:OceanWallpaperWorld?
     var surfaces:[String:OceanRemoteSurface]=[:]
@@ -94,6 +37,8 @@ final class OceanWallpaperWorld:NSObject {
     private var pendingEnvironment:ScreenSaverEnvironment.Saved?
     private var locked=false
     private var systemSaver=false
+    private var lastActivityLog=""
+    private var lastAwake:[String:Bool]=[:]
     override init() {
         super.init()
         for name in ["com.apple.screenIsLocked","com.apple.screenIsUnlocked","com.apple.screensaver.didstart","com.apple.screensaver.didstop"] {
@@ -123,8 +68,6 @@ final class OceanWallpaperWorld:NSObject {
     }
     private func draw() {
         let now=CACurrentMediaTime()
-        let active=surfaces.values.filter { !$0.request.suspended }
-        guard let first=active.first else { begin(interval:0.5);return }
         if now>=nextPolicy {
             nextPolicy=now+1
             pendingEnvironment=ScreenSaverEnvironment.readLive()
@@ -134,7 +77,7 @@ final class OceanWallpaperWorld:NSObject {
             input.thermal=PerformanceInputs.Thermal(rawValue:ProcessInfo.processInfo.thermalState.rawValue) ?? .nominal
             if let info=IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),let source=IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue() as String? { input.onBattery=source=="Battery Power" }
             let control=LiveWallpaperControl.read()
-            let fullScreen=locked || systemSaver
+            let fullScreen=locked || systemSaver || surfaces.values.contains { $0.request.mode=="locked" }
             if let control,!fullScreen {
                 input.requestedFPS=control.framesPerSecond;input.requestedPixelBudget=control.pixelBudget
                 input.visibleFraction=control.framesPerSecond==0 ? 0 : 1
@@ -145,10 +88,22 @@ final class OceanWallpaperWorld:NSObject {
             renderer?.pixelBudget=decision.pixelBudget
             begin(interval:fps==0 ? 0.5 : 1.0/Double(fps))
         }
+        for (id,surface) in surfaces {
+            let awake=surface.displayAwake
+            if lastAwake[id]==false && awake { surface.recover(reason:"display-awake") }
+            lastAwake[id]=awake
+        }
+        let active=surfaces.values.filter { surface in
+            OceanPresentation.shouldRender(displayAwake:surface.displayAwake,hostSuspended:surface.request.suspended,sessionLocked:locked,presentationMode:surface.request.mode)
+        }
+        let activity="locked=\(locked) active=\(active.count)/\(surfaces.count) fps=\(fps)"
+        if activity != lastActivityLog { lastActivityLog=activity;debugLog("Ocean activity: \(activity)") }
+        guard let first=active.first else { begin(interval:0.5);return }
         guard renderer==nil || fps>0 else { return }
         do {
             if renderer==nil {
                 renderer=try OceanRenderer(view:first.view,diagnostics:false,options:[:])
+                renderer?.usesLayerDrawables=true
                 debugLog("Ocean Metal renderer initialized")
             }
             guard let renderer else { return }
@@ -176,9 +131,18 @@ final class OceanWallpaperWorld:NSObject {
                     debugLog("Ocean pacing ms median=\(samples[samples.count/2]) p95=\(samples[min(samples.count-1,Int(Double(samples.count)*0.95))]) max=\(samples.last!)")
                     frameIntervals=[]
                 }
-                debugLog("Ocean live frames=\(renderer.submittedFrames) locked=\(locked) idle=\(active.contains { $0.request.idle }) fps=\(fps) surfaces=\(active.count)")
+                debugLog("Ocean live submitted=\(renderer.submittedFrames) completed=\(renderer.completedFrames) presented=\(renderer.presentedDrawables) errors=\(renderer.errors) locked=\(locked) idle=\(active.contains { $0.request.idle }) fps=\(fps) surfaces=\(active.count)")
             }
         } catch { debugLog("Ocean render initialization failed: \(error.localizedDescription)") }
+    }
+    func recover(reason:String,delayed:Bool=true) {
+        for surface in surfaces.values { surface.recover(reason:reason) }
+        renderer?.presentationSurfaces=[];renderer?.layoutView=nil
+        lastFrameTime=nil;frameIntervals=[];nextPolicy = -Double.infinity
+        begin(interval:1.0/30)
+        if delayed {
+            DispatchQueue.main.asyncAfter(deadline:.now()+2) { [weak self] in self?.recover(reason:reason+"+2s",delayed:false) }
+        }
     }
     func snapshot(_ reply:@escaping(Any?,Error?)->Void) {
         guard !snapshotPending,let renderer,let view=surfaces.values.first?.view else { reply(fallbackSnapshot(),nil);return }
@@ -236,16 +200,28 @@ final class OceanWallpaperHandler:NSObject,WallpaperExtensionXPCProtocol {
             let world=OceanWallpaperWorld.shared ?? OceanWallpaperWorld();OceanWallpaperWorld.shared=world
             guard let surface=OceanRemoteSurface(request),let boxed=OceanWrapContext(OceanRemoteContextID(surface.context)) else { reply(nil,NSError(domain:"OceanWallpaper",code:2));return }
             world.surfaces[id]=surface
-            debugLog("Acquire Ocean surface; idle=\(request.idle) size=\(request.size)")
+            debugLog("Acquire Ocean surface; mode=\(request.mode) suspended=\(request.suspended) size=\(request.size)")
             reply(boxed,nil);world.begin()
         }
     }
     func update(withId id:Any?,request:Any?,reply:@escaping(Error?)->Void) {
         let key=requestID(id)
-        let suspended=request.flatMap { field($0,"activityState") }.map { String(describing:$0).lowercased().contains("suspend") } ?? false
-        let idle=request.flatMap { field($0,"presentationMode") }.map { String(describing:$0).lowercased().contains("idle") } ?? false
+        let state=request.flatMap { field($0,"activityState") }.map { String(describing:$0).lowercased() }
+        let mode=request.flatMap { field($0,"presentationMode") }.map { String(describing:$0).lowercased() }
+        let destination=OceanRequest(request)
         DispatchQueue.main.async {
-            if let key,let surface=OceanWallpaperWorld.shared?.surfaces[key] { surface.request.suspended=suspended;surface.request.idle=idle }
+            if let key,let world=OceanWallpaperWorld.shared,let surface=world.surfaces[key] {
+                let old=surface.request
+                if let destination { surface.request.size=destination.size;surface.request.scale=destination.scale;surface.request.display=destination.display }
+                if let state { surface.request.suspended=state.contains("suspend") }
+                if let mode { surface.request.mode=mode;surface.request.idle=mode.contains("idle") || mode.contains("saver") }
+                debugLog("Update Ocean surface: mode=\(surface.request.mode) state=\(state ?? "unchanged") awake=\(surface.displayAwake)")
+                let geometryChanged=old.size != surface.request.size || old.scale != surface.request.scale
+                if geometryChanged || OceanPresentation.needsRecovery(oldMode:old.mode,newMode:surface.request.mode,wasSuspended:old.suspended,isSuspended:surface.request.suspended) {
+                    world.recover(reason:geometryChanged ? "geometry" : "host-transition")
+                }
+                world.begin()
+            }
             reply(nil)
         }
     }
@@ -257,5 +233,12 @@ final class OceanWallpaperHandler:NSObject,WallpaperExtensionXPCProtocol {
         DispatchQueue.main.async { if let world=OceanWallpaperWorld.shared { world.snapshot(reply) } else { reply(fallbackSnapshot(),nil) } }
     }
     func handleDebugRequest(for request:Any?,reply:@escaping(Any?,Error?)->Void) { reply(nil,nil) }
-    func handleNotification(withNamed name:Any?,reply:@escaping(Error?)->Void) { reply(nil) }
+    func handleNotification(withNamed name:Any?,reply:@escaping(Error?)->Void) {
+        let message=String(describing:name ?? "")
+        debugLog("Ocean host notification: \(message)")
+        if message.contains("hostDidWake") {
+            DispatchQueue.main.async { OceanWallpaperWorld.shared?.recover(reason:"hostDidWake") }
+        }
+        reply(nil)
+    }
 }

@@ -28,3 +28,5 @@ run_unit ScreenSaverEnvironmentTests macos/LiveWallpaperControl.swift macos/Scre
 run_unit SaverSchedulingTests macos/SharedSurfaceDemand.swift macos/PerformancePolicy.swift
 
 run_unit NativeWallpaperSetupTests macos/NativeWallpaperSetup.swift macos/AutomaticScreenSaverSetup.swift macos/CelestialCycle.swift
+
+run_unit PresentationStateTests macos/WallpaperExtension/PresentationState.swift

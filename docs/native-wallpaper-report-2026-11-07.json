@@ -29,7 +29,8 @@
   "visualReview": {
     "initialDedicatedNativeHost": "User confirmed Ocean is visible and moving on lock screen, then reported severe judder after transition",
     "pacingFix": "Installed; user confirmed: It stays smooth now, after a requested 15-second lock-screen check.",
-    "finalLockScreenConfirmed": true
+    "finalLockScreenConfirmed": false,
+    "followupRegression": "User reported freezing after Control-Command-Q or lid-close/wake despite the earlier short pacing check."
   },
   "pacingProbe": {
     "seconds": 16,
@@ -60,12 +61,12 @@
     "No temperature, power or battery-life reduction measured"
   ],
   "finalRuntime": {
-    "controllerPID": 87455,
-    "extensionPID": 87483,
+    "controllerPID": 91255,
+    "extensionPID": 91260,
     "coveredDesktopControlFPS": 0,
-    "oldDesktopRendererSubmittedFrames": 0,
+    "oldDesktopRendererSubmittedFrames": 69,
     "installedAndRunning": true,
-    "visualPacingConfirmation": "User confirmed the locked ocean stays smooth after the transition"
+    "visualPacingConfirmation": "Fresh-drawable build installed; sustained actual presentation callbacks observed unlocked. Keyboard-lock/lid-wake user test pending."
   },
   "finalLockedRuntimeSamples": [
     {
@@ -80,5 +81,61 @@
       "targetFPS": 24,
       "surfaces": 1
     }
-  ]
+  ],
+  "lockWakeRecovery": {
+    "installed": true,
+    "controllerPID": 89902,
+    "extensionPID": 89915,
+    "changes": [
+      "Recognize explicit locked host presentation, including delayed/missed session events",
+      "Ignore stale desktop/host suspension only for an awake locked display; actual sleeping/offline display never renders",
+      "Handle hostDidWake with immediate and delayed presentation recovery",
+      "Rebuild Metal views/layers without changing the context IDs already hosted by macOS",
+      "Recover on geometry, awake and host pause/resume transitions; preserve omitted host-update fields",
+      "Hardware display-state polling cached for 0.5 seconds"
+    ],
+    "tests": {
+      "stateCases": "passed: awake locked overrides, unconditional sleep stop, event ordering and idempotent transitions",
+      "actualPresentation": "passed: twelve real Metal-view replacements, stable context, one layer, correct device/geometry and no windows",
+      "nativeABIAndBootstrap": "passed",
+      "strictSignatures": "passed"
+    },
+    "longLiveValidation": "Completed by user; failed on both keyboard-lock and lid-wake paths",
+    "userResult": "Failed: keyboard lock plays about two seconds then freezes; lid reopen plays about three seconds then freezes and becomes very choppy."
+  },
+  "drawableCorrection": {
+    "cause": "Core Animation reports each CAMetalLayerDrawable can only be presented once; manual hosts reused MTKView.currentDrawable despite releaseDrawables.",
+    "changes": [
+      "Fresh CAMetalLayer.nextDrawable acquisition for every manually driven native/saver surface",
+      "Preserve normal MTKView delegate acquisition for the app",
+      "Separate submitted, successful GPU completion and actual drawable presentation counters; mirror renderer errors to host logs"
+    ],
+    "visualValidation": "Pending physical keyboard-lock and lid-wake tests of this correction",
+    "installed": true,
+    "controllerPID": 91255,
+    "extensionPID": 91260,
+    "probe": {
+      "scope": "Unlocked native remote presentation with bounded 35-second playback-control override, original control restored. Not physical lock/wake validation.",
+      "samples": [
+        {
+          "submitted": 183,
+          "completed": 182,
+          "presented": 182
+        },
+        {
+          "submitted": 907,
+          "completed": 906,
+          "presented": 906
+        }
+      ],
+      "intervalSeconds": 30.164,
+      "presentedPerSecond": 24.0,
+      "rendererErrors": [],
+      "duplicateDrawableErrorsObserved": false
+    },
+    "buildAndStrictSignatures": "passed",
+    "nativeABIAndRemoteSurfaceRecovery": "passed",
+    "cpuSuites": "All 19 passed",
+    "legacySaverLifecycle": "passed: load/start/stop/restart, shared allocation, in-flight teardown, zero windows"
+  }
 }

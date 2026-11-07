@@ -45,6 +45,11 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     var hostLocked=false
     var hostSaverRendering=false
     private(set) var submittedFrames=0
+    private(set) var completedFrames=0
+    private(set) var presentedDrawables=0
+    // Manual hosts bypass MTKView's draw lifecycle, so its cached currentDrawable
+    // is not invalidated between callbacks. Acquire a fresh layer drawable instead.
+    var usesLayerDrawables=false
     private var skyLUTUpdates=0
     private var tilePresentationVerified=false
     private var benchmarkTileTargets: [MTLTexture]=[]
@@ -927,9 +932,8 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
                     layer.framebufferOnly=false
                     layer.contentsRect=CGRect(x:(visible.minX-rect.minX)/rect.width,y:0,width:visible.width/rect.width,height:1)
                 }
-                // The driving view owns its MTKView drawable; paused views are
-                // presented through their layers so no drawable is retained.
-                let next = surface === view ? surface.currentDrawable : (surface.layer as? CAMetalLayer)?.nextDrawable()
+                let next = surface === view && !usesLayerDrawables
+                    ? surface.currentDrawable : (surface.layer as? CAMetalLayer)?.nextDrawable()
                 if let next {
                     surfaceDrawables.append(next)
                     if let region=presentationRegions[ObjectIdentifier(surface)] { acquiredRegions.append(region) }
@@ -944,7 +948,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
                 display=offscreenDisplay!
             } else { display = first.texture }
         } else {
-            guard let next = view.currentDrawable else { return }
+            guard let next = usesLayerDrawables ? (view.layer as? CAMetalLayer)?.nextDrawable() : view.currentDrawable else { return }
             drawable = next
             display = next.texture
         }
@@ -1199,8 +1203,13 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let readbacks: [Readback]
         do { readbacks = verify ? try encodeReadbacks(command, display:display) : [] }
         catch { record(error.localizedDescription); return }
-        if let drawable { command.present(drawable) }
-        for surface in surfaceDrawables { command.present(surface) }
+        let presenting = surfaceDrawables + (drawable.map { [$0] } ?? [])
+        for surface in presenting {
+            surface.addPresentedHandler { [weak self] _ in
+                DispatchQueue.main.async { self?.presentedDrawables += 1 }
+            }
+            command.present(surface)
+        }
         let profileLabels = profiler?.labels ?? []
         let renderedFrame = frameIndex
         let cpuEncodeMs = benchmarkEnabled ? (CACurrentMediaTime()-now)*1000 : 0
@@ -1216,6 +1225,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
                 // Keep automated timers from submitting another frame before
                 // completion counters and verification have consumed this one.
                 defer { frameGate.signal() }
+                if completed.status == .completed { self.completedFrames += 1 }
                 if completed.status == .error { self.record(completed.error?.localizedDescription ?? "Metal command failed") }
                 if completed.status == .completed,let snapshotBuffer {
                     var data=Data(count:snapshotWidth*snapshotHeight*4)

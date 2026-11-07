@@ -30,3 +30,8 @@ main=int(re.search(r'^([0-9a-f]+) T _main$',symbols,re.M)[1],16)
 assert '_NSExtensionMain' in symbols and entry != main-base,'Use the NSExtensionMain bootstrap, not Swift main as the executable entry'
 print('PASS: native extension bootstrap differs from the Swift registration entry')
 PY
+
+xcrun swiftc -parse-as-library -import-objc-header macos/WallpaperExtension/WallpaperProtocols.h \
+ macos/Tests/RemoteSurfaceRecoveryTests.swift macos/WallpaperExtension/OceanRemoteSurface.swift macos/build/native-preflight/WallpaperBridge.o \
+ -framework AppKit -framework MetalKit -framework Metal -framework QuartzCore -framework IOSurface -o macos/build/native-preflight/RemoteSurfaceRecoveryTests
+macos/build/native-preflight/RemoteSurfaceRecoveryTests
