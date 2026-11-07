@@ -2,7 +2,7 @@
 
 ## What to continue
 
-The active implementation is `macos/`, a Swift/AppKit/MetalKit host and native Metal renderer. The product is currently a resizable preview window, not an installed desktop wallpaper. `main` contains the accumulated Metal implementation, assets, research, tests and evidence. The old browser-host branch `feature/native-macos-wallpaper` predates this implementation; do not treat it as the next version of the app.
+The active implementation is `macos/`, a Swift/AppKit/MetalKit host and native Metal renderer. The app now has desktop wallpaper windows and shared HDR presentation, with `--preview` retaining the resizable development window. Actual multi-monitor, installed login and OS reveal behavior still need manual verification; see [the desktop host](wallpaper-host.md). `main` contains the accumulated Metal implementation, assets, research, tests and evidence. The old browser-host branch `feature/native-macos-wallpaper` predates this implementation; do not treat it as the next version of the app.
 
 The original main had only the WebGPU renderer and MIT license. The native work was accumulated locally before this publication. Main is advanced with normal commits, preserving that ancestry; there is no need to delete the branch or rewrite its history to publish this snapshot.
 
@@ -11,7 +11,7 @@ The original main had only the WebGPU renderer and MIT license. The native work 
 1. Read the root [README](../README.md) and [architecture](architecture.md).
 2. Build with `zsh macos/build.sh`. It compiles Swift, packages all shader sources/assets and ad-hoc signs `macos/build/Ocean.app`.
 3. Run `zsh macos/test-current.sh` after installing the optional [Python dependencies](../requirements-dev.txt). This is the current GPU/CPU handoff gate. For a CPU-only environment, use `zsh macos/test-unit.sh`.
-4. Open the preview once for visual review. Compare clear day, sunrise/sunset, moonlit and moonless nights, storm buildup, rain, raised wave crests, and narrow/full-screen windows.
+4. Open the app with `--preview` once for visual review. Compare clear day, sunrise/sunset, moonlit and moonless nights, storm buildup, rain, raised wave crests, and narrow/full-screen windows.
 5. Read [the roadmap](engineering-roadmap.md) and pick one scoped change. Preserve a matched baseline build in an ignored directory if comparing appearance or performance; archive artifacts are not fetched automatically by tests.
 
 Use `git status` before and after work. Build products, Python environments, captures, logs and Cargo targets are ignored. Source, packaged assets, optional tooling, documentation and curated evidence are committed. Do not commit local location/weather caches or machine credentials.
@@ -40,7 +40,7 @@ At 1280×800 the mesh has 98,304 triangles. The pixel budget is approximately 1.
 
 1. **Shared world ownership.** Separate simulation and shared environment resources from per-surface color/depth/postprocess targets. Start from `SharedSurfaceDemand.swift` and the pure layout/demand tests. Do not duplicate the whole simulation per monitor.
 2. **Presentation and reveal.** Establish real OS visibility behavior, hidden-time recovery and consistent reveal frames. Current pause behavior is implemented; elapsed-time recovery and multiple consumers need explicit design and GPU evidence.
-3. **Wallpaper integration.** Build a desktop surface around the shared renderer, then settings/launch behavior. The historical WebKit host is reference material, not a drop-in Metal solution.
+3. **Wallpaper integration.** The first desktop host and settings now exist; verify multi-display/Spaces/reveal behavior and installed login registration. The historical WebKit host is reference material, not a drop-in Metal solution.
 4. **Regional rendering.** Implement only after accounting for displaced geometry, foam advection, reflections and bloom support. A screenshot scissor does not prove upstream GPU work is saved.
 5. **Visual/performance refinement.** Use persistent animation captures and matched measurements, with clear error budgets for FFT resolution changes, temporal reconstruction, density caching and foam formats.
 

@@ -1,41 +1,52 @@
-name: GPU gallery
+name: Metal wallpaper validation
 on:
-  push:
-    branches: ['devin/**']
+  pull_request:
+    paths:
+      - 'macos/**'
+      - 'tools/check-repository.py'
+      - 'requirements-dev.txt'
+      - '.github/workflows/gpu-gallery.yml'
   workflow_dispatch:
-    inputs:
-      runner:
-        description: macOS runner label (fallback when macos-15 capacity is exhausted)
-        default: macos-15
 permissions:
   contents: read
+concurrency:
+  group: metal-wallpaper-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   gallery:
-    runs-on: ${{ inputs.runner || 'macos-15' }}
+    # This label has successfully run this project's Metal gallery on arm64.
+    # Intel runners cannot compile the renderer's native Float16 readbacks.
+    runs-on: macos-15
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - run: system_profiler SPDisplaysDataType || true
-      - run: zsh macos/build.sh
-      - run: zsh macos/test-unit.sh
-      - name: Wallpaper-mode smoke test (desktop window, status item, screenshot)
+      - name: Verify supported runner
         run: |
-          mkdir -p macos/build/gallery
-          macos/build/Ocean.app/Contents/MacOS/Ocean --diagnostics '--query=weather=0' > macos/build/gallery/wallpaper.log 2>&1 &
-          pid=$!
-          sleep 14
-          screencapture -x macos/build/gallery/wallpaper-desktop.png || true
-          kill -0 $pid
-          kill $pid || true
-          grep "Ocean diagnostics" macos/build/gallery/wallpaper.log | tail -2
-          ! grep -q '"errors":\[".' macos/build/gallery/wallpaper.log
+          test "$(uname -m)" = arm64 || { echo 'Metal validation requires an Apple silicon/arm64 runner.'; exit 1; }
+          system_profiler SPDisplaysDataType
       - run: python3 -m pip install --break-system-packages -r requirements-dev.txt
-      - run: python3 macos/Tests/render_gallery.py
+      - name: Build browser reference and check generated artifacts
+        run: |
+          npm ci
+          npm run build
+          git diff --exit-code -- ocean.html ocean.min.html
+      - run: python3 tools/check-repository.py
+      - run: python3 macos/Tests/test_render_gallery.py
+      - name: Build and run windowless CPU and GPU regressions
+        run: zsh macos/test-current.sh
+      - name: Capture core ocean scenes and require valid benchmarks
+        run: python3 macos/Tests/render_gallery.py
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: gallery
+          name: ocean-validation
           path: |
             macos/build/gallery/*.png
             macos/build/gallery/*.json
             macos/build/gallery/*.log
+            macos/build/night-water-fix/verification.json
+            macos/build/day-night/verification.json
+            macos/build/weather/verification.json
+            macos/build/coverage/report.json
+            macos/build/headless/report.json
+            macos/build/wallpaper-lifecycle/verification.json

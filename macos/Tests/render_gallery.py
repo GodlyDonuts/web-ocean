@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Windowless GPU gallery: renders representative scenes to PNG plus a benchmark.
+"""Windowless gallery of the requested ocean, daylight and weather scene.
 
+No historical captures are required. Failures in captures OR benchmarks fail CI.
 Usage: python3 macos/Tests/render_gallery.py [scene ...]
-Writes macos/build/gallery/*.png, contact.png and gallery.json.
 """
 from datetime import datetime
-import json, subprocess, sys
+import json, math, subprocess, sys
 from pathlib import Path
 from PIL import Image
 
 root = Path(__file__).resolve().parents[2]
 app = root/'macos/build/Ocean.app/Contents/MacOS/Ocean'
-out = root/'macos/build/gallery'; out.mkdir(parents=True, exist_ok=True)
+out = root/'macos/build/gallery'
 def utc(s): return datetime.fromisoformat(s.replace('Z', '+00:00')).timestamp()
 ny = {'dayNight': 1, 'latitude': 40.7128, 'longitude': -74.006, 'timeZone': 'America/New_York'}
 scenes = {
@@ -22,75 +22,92 @@ scenes = {
     'moonlit_night': {**ny, 'utc': utc('2026-10-31T02:10:00Z'), 'heading': 60.0059176808, 'clouds': 0.15, 'veil': 0.1},
     'starry_night': {**ny, 'utc': utc('2026-06-21T04:00:00Z'), 'heading': 155, 'clouds': 0.12, 'veil': 0.05},
     'dark_night': {**ny, 'utc': utc('2026-11-10T04:00:00Z'), 'heading': 270},
-    'arctic_night': {'dayNight': 1, 'latitude': 69.6, 'longitude': 18.9, 'timeZone': 'Europe/Oslo', 'utc': utc('2026-12-15T21:00:00Z'), 'heading': 0, 'clouds': 0.05},
-    'thunderstorm': {'storm': 0.75, 'sunElev': 20},
-    'hurricane_night': {**ny, 'storm': 1, 'utc': 1793417400},
-    'after_rain': {'storm': 0.3, 'sunElev': 9, 'clouds': 0.5},
-    'aurora_arctic': {'dayNight': 1, 'latitude': 69.6, 'longitude': 18.9, 'timeZone': 'Europe/Oslo', 'utc': utc('2026-12-15T21:00:00Z'), 'heading': 0, 'clouds': 0.05, 'aurora': 1, 'meteors': 0},
-    'aurora_storm': {'dayNight': 1, 'latitude': 64.1, 'longitude': -21.9, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-20T01:00:00Z'), 'heading': 330, 'clouds': 0.25, 'aurora': 2.5, 'meteors': 0},
-    'meteor_shower_a': {**ny, 'utc': utc('2026-12-14T07:00:00Z'), 'heading': 120, 'clouds': 0.05, 'veil': 0.05, 'aurora': 0, 'meteors': 60, 'time': 31.2},
-    'meteor_shower_b': {**ny, 'utc': utc('2026-12-14T07:00:00Z'), 'heading': 120, 'clouds': 0.05, 'veil': 0.05, 'aurora': 0, 'meteors': 60, 'time': 47.9},
-    'aurora_max': {'dayNight': 1, 'latitude': 69.6, 'longitude': 18.9, 'timeZone': 'Europe/Oslo', 'utc': utc('2026-12-15T21:00:00Z'), 'heading': 200, 'clouds': 0.05, 'aurora': 4, 'meteors': 0},
-    'bioluminescent_surf': {**ny, 'utc': utc('2026-11-10T04:00:00Z'), 'heading': 270, 'windSpeed': 13, 'bio': 1.5, 'aurora': 0},
-    'sun_shafts': {'sunElev': 5, 'clouds': 0.7, 'veil': 0.2},
-    'storm_breaking': {'storm': 0.45, 'sunElev': 7, 'clouds': 0.85},
-    'ice_halo': {'sunElev': 12, 'clouds': 0.05, 'veil': 0.55},
-    'moon_halo': {**ny, 'utc': utc('2026-10-31T02:10:00Z'), 'heading': 60.0059176808, 'clouds': 0.02, 'veil': 0.5},
-    'rainbow': {'storm': 0.3, 'sunElev': 10, 'sunAzim': 184, 'clouds': 0.45},
-    'rainbow_low_sun': {'storm': 0.22, 'sunElev': 4, 'sunAzim': 200, 'clouds': 0.35},
-    'moonbow': {**ny, 'utc': utc('2026-10-31T02:10:00Z'), 'heading': 240.0059176808, 'storm': 0.25, 'clouds': 0.3},
-    'seabirds_sunset': {**ny, 'utc': utc('2026-10-30T21:35:00Z'), 'heading': 250, 'birds': 0.5},
-    'seabirds_day': {'sunElev': 25, 'clouds': 0.3, 'birds': 0.42},
-    'waterspout': {'storm': 0.55, 'sunElev': 12, 'clouds': 0.7, 'spout': 1},
-    'solar_eclipse': {'dayNight': 1, 'latitude': 43.26, 'longitude': -2.93, 'timeZone': 'Europe/Madrid',
-                      'utc': utc('2026-08-12T18:27:35Z'), 'heading': 282.68, 'clouds': 0.15},
-    'eclipse_partial': {'dayNight': 1, 'latitude': 43.26, 'longitude': -2.93, 'timeZone': 'Europe/Madrid',
-                        'utc': utc('2026-08-12T18:21:00Z'), 'heading': 282.0, 'clouds': 0.15},
-    'noctilucent': {'dayNight': 1, 'latitude': 55.95, 'longitude': -3.19, 'timeZone': 'Europe/London',
-                    'utc': utc('2026-06-25T00:15:00Z'), 'heading': 0, 'clouds': 0.08, 'veil': 0.05, 'aurora': 0, 'nlc': 1},
-    'comet': {**ny, 'utc': utc('2026-10-30T23:05:00Z'), 'heading': 245, 'clouds': 0.1, 'veil': 0.05, 'aurora': 0, 'meteors': 0, 'comet': 1},
-    'green_flash': {'sunElev': -0.19, 'clouds': 0.1, 'veil': 0.05},
-    'lunar_eclipse': {'dayNight': 1, 'latitude': 39.10, 'longitude': -94.58, 'timeZone': 'America/Chicago',
-                      'utc': utc('2026-03-03T11:35:00Z'), 'heading': 266.4, 'clouds': 0.1},
-    'everything_night': {'dayNight': 1, 'latitude': 66.0, 'longitude': -18.0, 'timeZone': 'Atlantic/Reykjavik', 'utc': utc('2026-12-14T02:00:00Z'), 'heading': 20, 'clouds': 0.1, 'windSpeed': 12, 'aurora': 1.6, 'meteors': 60, 'bio': 1.2},
+    'rain': {**ny, 'utc': utc('2026-10-30T16:40:00Z'), 'storm': 0.4},
+    'thunderstorm': {**ny, 'utc': utc('2026-10-30T16:40:00Z'), 'storm': 0.75},
+    'hurricane_night': {**ny, 'utc': utc('2026-11-10T04:00:00Z'), 'heading': 270, 'storm': 1},
+    'raised_storm_wave': {**ny, 'utc': utc('2026-11-10T04:00:00Z'), 'heading': 270, 'storm': 1, 'time': 60, 'fixedDt': 0},
+    'portrait': {**ny, 'utc': utc('2026-10-30T21:45:00Z'), 'heading': 250, 'renderWidth': 759, 'renderHeight': 1349},
 }
-selected = sys.argv[1:] or list(scenes)
-results = []
-for name in selected:
-    target = out/f'{name}.rgba16f'
-    q = {'fixedDt': 0.0333333333, 'time': 30, 'dump': target, **scenes[name]}
-    p = subprocess.run([str(app), '--verify', '--query=' + '&'.join(f'{k}={v}' for k, v in q.items())],
-                       capture_output=True, text=True, timeout=180)
-    (out/f'{name}.log').write_text(p.stdout + p.stderr)
-    diag = [s.removeprefix('Ocean diagnostics: ') for s in p.stdout.splitlines() if s.startswith('Ocean diagnostics: ')]
-    d = json.loads(diag[-1]) if diag else {}
-    w, h = d.get('width', 1280), d.get('height', 800)
-    raw = Path(str(target) + '.bgra8')
-    ok = p.returncode == 0 and raw.is_file()
-    if ok:
-        Image.frombytes('RGBA', (w, h), raw.read_bytes(), 'raw', 'BGRA').convert('RGB').save(out/f'{name}.png')
-    results.append({'scene': name, 'ok': ok, 'returncode': p.returncode, 'width': w, 'height': h,
-                    'gpuMs': d.get('gpuMs'), 'errors': d.get('errors'), 'tail': (p.stdout + p.stderr)[-1500:] if not ok else ''})
-    print(json.dumps(results[-1]), flush=True)
-pngs = [out/f'{r["scene"]}.png' for r in results if r['ok']]
-if pngs:
-    thumbs = [Image.open(p).resize((640, 400)) for p in pngs]
-    cols = 3; rows = (len(thumbs) + cols - 1)//cols
-    sheet = Image.new('RGB', (640*cols, 400*rows))
-    for i, t in enumerate(thumbs): sheet.paste(t, ((i % cols)*640, (i//cols)*400))
-    sheet.save(out/'contact.png')
-night = {k: v for k, v in scenes['everything_night'].items() if k != 'time'}
-benchmarks = {'default': {}, 'night_effects_off': {**night, 'aurora': 0, 'meteors': 0, 'bio': 0}, 'night_effects_on': night, 'shafts_off': {**scenes['sun_shafts'], 'shafts': 0}, 'shafts_on': scenes['sun_shafts'], 'birds_on': {'birds': 0.5}}
-bench_results = {}
-for label, extra in benchmarks.items():
-    bench = out/f'benchmark-{label}.json'
-    q = {'fixedDt': 0.0333333333, 'frames': 240, 'report': bench, **extra}
-    p = subprocess.run([str(app), '--benchmark', '--query=' + '&'.join(f'{k}={v}' for k, v in q.items())], capture_output=True, text=True, timeout=300)
-    (out/f'benchmark-{label}.log').write_text(p.stdout + p.stderr)
-    bench_results[label] = json.loads(bench.read_text()) if bench.is_file() else None
-    b = bench_results[label] or {}
-    print(f"benchmark {label}: median {b.get('gpuMedianMs')} ms, p95 {b.get('gpuP95Ms')} ms")
-(out/'gallery.json').write_text(json.dumps({'scenes': results, 'benchmarks': bench_results}, indent=2))
-for r in results:
-    for f in [out/f'{r["scene"]}.rgba16f', Path(str(out/f'{r["scene"]}.rgba16f') + '.bgra8')]: f.unlink(missing_ok=True)
-sys.exit(0 if all(r['ok'] for r in results) else 1)
+benchmarks = {name: scenes[name] for name in ['noon', 'dark_night', 'hurricane_night']}
+
+def valid_background(d):
+    return (d.get('offscreen') is True and d.get('windowCount') == 0 and d.get('activationPolicy') == 2
+            and d.get('errors') == [] and d.get('solarCacheWrites') == 0)
+
+def finite_positive(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0
+
+def run_app(binary, mode, query, runner, timeout):
+    return runner([str(binary), mode, '--query='+'&'.join(f'{k}={v}' for k,v in query.items())],
+                  capture_output=True, text=True, timeout=timeout)
+
+def capture(name, settings, directory=out, binary=app, runner=subprocess.run):
+    directory.mkdir(parents=True, exist_ok=True)
+    target=directory/f'{name}.rgba16f'; raw=Path(str(target)+'.bgra8'); png=directory/f'{name}.png'
+    for p in [target, raw, png]: p.unlink(missing_ok=True)
+    result={'scene':name,'ok':False}
+    try:
+        q={'fixedDt':0.0333333333,'time':30,'dump':target,**settings}
+        p=run_app(binary,'--verify',q,runner,180)
+        (directory/f'{name}.log').write_text(p.stdout+p.stderr)
+        result['returncode']=p.returncode
+        if p.returncode: raise ValueError(f'Capture exited {p.returncode}')
+        lines=[s.removeprefix('Ocean diagnostics: ') for s in p.stdout.splitlines() if s.startswith('Ocean diagnostics: ')]
+        if not lines: raise ValueError('Missing capture diagnostics')
+        d=json.loads(lines[-1]);w,h=d.get('width'),d.get('height')
+        if not valid_background(d): raise ValueError('Capture diagnostics failed background/error/cache checks')
+        if not isinstance(w,int) or not isinstance(h,int) or w<=0 or h<=0: raise ValueError('Invalid capture dimensions')
+        if not raw.is_file() or raw.stat().st_size!=w*h*4: raise ValueError('Missing or truncated display capture')
+        Image.frombytes('RGBA',(w,h),raw.read_bytes(),'raw','BGRA').convert('RGB').save(png)
+        result.update(ok=True,width=w,height=h,gpuMs=d.get('gpuMs'))
+    except (ValueError,OSError,subprocess.SubprocessError) as e: result['error']=str(e)
+    return result
+
+def benchmark(name, settings, directory=out, binary=app, runner=subprocess.run):
+    directory.mkdir(parents=True, exist_ok=True)
+    report=directory/f'benchmark-{name}.json'
+    # A failed run must never inherit an older successful report.
+    report.unlink(missing_ok=True)
+    result={'name':name,'ok':False}
+    try:
+        q={'fixedDt':0.0333333333,'frames':240,'report':report,**settings}
+        p=run_app(binary,'--benchmark',q,runner,300)
+        (directory/f'benchmark-{name}.log').write_text(p.stdout+p.stderr)
+        result['returncode']=p.returncode
+        if p.returncode: raise ValueError(f'Benchmark exited {p.returncode}')
+        if not report.is_file(): raise ValueError('Missing benchmark report')
+        d=json.loads(report.read_text())
+        if not valid_background(d) or d.get('profiled') is not False: raise ValueError('Benchmark diagnostics failed')
+        if not all(finite_positive(d.get(k)) for k in ['samples','gpuMedianMs','gpuMeanMs','gpuP95Ms']):
+            raise ValueError('Missing or invalid timing samples')
+        result.update(ok=True,diagnostics=d)
+    except (ValueError,OSError,subprocess.SubprocessError) as e: result['error']=str(e)
+    return result
+
+def main(arguments):
+    selected=arguments or list(scenes)
+    unknown=set(selected)-scenes.keys()
+    if unknown: raise SystemExit('Unknown scene(s): '+', '.join(sorted(unknown)))
+    out.mkdir(parents=True, exist_ok=True)
+    for p in [out/'gallery.json',out/'contact.png']: p.unlink(missing_ok=True)
+    results=[]
+    for name in selected:
+        r=capture(name,scenes[name]);results.append(r);print(json.dumps(r),flush=True)
+    pngs=[out/f'{r["scene"]}.png' for r in results if r['ok']]
+    if pngs:
+        sheet=Image.new('RGB',(640*3,400*((len(pngs)+2)//3)))
+        for i,p in enumerate(pngs):
+            with Image.open(p) as im: sheet.paste(im.resize((640,400)),((i%3)*640,(i//3)*400))
+        sheet.save(out/'contact.png')
+    timing={}
+    for name,settings in benchmarks.items():
+        r=benchmark(name,settings);timing[name]=r;print(json.dumps(r),flush=True)
+    passed=all(r['ok'] for r in results) and all(r['ok'] for r in timing.values())
+    (out/'gallery.json').write_text(json.dumps({'passed':passed,'scenes':results,'benchmarks':timing},indent=2)+'\n')
+    # Keep failed captures for diagnosis; successful PNGs/reports remain available.
+    for r in results:
+        if r['ok']:
+            for p in [out/f'{r["scene"]}.rgba16f',out/f'{r["scene"]}.rgba16f.bgra8']: p.unlink(missing_ok=True)
+    return 0 if passed else 1
+
+if __name__=='__main__': sys.exit(main(sys.argv[1:]))

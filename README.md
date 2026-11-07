@@ -17,17 +17,13 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Volumetric clouds, scene-space rain, gradual storm transitions | Implemented |
 | Local sunrise/sunset, independent Sun/Moon motion, remote starry sky | Implemented |
 | Approximate IP location, cached weather and offline fallback | Implemented; no GPS permission prompt |
-| Desktop wallpaper behind icons on every display and Space, menu bar controls, Open at Login | Implemented (`open macos/build/Ocean.app`; `--preview` for the old window) |
-| Pause when covered, display/system sleep, lock, screensaver, inactive session or manual pause | Implemented |
-| Adaptive governor: frame rate and pixel budget follow battery, Low Power Mode, thermal state, display refresh and desktop coverage | Implemented; see [`PerformancePolicy.swift`](macos/PerformancePolicy.swift) |
-| Aurora arcs, meteor showers (real annual calendar) and bioluminescent surf, scheduled per local night | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`NightEffects.swift`](macos/NightEffects.swift) |
-| Crepuscular sun rays, 22° ice halos and sun dogs in cirrus (sun and moon), primary/secondary rainbows (moonbows at night) in sunlit rain | Implemented; see [`SHAFTS.metal`](macos/Shaders/SHAFTS.metal), [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc) |
-| Real solar and lunar eclipses on their actual dates and places (Meeus lunar terms): Moon covers the Sun, corona at totality, copper umbra | Implemented; see [`CelestialCycle.swift`](macos/CelestialCycle.swift), [`SKY_BG.metal`](macos/Shaders/SKY_BG.metal) |
-| Great comets: rare two-week apparitions with coma, curved dust tail and blue ion tail pointing away from the Sun | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`NightEffects.swift`](macos/NightEffects.swift) |
-| Noctilucent clouds (summer twilight, 50–70° latitude) and the green flash on the last solar limb | Implemented; see [`AURORA.metalinc`](macos/Shaders/AURORA.metalinc), [`SKY_BG.metal`](macos/Shaders/SKY_BG.metal) |
-| Gull flocks at dawn/dusk (vertex-generated, flapping/gliding) and storm waterspouts, both on deterministic schedules | Implemented; see [`BIRDS.metal`](macos/Shaders/BIRDS.metal), [`NightEffects.swift`](macos/NightEffects.swift) |
+| Desktop windows behind icons, menu bar controls and shared HDR presentation across displays | Implemented on this branch; real display arrangements need manual verification |
+| Adaptive frame rate and resolution for coverage, power and thermal state | Implemented with conservative visibility checks |
+| Pause on occlusion, minimization, lock, screensaver, sleep and inactive session | Implemented |
 | Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
-| Shared multi-display renderer | Implemented: one simulation and HDR frame, cheap per-display composite (`fs_mirror`) |
+| Shared simulation/HDR across displays | Host implemented; physical multi-monitor verification remains open |
+| Regional rendering demand | Planned; pure demand/layout contracts and a diagnostic exist |
+| Open at Login | Registration control provided; installed/signed bundle behavior needs manual verification |
 
 The objective is a lightweight, continuous wallpaper with real local daylight and weather, a fixed ocean composition, and cinematic nights without city light pollution. Inland weather drives an idealized sea state; it is not a marine swell forecast.
 
@@ -44,9 +40,13 @@ open macos/build/Ocean.app
 
 No npm packages, Python, Rust, development server or downloaded assets are required for the native build. Swift builds the app bundle; packaged Metal sources compile into retained pipeline states at startup. The included galaxy asset is ready to use. See its [credits and provenance](macos/Assets/Galaxy/CREDITS.md).
 
-The app runs as a wallpaper with a menu bar (wave) icon: pause, daylight/weather, frame rate (Adaptive/60/30/20/15), quality budget, displays and Open at Login. `macos/build/Ocean.app/Contents/MacOS/Ocean --preview` opens the resizable development window instead. The camera remains fixed. Night events can be forced for previews with `--query=aurora=2&meteors=40&bio=1` (0 disables); `shafts=0` disables sun rays; `birds=0.5` / `spout=1` force a gull flock or waterspout (0 disables); `nlc=1` forces noctilucent clouds in deep twilight; `comet=1` forces a comet apparition.
+The app starts in desktop wallpaper mode with a wave icon in the menu bar. It offers pause, local daylight/weather, frame-rate and resolution budgets, display selection, and Open at Login. For the original resizable/full-screen development window, use:
 
-`python3 macos/Tests/render_gallery.py` renders a windowless scene gallery plus day/night-effects GPU benchmarks; the `GPU gallery` workflow runs it, the unit tests and a live wallpaper smoke test on GitHub's macOS runner on every push.
+```sh
+macos/build/Ocean.app/Contents/MacOS/Ocean --preview
+```
+
+The camera remains fixed. Use weather controls for manual storm previews or automatic mode for local weather. Quit through the menu bar. See [the desktop host and verification limits](docs/wallpaper-host.md).
 
 The preview caps its internal image at approximately 1,024,000 pixels, preserves aspect ratio and defaults to 30 FPS. The standard 1280×800 view uses 98,304 ocean triangles. Wave simulation updates six periodic 256×256 FFT bands; these are reusable wave tiles rather than a fully meshed world. Geometry is concentrated in the viewport with sparse displacement guards, including a near patch behind the camera that prevents holes during overtaking storm waves.
 
@@ -89,7 +89,7 @@ Solar timings and hourly celestial samples are cached daily; real UTC drives the
 
 ## Continue development
 
-Read [the handoff](docs/handoff.md) before changing render architecture. The next milestone is to separate shared ocean/environment state from display surfaces, validate presentation demand and reveal behavior, then integrate desktop wallpaper windows. Preserve the current fixed view, no-prompt IP location, continuous transitions, bounded GPU work and windowless automated tests.
+Read [the handoff](docs/handoff.md) before changing render architecture. The desktop host now shares one simulation/HDR frame and composites it to visible displays. The next milestone is to validate real multi-display, Space/full-screen and reveal behavior, then improve environment ownership and installed-app lifecycle. Preserve the current fixed view, no-prompt IP location, continuous transitions, bounded GPU work and windowless automated tests.
 
 Current limitations include approximate lunar positioning, procedural resolved stars, approximate cloud multiple scattering, a height-field underwater treatment, and no shoreline or overturning breakers. Startup shader compilation and reduced internal resolution are deliberate tradeoffs. Performance reports in `docs/` identify their scenes and revisions; compare matched before/after runs rather than combining timings from different versions. The latest storm-water correction measured about 10.62 → 10.58 ms mean GPU time in a short M1 comparison; this is not a battery-life claim.
 

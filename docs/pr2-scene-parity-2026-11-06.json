@@ -1,0 +1,76 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "scene": "noon",
+      "settings": {
+        "dayNight": 1,
+        "latitude": 40.7128,
+        "longitude": -74.006,
+        "timeZone": "America/New_York",
+        "utc": 1793378400,
+        "heading": 180
+      },
+      "exact": true,
+      "outputs": {
+        "HDR": {
+          "bytes": 8192000,
+          "sha256": "7c3df964497c10033b495bd196a358beb053eaf12c891281646aba8e47e240ff"
+        },
+        "display": {
+          "bytes": 4096000,
+          "sha256": "e94795607acd53b920737df05adb64da6d403c9212dda2ea02849010bad74524"
+        }
+      }
+    },
+    {
+      "scene": "starry_night",
+      "settings": {
+        "dayNight": 1,
+        "latitude": 40.7128,
+        "longitude": -74.006,
+        "timeZone": "America/New_York",
+        "utc": 1782014400,
+        "heading": 155,
+        "clouds": 0.12,
+        "veil": 0.05
+      },
+      "exact": true,
+      "outputs": {
+        "HDR": {
+          "bytes": 8192000,
+          "sha256": "3fba8c7b117174a63e5ed4d57588e8b882e2cf821130e12c3c954c4bac5bce70"
+        },
+        "display": {
+          "bytes": 4096000,
+          "sha256": "da71a9cd59e63c1ed4c7c85e8fcb5bb279088a5ac761857cb2d9c798b61557e4"
+        }
+      }
+    },
+    {
+      "scene": "storm_night",
+      "settings": {
+        "dayNight": 1,
+        "latitude": 40.7128,
+        "longitude": -74.006,
+        "timeZone": "America/New_York",
+        "utc": 1794283200,
+        "heading": 270,
+        "storm": 1,
+        "time": 60
+      },
+      "exact": true,
+      "outputs": {
+        "HDR": {
+          "bytes": 8192000,
+          "sha256": "d6eb6be3100e0c35b714b945c6bad485d4798c96d743a73d181dea7e01b654ff"
+        },
+        "display": {
+          "bytes": 4096000,
+          "sha256": "7209aac714f7de5bf24ebb676486ccf5865ec59e4b002f68fc7c5c136497d518"
+        }
+      }
+    }
+  ],
+  "scope": "Matched offscreen captures against a separately built main app. Host modifications preserve these three core scenes; this does not test physical multi-monitor presentation."
+}

@@ -127,6 +127,11 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let diagnostics = CommandLine.arguments.contains("--diagnostics") || CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--profile") || CommandLine.arguments.contains("--benchmark")
         do {
             renderer = try OceanRenderer(view: viewport, diagnostics: diagnostics, options: options)
+            if OceanRunMode.offscreen && options["testIdleDiagnostics"] == "1" {
+                // A covered wallpaper can receive diagnostic ticks before any
+                // scene textures or uniforms have been initialized.
+                renderer?.printDiagnostics()
+            }
             if OceanRunMode.offscreen {
                 // No NSWindow, display link, drawable acquisition or activation.
                 renderer?.isPaused = false
@@ -334,7 +339,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             for info in list {
                 guard (info[kCGWindowLayer as String] as? Int) == 0,
                       (info[kCGWindowOwnerPID as String] as? Int32) != me,
-                      (info[kCGWindowAlpha as String] as? Double ?? 1) > 0.5,
+                      (info[kCGWindowAlpha as String] as? Double ?? 1) >= 0.999,
                       let bounds = info[kCGWindowBounds as String] as? NSDictionary,
                       let rect = CGRect(dictionaryRepresentation: bounds as CFDictionary) else { continue }
                 covers.append(rect)

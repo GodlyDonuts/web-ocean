@@ -10,7 +10,7 @@ source .venv/bin/activate
 python3 -m pip install -r requirements-dev.txt
 ```
 
-Use `zsh macos/build.sh` after changes to Swift, shaders, the manifest or packaged assets. Editing a shader source without rebuilding/copying the app resources does not update a running app's retained pipelines. For final interactive review, reopen the app once after building.
+Use `zsh macos/build.sh` after changes to Swift, shaders, the manifest or packaged assets. Editing a shader source without rebuilding/copying the app resources does not update a running app's retained pipelines. For final interactive review, reopen the app once after building; use `--preview` for a development window.
 
 ## Maintained gates
 
@@ -56,3 +56,15 @@ Measure normal unprofiled command-buffer times after warmup, using the same reso
 `python3 macos/Tests/benchmark.py --help` describes isolated baseline modes. Several preserve historical appearances, so label differences clearly; they are not all equivalent-quality comparisons. Record mean/median/P95, CPU encode time and allocations separately. Whole-system energy, WindowServer behavior and reveal latency need separate measurements. Lower GPU time alone does not prove longer battery life.
 
 CI deliberately runs native compilation and CPU tests without assuming a hosted GPU. The browser CI job installs npm dependencies and rebuilds the reference artifacts. Real Metal validation and interactive wallpaper behavior require a supported Mac.
+
+## Desktop host regression checks
+
+`PerformancePolicyTests` checks sub-grid visible strips/gaps as well as exact full rectangle coverage. `python3 macos/Tests/test_render_gallery.py` injects failed processes, stale/missing reports, nonfinite timings and invalid GPU diagnostics; any benchmark failure must fail the gallery. `python3 macos/Tests/render_gallery.py` captures the core ocean scenes and validates three benchmarks, with no saved baseline required.
+
+After building, run the offscreen startup/recreated-view fixture with `python3 macos/Tests/verify_wallpaper_lifecycle.py` (also part of `test-current.sh`), or the sizing-only diagnostic:
+
+```sh
+MTL_DEBUG_LAYER=1 MTL_SHADER_VALIDATION=1 macos/build/Ocean.app/Contents/MacOS/Ocean --verify '--query=fixedDt=0&dayNight=0&testSurfaceSizing=1'
+```
+
+The fixture creates a replacement MTKView with an intentionally wrong drawable size while retaining the shared HDR dimensions, and checks that the budget is applied. It creates no window. [Desktop host verification](wallpaper-host.md) distinguishes this test from actual display hot-plug and login behavior. The GPU workflow uses a supported arm64 runner and runs windowless checks; it does not automatically place wallpaper windows on a desktop.

@@ -16,6 +16,7 @@
 - [Volumetric clouds and measurements](volumetric-clouds.md)
 - [Cinematic night illumination](cinematic-night-lighting.md)
 - [Camera waterline, overtaking storm waves and night foam](night-water-fix.md)
+- [Desktop wallpaper host and validation limits](wallpaper-host.md)
 - [Visibility diagnostic](../macos/Diagnostics/README.md)
 - [Galaxy asset attribution](../macos/Assets/Galaxy/CREDITS.md)
 - [Imported research and scope](../research/README.md)

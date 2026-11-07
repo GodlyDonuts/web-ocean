@@ -41,6 +41,19 @@ struct PerformancePolicyTests {
         check(abs(half-0.5) < 0.01, "half covered \(half)")
         let other = DesktopCoverage.visibleFraction(of: screen, covers: [CGRect(x: 2000, y: 0, width: 500, height: 600)])
         check(other == 1, "other display windows ignored")
-        print("PASS: performance policy and desktop coverage")
+        let hd=CGRect(x:0,y:0,width:1920,height:1080)
+        for cover in [CGRect(x:0,y:0,width:1910,height:1080),CGRect(x:10,y:0,width:1910,height:1080),
+                      CGRect(x:0,y:0,width:1920,height:1070),CGRect(x:0,y:10,width:1920,height:1070)] {
+            let visible=DesktopCoverage.visibleFraction(of:hd,covers:[cover])
+            check(visible>0 && visible<0.03,"sub-grid strip must remain visible")
+            input=PerformanceInputs();input.visibleFraction=visible
+            check(PerformancePolicy.decide(input).framesPerSecond==8,"sliver throttles instead of pausing")
+        }
+        check(DesktopCoverage.visibleFraction(of:hd,covers:[CGRect(x:0,y:0,width:950,height:1080),
+              CGRect(x:950,y:0,width:970,height:1080)])==0,"union of windows really covers desktop")
+        let gap=DesktopCoverage.visibleFraction(of:hd,covers:[CGRect(x:0,y:0,width:950,height:1080),
+              CGRect(x:960,y:0,width:960,height:1080)])
+        check(gap>0,"sub-grid interior gap remains visible")
+        print("PASS: performance policy, conservative strips/gaps and complete rectangle coverage")
     }
 }

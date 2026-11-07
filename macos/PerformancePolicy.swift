@@ -66,6 +66,27 @@ enum DesktopCoverage {
                 if !relevant.contains(where: { $0.contains(point) }) { open += 1 }
             }
         }
-        return Double(open)/Double(columns*rows)
+        if open>0 { return Double(open)/Double(columns*rows) }
+        // No sampled points is not proof of full occlusion: a narrow revealed
+        // strip can fall between every sample. Confirm with rectangle subtraction.
+        var uncovered=[screen]
+        for cover in relevant {
+            var next:[CGRect]=[]
+            for part in uncovered {
+                let cut=part.intersection(cover)
+                if cut.isNull || cut.isEmpty { next.append(part); continue }
+                if cut.minY>part.minY { next.append(CGRect(x:part.minX,y:part.minY,width:part.width,height:cut.minY-part.minY)) }
+                if cut.maxY<part.maxY { next.append(CGRect(x:part.minX,y:cut.maxY,width:part.width,height:part.maxY-cut.maxY)) }
+                if cut.minX>part.minX { next.append(CGRect(x:part.minX,y:cut.minY,width:cut.minX-part.minX,height:cut.height)) }
+                if cut.maxX<part.maxX { next.append(CGRect(x:cut.maxX,y:cut.minY,width:part.maxX-cut.maxX,height:cut.height)) }
+                // Bound worst-case fragmentation and fail open rather than freeze
+                // a possibly visible desktop or spend unbounded CPU on coverage.
+                if next.count>256 { return 1.0/Double(columns*rows) }
+            }
+            uncovered=next
+            if uncovered.isEmpty { return 0 }
+        }
+        let area=uncovered.reduce(0.0) { $0+Double($1.width*$1.height) }
+        return max(1.0/Double(columns*rows),area/Double(screen.width*screen.height))
     }
 }
