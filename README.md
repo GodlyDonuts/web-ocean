@@ -17,7 +17,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Fixed ocean viewpoint, animated waves, foam and reflections | Implemented |
 | Native Metal rendering, bounded resolution, 30 FPS default | Implemented |
 | Volumetric clouds, scene-space rain, gradual storm transitions | Implemented |
-| Local sunrise/sunset, visible nighttime Moon arc with real phases, remote starry sky | Implemented |
+| Shared centered Sun/Moon arc, local sunrise/sunset and real lunar phases | Implemented |
 | Approximate IP location, cached weather and offline fallback | Implemented; no GPS permission prompt |
 | Desktop windows behind icons, menu bar controls and shared HDR presentation across displays | Implemented on this branch; real display arrangements need manual verification |
 | Adaptive frame rate and resolution for coverage, power and thermal state | Implemented with conservative visibility checks |
@@ -73,7 +73,7 @@ For a quick CPU-only check, run `zsh macos/test-unit.sh`. For the broader develo
 
 The app looks up coarse location by public IP through `ipwho.is`, reuses it for astronomy and weather, and caches the result. Weather comes from Open-Meteo. Normal operation can therefore contact those services; neither is required for the deterministic GPU fixtures. No account or API key is required by the current implementation.
 
-Solar timings and hourly celestial samples are cached daily; real UTC drives the sky independently of wave phase. The Moon crosses the visible frame from sunset to sunrise while keeping its real date-dependent phase; see [Moon presentation](docs/wallpaper-moon.md). Weather is cached for 15 minutes and transitions continuously; IP location is refreshed infrequently, with a 24-hour cache. Saved state lives under `~/Library/Application Support/OceanWallpaper/`. Offline operation retains available cached state. See [day/night details](docs/day-night-cycle.md) and [weather behavior](docs/dynamic-weather.md).
+Solar timings and hourly celestial samples are cached daily; real UTC drives the sky independently of wave phase. The Sun and Moon repeat the same centered camera arc during day and night, timed to local sunrise/sunset. The Moon keeps its real date-dependent phase; see [celestial presentation](docs/wallpaper-moon.md). Weather is cached for 15 minutes and transitions continuously; IP location is refreshed infrequently, with a 24-hour cache. Saved state lives under `~/Library/Application Support/OceanWallpaper/`. Offline operation retains available cached state. See [day/night details](docs/day-night-cycle.md) and [weather behavior](docs/dynamic-weather.md).
 
 ## Where to work
 

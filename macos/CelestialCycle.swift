@@ -57,10 +57,11 @@ struct CelestialState {
 
 // Presentation is independent of the astronomical direction: repositioning
 // the Moon must not turn its real crescent into a full disk or reverse waxing.
-enum WallpaperMoon {
+enum WallpaperSky {
     static func direction(progress: Double, horizontalTangent: Double) -> SIMD3<Double> {
         let angle=Double.pi*progress
-        let halfWidth=atan(max(0.05,horizontalTangent)*0.76)
+        // Both bodies share the middle of the fixed shot, not the full sky.
+        let halfWidth=atan(max(0.05,horizontalTangent)*0.28)
         let azimuth = -halfWidth*cos(angle)
         let elevation=18*CelestialMath.rad*sin(angle)
         return SIMD3(sin(azimuth)*cos(elevation),sin(elevation),-cos(azimuth)*cos(elevation))
@@ -234,7 +235,7 @@ final class CelestialCycle {
         guard let day else { return nil }
         return CelestialMath.state(CelestialMath.interpolate(day,time:date.timeIntervalSince1970),at:date.timeIntervalSince1970,location:location,heading:heading)
     }
-    func wallpaperMoon(at date: Date, zone: TimeZone, horizontalTangent: Double) -> SIMD3<Double>? {
+    func wallpaperBodies(at date: Date, zone: TimeZone, horizontalTangent: Double) -> (sun: SIMD3<Double>,moon: SIMD3<Double>)? {
         guard let day,let location,day.matches(date,location:location,zone:zone) else { return nil }
         let t=date.timeIntervalSince1970
         var progress: Double
@@ -259,7 +260,14 @@ final class CelestialCycle {
             // the upper half centered on local solar midnight.
             progress=(t-day.solarNoon)/43200-0.5
         }
-        return WallpaperMoon.direction(progress:progress,horizontalTangent:horizontalTangent)
+        var sun=WallpaperSky.direction(progress:progress+1,horizontalTangent:horizontalTangent)
+        var moon=WallpaperSky.direction(progress:progress,horizontalTangent:horizontalTangent)
+        if day.daylight == "polarNight" { sun.y = -abs(sun.y) }
+        if day.daylight == "polarDay" { sun.y=abs(sun.y);moon.y = -abs(moon.y) }
+        return (sun,moon)
+    }
+    func wallpaperMoon(at date: Date, zone: TimeZone, horizontalTangent: Double) -> SIMD3<Double>? {
+        wallpaperBodies(at:date,zone:zone,horizontalTangent:horizontalTangent)?.moon
     }
     static var supportDirectory: URL {
         FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("OceanWallpaper",isDirectory:true)

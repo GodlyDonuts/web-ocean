@@ -30,7 +30,7 @@ Use `git status` before and after work. Build products, Python environments, cap
 
 The app has six-cascade FFT waves, persistent foam clipmaps, volumetric low clouds, high wisps, environment reflections, geometric rain particles, lightning/mist and continuous weather-driven sea state. A NASA/Gaia-derived galaxy asset ships locally; 12,000 analytic point sprites provide resolved stars.
 
-Astronomy uses daily cached solar timings and hourly celestial samples. The Sun remains geographic; the [displayed Moon crosses the visible frame at night with real phases](wallpaper-moon.md). UTC is independent of wave phase. Approximate IP location is cached for 24 hours. Weather uses cached Open-Meteo conditions and smooth state transitions. See [day/night](day-night-cycle.md) and [weather](dynamic-weather.md).
+Astronomy uses daily cached solar timings and hourly celestial samples. [Both bodies share one centered camera arc](wallpaper-moon.md): the Sun during daylight and the Moon at night, with real lunar phases. UTC is independent of wave phase. Approximate IP location is cached for 24 hours. Weather uses cached Open-Meteo conditions and smooth state transitions. See [day/night](day-night-cycle.md) and [weather](dynamic-weather.md).
 
 The latest appearance work separates the camera's dim night backdrop from the cinematic illumination of water/clouds; suppresses stars through clouds; and fades galactic contrast with cloud cover. The storm-water fix extends the near guard geometry behind the eye, corrects raised-crest footprints/Fresnel, lights foam consistently, removes foam on wave undersides and handles submerged backgrounds. See [waterline details](night-water-fix.md). The camera's low-height override is verification-only.
 

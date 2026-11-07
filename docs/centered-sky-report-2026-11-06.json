@@ -1,0 +1,371 @@
+{
+  "date": "2026-11-06",
+  "baselineCommit": "a7c5746d1d657765bfaee208f976d561e9ced17d",
+  "scope": "Both displayed bodies share one camera-centered arc; real local sunrise/sunset schedule and lunar phases retained. No new textures, passes or timers.",
+  "CPU": {
+    "cachedArcMicroseconds": 0.1199960708618164,
+    "fixtures": [
+      {
+        "direction": [
+          -0.12451190668205273,
+          0.2629474971122332,
+          -0.9567420754084205
+        ],
+        "illuminatedFraction": 0.0024345182892583916,
+        "name": "new",
+        "phaseLight": [
+          -0.0657389646602958,
+          0.18720237093283243,
+          -0.9801192074653565
+        ],
+        "utc": 1712631600
+      },
+      {
+        "direction": [
+          -0.1259951917588221,
+          0.26176007411984653,
+          -0.9568734896789804
+        ],
+        "illuminatedFraction": 0.5263378048294749,
+        "name": "waxing_quarter",
+        "phaseLight": [
+          0.6954821501866386,
+          -0.6829481084192737,
+          -0.22335277024990247
+        ],
+        "utc": 1713236400
+      },
+      {
+        "direction": [
+          -0.1280394226477582,
+          0.2600926969326114,
+          -0.9570567878921028
+        ],
+        "illuminatedFraction": 0.999604128847106,
+        "name": "full",
+        "phaseLight": [
+          0.13946869333867734,
+          -0.2962131333543373,
+          0.944884259159188
+        ],
+        "utc": 1713927600
+      },
+      {
+        "direction": [
+          -0.13018988694902822,
+          0.25829939043117534,
+          -0.9572523273615388
+        ],
+        "illuminatedFraction": 0.5294580899097314,
+        "name": "waning_quarter",
+        "phaseLight": [
+          -0.7704177712643239,
+          -0.6375139302832521,
+          -0.005696175463671627
+        ],
+        "utc": 1714532400
+      },
+      {
+        "direction": [
+          -0.21092570730793309,
+          0.1470092080591862,
+          -0.9663843121359427
+        ],
+        "illuminatedFraction": 0.7231714538497662,
+        "name": "arc_before",
+        "utc": 1793404850
+      },
+      {
+        "direction": [
+          -0.1956779543434179,
+          0.17777475027154752,
+          -0.96442017624574
+        ],
+        "illuminatedFraction": 0.7209653936931921,
+        "name": "arc_after",
+        "utc": 1793406650
+      },
+      {
+        "anchorUTC": 1793365200,
+        "body": "sun",
+        "direction": [
+          -0.21174810035181232,
+          0.1451002999018405,
+          -0.9664929616742145
+        ],
+        "illuminatedFraction": 1,
+        "name": "sun_arc_before",
+        "utc": 1793365250
+      },
+      {
+        "anchorUTC": 1793365200,
+        "body": "sun",
+        "direction": [
+          -0.1918691777649406,
+          0.18438037649707428,
+          -0.9639450686561982
+        ],
+        "illuminatedFraction": 1,
+        "name": "sun_arc_after",
+        "utc": 1793367050
+      },
+      {
+        "body": "sun",
+        "direction": [
+          -7.087445511855186e-17,
+          0.3090169943749474,
+          -0.9510565162951535
+        ],
+        "illuminatedFraction": 1,
+        "name": "sun_midday",
+        "utc": 1793378363.666439
+      },
+      {
+        "body": "moon",
+        "direction": [
+          -1.417489102371037e-17,
+          0.3090169943749474,
+          -0.9510565162951535
+        ],
+        "illuminatedFraction": 0.7024424051731318,
+        "name": "moon_midnight",
+        "utc": 1793421598.48938
+      }
+    ],
+    "passed": true
+  },
+  "GPU": {
+    "passed": true,
+    "cases": [
+      {
+        "name": "new",
+        "body": "moon",
+        "illuminatedFraction": 0.0024345182892583916,
+        "expectedPixel": [
+          543.0883657923197,
+          124.90888850860698
+        ],
+        "diskEnergyAboveBackground": 0.158673949432373,
+        "peak": 0.012789450073242187,
+        "errors": []
+      },
+      {
+        "name": "waxing_quarter",
+        "body": "moon",
+        "illuminatedFraction": 0.5263378048294749,
+        "expectedPixel": [
+          541.9597444622458,
+          125.89136160449152
+        ],
+        "diskEnergyAboveBackground": 8.029735482025147,
+        "peak": 0.4130166542053223,
+        "errors": [],
+        "measuredPixel": [
+          543.4360657195674,
+          127.41352332572495
+        ]
+      },
+      {
+        "name": "full",
+        "body": "moon",
+        "illuminatedFraction": 0.999604128847106,
+        "expectedPixel": [
+          540.4058302319324,
+          127.26980497694736
+        ],
+        "diskEnergyAboveBackground": 20.809235595703125,
+        "peak": 0.7884223861694336,
+        "errors": [],
+        "measuredPixel": [
+          540.5518323683616,
+          127.26368703367619
+        ]
+      },
+      {
+        "name": "waning_quarter",
+        "body": "moon",
+        "illuminatedFraction": 0.5294580899097314,
+        "expectedPixel": [
+          538.7731055780055,
+          128.75087428939312
+        ],
+        "diskEnergyAboveBackground": 7.215830393218994,
+        "peak": 0.5137773277282714,
+        "errors": [],
+        "measuredPixel": [
+          537.2189741796499,
+          130.0683869694291
+        ]
+      },
+      {
+        "name": "arc_before",
+        "body": "moon",
+        "illuminatedFraction": 0.7231714538497662,
+        "expectedPixel": [
+          479.41677223938154,
+          218.07639972772992
+        ],
+        "diskEnergyAboveBackground": 9.772483448791505,
+        "peak": 0.4560987045288086,
+        "errors": [],
+        "measuredPixel": [
+          478.32662544653033,
+          219.09684191984218
+        ]
+      },
+      {
+        "name": "arc_after",
+        "body": "moon",
+        "illuminatedFraction": 0.7209653936931921,
+        "expectedPixel": [
+          490.25052848510023,
+          193.83833497073266
+        ],
+        "diskEnergyAboveBackground": 11.165196638488771,
+        "peak": 0.433348161315918,
+        "errors": [],
+        "measuredPixel": [
+          489.0367599520489,
+          194.90648163431075
+        ]
+      },
+      {
+        "name": "sun_arc_before",
+        "body": "sun",
+        "illuminatedFraction": 1,
+        "expectedPixel": [
+          478.840159775716,
+          219.57049732332078
+        ],
+        "diskEnergyAboveBackground": 2441019.736089453,
+        "peak": 63017.286916210935,
+        "errors": [],
+        "measuredPixel": [
+          478.87252562515863,
+          219.47148525409943
+        ]
+      },
+      {
+        "name": "sun_arc_after",
+        "body": "sun",
+        "illuminatedFraction": 1,
+        "expectedPixel": [
+          492.9928945130476,
+          188.5932942565835
+        ],
+        "diskEnergyAboveBackground": 2574595.610515625,
+        "peak": 63995.9753892578,
+        "errors": [],
+        "measuredPixel": [
+          492.97691579944836,
+          188.65647975887825
+        ]
+      },
+      {
+        "name": "sun_midday",
+        "body": "sun",
+        "illuminatedFraction": 1,
+        "expectedPixel": [
+          639.9999999999999,
+          86.23108439499649
+        ],
+        "diskEnergyAboveBackground": 3262243.5271187495,
+        "peak": 65500.859508984366,
+        "errors": [],
+        "measuredPixel": [
+          640.0000000000001,
+          86.10615168796107
+        ]
+      },
+      {
+        "name": "moon_midnight",
+        "body": "moon",
+        "illuminatedFraction": 0.7024424051731318,
+        "expectedPixel": [
+          640.0,
+          86.23108439499649
+        ],
+        "diskEnergyAboveBackground": 15.175375302124023,
+        "peak": 0.7132490036010742,
+        "errors": [],
+        "measuredPixel": [
+          639.0529618725952,
+          87.64909248751846
+        ]
+      }
+    ],
+    "scope": "Actual Metal default-path disks, phase-dependent radiance and accelerated 30-minute motion from one UTC anchor and fixed camera. Metal validation enabled. CPU tests separately verify exact phase fraction/bright-limb orientation, shared day/night framing and cached rise/set bounds. Zero windows, providers or user-cache writes."
+  },
+  "maintainedGate": "zsh macos/test-current.sh passed locally",
+  "regressions": {
+    "dayNight": {
+      "passed": true,
+      "cases": 13,
+      "scope": "Synthetic public coordinates only. No network requests, OS location access, windows or user cache writes. All sky/environment/sun readbacks checked; visual fixtures need review."
+    },
+    "weather": {
+      "passed": true,
+      "cases": 18,
+      "scope": "Real GPU readback: finite waves, sky, reflections and display; storm/drizzle range and sea buildup/settling. Height proxy is 4*sqrt(sum cascade height variances), not a measured local sea-state forecast. Fixed camera, no windows/network/user-cache writes. Images require visual review."
+    },
+    "nightWater": {
+      "passed": true,
+      "cases": 13,
+      "scope": "Actual Metal geometry and camera height-field sampling; API/shader validation enabled. Includes a synthetic low-eye-height submersion fixture, raised crests, foam, rain, daylight, clear and portrait views. No windows, network, location prompts or user-cache writes."
+    },
+    "lifecycle": {
+      "passed": true,
+      "cases": 0,
+      "scope": "No windows; diagnostics before first scene allocation and replacement drawable sizing with unchanged HDR dimensions. Actual OS visibility/login requires interactive testing."
+    },
+    "coverage": {
+      "passed": true,
+      "cases": 12,
+      "scope": ""
+    },
+    "headless": {
+      "passed": true,
+      "cases": 3,
+      "scope": "No NSWindow or drawable acquisition, application activation policy prohibited; original windowed captures used only as saved fixtures. The 12-sample benchmark is a lifecycle smoke test, not a performance comparison."
+    },
+    "astronomicalReference": {
+      "passed": true,
+      "cases": 4,
+      "scope": "Underlying geographic Sun/Moon motion remains tested through celestialPath=astronomical."
+    }
+  },
+  "matchedPeak": {
+    "sun": {
+      "name": "sun_midday",
+      "body": "sun",
+      "illuminatedFraction": 1,
+      "expectedPixel": [
+        639.9999999999999,
+        86.23108439499649
+      ],
+      "diskEnergyAboveBackground": 3262243.5271187495,
+      "peak": 65500.859508984366,
+      "errors": [],
+      "measuredPixel": [
+        640.0000000000001,
+        86.10615168796107
+      ]
+    },
+    "moon": {
+      "name": "moon_midnight",
+      "body": "moon",
+      "illuminatedFraction": 0.7024424051731318,
+      "expectedPixel": [
+        640.0,
+        86.23108439499649
+      ],
+      "diskEnergyAboveBackground": 15.175375302124023,
+      "peak": 0.7132490036010742,
+      "errors": [],
+      "measuredPixel": [
+        639.0529618725952,
+        87.64909248751846
+      ]
+    }
+  }
+}

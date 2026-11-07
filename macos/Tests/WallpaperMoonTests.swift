@@ -9,6 +9,7 @@ import simd
         let cycle=CelestialCycle();cycle.location=location
         let evening=date("2026-10-31T00:00:00Z")
         _=cycle.state(at:evening,zone:zone)
+        let originalDay=cycle.day!
         let set=cycle.day!.sunset!
         let following=CelestialMath.makeDay(date:Date(timeIntervalSince1970:cycle.day!.end),location:location,zone:zone)
         let rise=following.sunrise!
@@ -23,12 +24,25 @@ import simd
                 let depth=simd_dot(moon,forward)
                 precondition(depth>0 && abs(moon.x/(depth*tanY*aspect))<0.85 && abs(simd_dot(moon,up)/(depth*tanY))<0.9)
                 precondition(moon.y >= -1e-10 && abs(simd_length(moon)-1)<1e-10)
-                let light=WallpaperMoon.phaseLight(state:state,displayedMoon:moon)
+                let light=WallpaperSky.phaseLight(state:state,displayedMoon:moon)
                 precondition(abs(simd_length(light)-1)<1e-10)
                 precondition(abs((1-simd_dot(moon,light))/2-state.moonIllumination)<1e-10)
             }
         }
         precondition(cycle.calculationCount==2 && cycle.cacheWriteCount==0,"Night uses two cached solar days, no frame-loop ephemeris calls")
+        // Equal progress in daylight and nighttime must occupy the very same
+        // camera-centered track, regardless of their astronomical positions.
+        for step in 0...100 {
+            let f=Double(step)/100,tanX=tan(29*CelestialMath.rad)*1.6
+            let daytime=Date(timeIntervalSince1970:originalDay.sunrise!+(set-originalDay.sunrise!)*f)
+            _=cycle.state(at:daytime,zone:zone)
+            let sun=cycle.wallpaperBodies(at:daytime,zone:zone,horizontalTangent:tanX)!.sun
+            let nighttime=Date(timeIntervalSince1970:set+(rise-set)*f)
+            _=cycle.state(at:nighttime,zone:zone)
+            let moon=cycle.wallpaperBodies(at:nighttime,zone:zone,horizontalTangent:tanX)!.moon
+            precondition(simd_distance(sun,moon)<1e-10,"Sun and Moon must share exactly one arc")
+            precondition(abs(sun.x/(-sun.z*tanX))<=0.281,"Keep both bodies in the middle of the camera")
+        }
         for boundary in [set,rise] {
             var positions=[SIMD3<Double>]()
             for delta in [-0.01,0.01] {
@@ -46,7 +60,10 @@ import simd
         precondition(simd_distance(adjacent[0],adjacent[1])<0.00001,"No midnight jump")
         let before=cycle.calculationCount
         let clock=Date();var checksum=0.0
-        for _ in 0..<10000 { checksum+=cycle.wallpaperMoon(at:midnight,zone:zone,horizontalTangent:0.9)!.y }
+        for _ in 0..<10000 {
+            let bodies=cycle.wallpaperBodies(at:midnight,zone:zone,horizontalTangent:0.9)!
+            checksum+=bodies.sun.x+bodies.moon.y
+        }
         let cachedMicroseconds=Date().timeIntervalSince(clock)*1e6/10000
         precondition(checksum>0)
         precondition(cycle.calculationCount==before)
@@ -58,9 +75,9 @@ import simd
         for (name,stamp,expected) in [("new","2024-04-09T03:00:00Z",0.0),("waxing_quarter","2024-04-16T03:00:00Z",0.5),("full","2024-04-24T03:00:00Z",1.0),("waning_quarter","2024-05-01T03:00:00Z",0.5)] {
             let d=date(stamp),s=cycle.state(at:d,zone:zone)!
             let moon=cycle.wallpaperMoon(at:d,zone:zone,horizontalTangent:tan(29*CelestialMath.rad)*1.6)!
-            let light=WallpaperMoon.phaseLight(state:s,displayedMoon:moon)
+            let light=WallpaperSky.phaseLight(state:s,displayedMoon:moon)
             precondition(abs(s.moonIllumination-expected)<0.07)
-            let (a,b)=WallpaperMoon.diskAxes(s.moon),(x,y)=WallpaperMoon.diskAxes(moon)
+            let (a,b)=WallpaperSky.diskAxes(s.moon),(x,y)=WallpaperSky.diskAxes(moon)
             let old=simd_normalize(SIMD2(simd_dot(s.sun,a),simd_dot(s.sun,b)))
             let new=simd_normalize(SIMD2(simd_dot(light,x),simd_dot(light,y)))
             precondition(simd_dot(old,new)>0.999999)
@@ -86,8 +103,21 @@ import simd
             let moon=cycle.wallpaperMoon(at:d,zone:zone,horizontalTangent:tan(29*CelestialMath.rad)*1.6)!
             fixtures.append(["name":name,"utc":d.timeIntervalSince1970,"direction":[moon.x,moon.y,moon.z],"illuminatedFraction":s.moonIllumination])
         }
+        for (name,stamp) in [("sun_arc_before","2026-10-30T13:00:50Z"),("sun_arc_after","2026-10-30T13:30:50Z")] {
+            let d=date(stamp);_=cycle.state(at:d,zone:zone)
+            let sun=cycle.wallpaperBodies(at:d,zone:zone,horizontalTangent:tan(29*CelestialMath.rad)*1.6)!.sun
+            fixtures.append(["name":name,"body":"sun","utc":d.timeIntervalSince1970,"anchorUTC":date("2026-10-30T13:00:00Z").timeIntervalSince1970,"direction":[sun.x,sun.y,sun.z],"illuminatedFraction":1.0])
+        }
+        let midday=Date(timeIntervalSince1970:(originalDay.sunrise!+set)*0.5)
+        _=cycle.state(at:midday,zone:zone)
+        let sun=cycle.wallpaperBodies(at:midday,zone:zone,horizontalTangent:tan(29*CelestialMath.rad)*1.6)!.sun
+        fixtures.append(["name":"sun_midday","body":"sun","utc":midday.timeIntervalSince1970,"direction":[sun.x,sun.y,sun.z],"illuminatedFraction":1.0])
+        let nightMidpoint=Date(timeIntervalSince1970:(set+rise)*0.5)
+        let nightState=cycle.state(at:nightMidpoint,zone:zone)!
+        let moon=cycle.wallpaperBodies(at:nightMidpoint,zone:zone,horizontalTangent:tan(29*CelestialMath.rad)*1.6)!.moon
+        fixtures.append(["name":"moon_midnight","body":"moon","utc":nightMidpoint.timeIntervalSince1970,"direction":[moon.x,moon.y,moon.z],"illuminatedFraction":nightState.moonIllumination])
         try JSONSerialization.data(withJSONObject:["passed":true,"fixtures":fixtures,"cachedArcMicroseconds":cachedMicroseconds],options:[.prettyPrinted,.sortedKeys]).write(to:URL(fileURLWithPath:"macos/build/unit/wallpaper-moon.json"))
-        print("PASS: visible sunset-to-sunrise arc in three aspects, midnight/DST continuity, cached night bounds, real phases/bright limbs and finite polar fallback")
+        print("PASS: Sun/Moon share the centered arc; three aspects, sunrise/sunset/midnight/DST continuity, real phases and cached bounds")
         print("Cached arc: \(cachedMicroseconds) µs; 10,000 updates caused no additional solar calculations or cache writes")
     }
 }

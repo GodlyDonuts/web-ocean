@@ -708,21 +708,24 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let zone=options["timeZone"].flatMap(TimeZone.init(identifier:)) ?? observerTimeZone ?? .autoupdatingCurrent
         guard let state=celestialCycle.state(at:date,zone:zone) else { return }
         celestialState=state
-        let moon = options["moonPath"] == "astronomical" ? state.moon :
-            celestialCycle.wallpaperMoon(at:date,zone:zone,horizontalTangent:Double(frame[20])) ?? state.moon
-        let phaseLight=WallpaperMoon.phaseLight(state:state,displayedMoon:moon)
+        let astronomical=options["celestialPath"] == "astronomical"
+        let bodies=astronomical ? nil : celestialCycle.wallpaperBodies(at:date,zone:zone,horizontalTangent:Double(frame[20]))
+        let sun=bodies?.sun ?? state.sun
+        let apparentSun=bodies?.sun ?? state.apparentSun
+        let moon = astronomical || options["moonPath"] == "astronomical" ? state.moon : bodies?.moon ?? state.moon
+        let phaseLight=WallpaperSky.phaseLight(state:state,displayedMoon:moon)
         vectors[48]=SIMD4(Float(phaseLight.x),Float(phaseLight.y),Float(phaseLight.z),0)
         for i in 0..<3 {
             let axis=state.skyBasis[i];vectors[43+i]=SIMD4(Float(axis.x),Float(axis.y),Float(axis.z),0)
         }
-        vectors[8]=SIMD4(Float(state.sun.x),Float(state.sun.y),Float(state.sun.z),14)
+        vectors[8]=SIMD4(Float(sun.x),Float(sun.y),Float(sun.z),14)
         vectors[39]=SIMD4(Float(moon.x),Float(moon.y),Float(moon.z),Float(state.moonIllumination))
         vectors[40]=SIMD4(Float(state.sunRadius),Float(state.moonRadius),Float(state.night),1)
-        vectors[42]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),Float(state.sunRadius))
+        vectors[42]=SIMD4(Float(apparentSun.x),Float(apparentSun.y),Float(apparentSun.z),Float(state.sunRadius))
         if state.sunAltitude > -1 {
-            vectors[41]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),14)
+            vectors[41]=SIMD4(Float(apparentSun.x),Float(apparentSun.y),Float(apparentSun.z),14)
         } else {
-            // Photographic lunar key: the real phase/horizon still gate the
+            // Photographic lunar key: real phase and the displayed horizon gate the
             // source. Strong specular light against restrained sky fill gives
             // a broken silver path instead of a uniformly blue sea.
             let brightness=0.35*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,moon.y)

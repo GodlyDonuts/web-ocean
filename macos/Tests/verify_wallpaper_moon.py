@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read actual default-path lunar disks/phases and accelerated fixed-view motion."""
+"""Read the shared centered Sun/Moon path, lunar phases and accelerated motion."""
 import json,math,os,subprocess
 from pathlib import Path
 import numpy as np
@@ -14,9 +14,9 @@ def project(v):
  return np.array([(v[0]/(depth*math.tan(math.radians(29))*1.6)+1)*640,(1-v@up/(depth*math.tan(math.radians(29))))*400])
 env=os.environ.copy();env.update(MTL_DEBUG_LAYER='1',MTL_SHADER_VALIDATION='1')
 for f in fixtures['fixtures']:
- name=f['name'];target=out/name;arc=name.startswith('arc_')
- q={'dayNight':1,'latitude':40.7128,'longitude':-74.006,'timeZone':'America/New_York','utc':1793404800 if arc else f['utc'],
-    'fixedDt':1/30 if arc else 0,'cycleRate':300 if arc else 1,'verifyFrame':188 if name=='arc_after' else 8,
+ name=f['name'];target=out/name;arc=name.startswith('arc_') or name.startswith('sun_arc_')
+ q={'dayNight':1,'latitude':40.7128,'longitude':-74.006,'timeZone':'America/New_York','utc':f.get('anchorUTC',1793404800) if arc else f['utc'],
+    'fixedDt':1/30 if arc else 0,'cycleRate':300 if arc else 1,'verifyFrame':188 if name.endswith('arc_after') else 8,
     'heading':270,'clouds':0,'veil':0,'dump':target}
  p=subprocess.run([str(app),'--verify','--query='+'&'.join(f'{k}={v}' for k,v in q.items())],env=env,capture_output=True,text=True,timeout=150)
  (out/f'{name}.log').write_text(p.stdout+p.stderr);assert p.returncode==0,p.stdout+p.stderr
@@ -29,11 +29,11 @@ for f in fixtures['fixtures']:
  yy,xx=np.mgrid[int(py)-10:int(py)+11,int(px)-10:int(px)+11];radius=np.hypot(xx+.5-px,yy+.5-py)
  luma=hdr[yy,xx,:3]@np.array([.2126,.7152,.0722]);background=float(np.median(luma[(radius>=7)&(radius<=10)]))
  weights=np.maximum(0,luma-background)*(radius<=5);energy=float(weights.sum());peak=float(weights.max())
- metric={'name':name,'illuminatedFraction':f['illuminatedFraction'],'expectedPixel':center.tolist(),'diskEnergyAboveBackground':energy,'peak':peak,'errors':d['errors']}
+ metric={'name':name,'body':f.get('body','moon'),'illuminatedFraction':f['illuminatedFraction'],'expectedPixel':center.tolist(),'diskEnergyAboveBackground':energy,'peak':peak,'errors':d['errors']}
  if name!='new':
-  assert peak>.01 and energy>.02,(name,'Missing lunar disk',metric)
+  assert peak>.01 and energy>.02,(name,'Missing celestial disk',metric)
   measured=np.array([((xx+.5)*weights).sum()/energy,((yy+.5)*weights).sum()/energy])
-  assert np.linalg.norm(measured-center)<3,(name,'Moon left intended path',measured,center)
+  assert np.linalg.norm(measured-center)<3,(name,'Celestial disk left intended path',measured,center)
   metric['measuredPixel']=measured.tolist()
  results.append(metric);print('PASS',name,json.dumps(metric),flush=True)
 full=next(x for x in results if x['name']=='full');new=next(x for x in results if x['name']=='new')
@@ -45,9 +45,14 @@ for name in ['waxing_quarter','waning_quarter']:
  assert limbOffset>.3 if name=='waxing_quarter' else limbOffset<-.3,(name,'Waxing/waning bright side reversed')
 a,b=[x for x in results if x['name'].startswith('arc_')]
 assert np.linalg.norm(np.array(b['measuredPixel'])-a['measuredPixel'])>20,'Default Moon must move across the fixed view'
+a,b=[x for x in results if x['name'].startswith('sun_arc_')]
+assert np.linalg.norm(np.array(b['measuredPixel'])-a['measuredPixel'])>20,'Default Sun must move along the same centered track'
+sunPeak=next(x for x in results if x['name']=='sun_midday')
+moonPeak=next(x for x in results if x['name']=='moon_midnight')
+assert np.linalg.norm(np.array(sunPeak['measuredPixel'])-moonPeak['measuredPixel'])<3,'Both bodies must crest at the same camera-center position'
 sheet=Image.new('RGB',(1280,800))
-for i,name in enumerate(['waxing_quarter','full','waning_quarter','arc_after']):
+for i,name in enumerate(['sun_arc_before','sun_midday','arc_before','moon_midnight']):
  im=Image.open(out/f'{name}.png').resize((640,400));ImageDraw.Draw(im).text((12,12),name,fill='white');sheet.paste(im,((i%2)*640,(i//2)*400))
 sheet.save(out/'review.png')
-report.write_text(json.dumps({'passed':True,'cases':results,'scope':'Actual Metal default-path disks, phase-dependent radiance and accelerated 30-minute motion from one UTC anchor and fixed camera. Metal validation enabled. CPU tests separately verify exact phase fraction/bright-limb orientation, whole-night framing and cached rise/set bounds. Zero windows, providers or user-cache writes.'},indent=2)+'\n')
-print('PASS: default visible Moon arc and new/quarter/full lunar disk readbacks')
+report.write_text(json.dumps({'passed':True,'cases':results,'scope':'Actual Metal default-path disks, phase-dependent radiance and accelerated 30-minute motion from one UTC anchor and fixed camera. Metal validation enabled. CPU tests separately verify exact phase fraction/bright-limb orientation, shared day/night framing and cached rise/set bounds. Zero windows, providers or user-cache writes.'},indent=2)+'\n')
+print('PASS: shared centered Sun/Moon motion, finite midday Sun and real lunar phase readbacks')
