@@ -4,16 +4,17 @@ metal::float3 celestialNightSky(metal::float3 dir, constant Frame& F) {
     if (F.celestial.w<0.5 || F.celestial.z<0.001) return metal::float3(0.0);
     float night=F.celestial.z;
     float moon=F.moonDir.w*metal::sqrt(F.moonDir.w)*metal::smoothstep(0.0,0.15,F.moonDir.y);
-    // Cinematographic sky fill: a dark indigo horizon, a brighter overhead
-    // hemisphere and a broad off-frame softbox. It is illumination, not a
-    // display black-level lift, so surfaces retain their normals and shadows.
+    // Restrained sky fill leaves room for silver specular highlights. The
+    // localized lunar sky glow follows the real Moon; moonless nights retain
+    // only a dim off-frame key, never a synthetic moon or reflection stripe.
     float up=metal::max(dir.y,0.0);
-    metal::float3 key=metal::normalize(metal::float3(-0.45,0.85,-0.35));
+    metal::float3 key=metal::normalize(metal::float3(-0.6,0.32,-0.73));
     float lobe=metal::max(0.0,metal::dot(dir,key));lobe*=lobe;lobe*=lobe;lobe*=lobe;
-    metal::float3 floor=metal::float3(0.0025,0.0045,0.009)*(0.65+0.35*up);
-    metal::float3 overhead=metal::float3(0.012,0.021,0.037)*up*up;
-    metal::float3 softKey=metal::float3(0.012,0.019,0.030)*lobe;
-    return (floor+overhead+softKey+metal::float3(0.004,0.007,0.012)*moon)*(night*0.45);
+    float lunar=metal::max(0.0,metal::dot(dir,F.moonDir.xyz));lunar*=lunar;lunar*=lunar;lunar*=lunar;lunar*=lunar;lunar*=lunar;
+    metal::float3 floor=metal::float3(0.0009,0.0014,0.0022)*(0.65+0.35*up);
+    metal::float3 overhead=metal::float3(0.003,0.0048,0.007)*up*up;
+    metal::float3 softKey=metal::float3(0.014,0.018,0.024)*(lobe*0.65*(1.0-moon*0.75)+lunar*moon);
+    return (floor+overhead+softKey)*(night*0.45);
 
 }
 // What the camera sees is much darker than the off-frame illumination used
@@ -22,9 +23,12 @@ metal::float3 celestialNightSky(metal::float3 dir, constant Frame& F) {
 metal::float3 celestialNightBackdrop(metal::float3 dir,constant Frame& F) {
     if (F.celestial.w<0.5 || F.celestial.z<0.001) return metal::float3(0);
     float moon=F.moonDir.w*metal::sqrt(F.moonDir.w)*metal::smoothstep(0,0.15,F.moonDir.y);
-    float halo=metal::pow(metal::max(0.0,metal::dot(dir,F.moonDir.xyz)),48.0)*moon;
+    float alignment=metal::max(0.0,metal::dot(dir,F.moonDir.xyz));
+    float halo=metal::pow(alignment,48.0)*moon;
+    float aureole=metal::pow(alignment,2048.0)*moon;
     return (metal::float3(0.0008,0.0012,0.0020)*(0.8+0.2*metal::max(dir.y,0.0))
-        +metal::float3(0.0016,0.0019,0.0025)*halo)*F.celestial.z;
+        +metal::float3(0.0016,0.0019,0.0025)*halo
+        +metal::float3(0.012,0.017,0.026)*aureole)*F.celestial.z;
 }
 
 metal::float3 moonDisk(metal::float3 dir, float pixAng, constant Frame& F,

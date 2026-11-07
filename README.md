@@ -4,7 +4,9 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 
 **Start here:** [developer handoff](docs/handoff.md) · [architecture](docs/architecture.md) · [testing](docs/testing.md) · [next work](docs/engineering-roadmap.md).
 
-![Native nighttime ocean](docs/night-sky-integration-preview.png)
+![Native moonlit ocean](docs/silver-night-preview.png)
+
+[Night lighting and matched comparisons](docs/silver-night-style.md). This capture uses a fixed moonlit fixture; the live scene follows local time, Moon phase and weather.
 
 ## Current status
 

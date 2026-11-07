@@ -49,6 +49,8 @@ Review dawn/day/dusk, moonlit and moonless nights, clear and broken clouds, stor
 
 Reports and movies committed under `docs/` are dated evidence, not automatically refreshed results. Never overwrite an older report with a new run without describing the revision, scene and scope. Fresh verification artifacts stay in `macos/build/` unless intentionally curated for a change.
 
+`verify_silver_night.py --before` captures an explicit saved `macos/build/night-silver/Before.app`; running without that flag compares the rebuilt app's eight scenes, including exact daytime parity. See [silver-night reproduction](silver-night-style.md). The earlier `verify_cinematic_night.py` brightness thresholds describe the brighter historical fill and are not acceptance criteria for this darker reference treatment.
+
 ## Performance
 
 Measure normal unprofiled command-buffer times after warmup, using the same resolution, weather/time, frame count, cadence, power state and baseline/updated ordering. Save an explicit baseline app bundle before changing resources. Run benchmarks sequentially; simultaneous GPU tests contaminate timing. Compare ABBA or alternating runs rather than a single instantaneous diagnostics sample.

@@ -717,7 +717,10 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         if state.sunAltitude > -1 {
             vectors[41]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),14)
         } else {
-            let brightness=0.12*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,state.moon.y)
+            // Photographic lunar key: the real phase/horizon still gate the
+            // source. Strong specular light against restrained sky fill gives
+            // a broken silver path instead of a uniformly blue sea.
+            let brightness=0.35*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,state.moon.y)
             vectors[41]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(brightness))
         }
         compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)*Float(1+3*state.night)

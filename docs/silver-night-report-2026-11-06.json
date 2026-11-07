@@ -1,0 +1,829 @@
+{
+  "date": "2026-11-06",
+  "baselineCommit": "220707ef739adb0e22dd172e22b626ce080b61a9",
+  "hardware": {
+    "GPU": "Apple M1",
+    "unifiedMemoryGiB": 8,
+    "macOS": "26.7"
+  },
+  "visualVerification": {
+    "passed": true,
+    "before": {
+      "moonlit": {
+        "settings": {
+          "utc": 1793415600,
+          "heading": 67.8,
+          "clouds": 0.12,
+          "veil": 0.03
+        },
+        "metrics": {
+          "waterP10": 0.1750572588607669,
+          "waterMedian": 0.19494823806732892,
+          "waterP95": 0.5613710065364838,
+          "waterP99": 0.7554470734000206,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.15184879302978516,
+            0.248754620552063,
+            0.3372669517993927
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "moonrise": {
+        "settings": {
+          "utc": 1793412600,
+          "heading": 60,
+          "clouds": 0.15,
+          "veil": 0.1
+        },
+        "metrics": {
+          "waterP10": 0.15653020114153623,
+          "waterMedian": 0.17784157242029902,
+          "waterP95": 0.21198274843990803,
+          "waterP99": 0.22319686541855335,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.09405593574047089,
+            0.19205302000045776,
+            0.2951606810092926
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "moonlit_clouds": {
+        "settings": {
+          "utc": 1793412600,
+          "heading": 60,
+          "clouds": 0.4,
+          "veil": 0.1
+        },
+        "metrics": {
+          "waterP10": 0.13411765158995986,
+          "waterMedian": 0.15793020105808972,
+          "waterP95": 0.18653412092179059,
+          "waterP99": 0.2007325530320406,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.0794454962015152,
+            0.1686365306377411,
+            0.2729608714580536
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "starry": {
+        "settings": {
+          "utc": 1782014400,
+          "heading": 155,
+          "clouds": 0.12,
+          "veil": 0.05
+        },
+        "metrics": {
+          "waterP10": 0.16716235737055538,
+          "waterMedian": 0.19938431623429062,
+          "waterP95": 0.3073655016779899,
+          "waterP99": 0.34885098940134046,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.14001856744289398,
+            0.2238542139530182,
+            0.3118339776992798
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "moonless": {
+        "settings": {
+          "utc": 1794283200,
+          "heading": 270
+        },
+        "metrics": {
+          "waterP10": 0.12345412281379103,
+          "waterMedian": 0.14533177043646575,
+          "waterP95": 0.1747694157406688,
+          "waterP99": 0.1859835327193141,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.06880523264408112,
+            0.15613965690135956,
+            0.2604023218154907
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "storm": {
+        "settings": {
+          "utc": 1794283200,
+          "heading": 270,
+          "storm": 1,
+          "time": 60
+        },
+        "metrics": {
+          "waterP10": 0.07157255155406891,
+          "waterMedian": 0.09456706038340926,
+          "waterP95": 0.14251137844771147,
+          "waterP99": 0.15709647561758755,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.04156889393925667,
+            0.107160285115242,
+            0.18823154270648956
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "noon": {
+        "settings": {
+          "utc": 1793378400,
+          "heading": 180
+        },
+        "metrics": {
+          "waterP10": 0.7314557022809982,
+          "waterMedian": 0.7643874650239945,
+          "waterP95": 0.9756368641972541,
+          "waterP99": 1.0,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.6761558651924133,
+            0.8176019191741943,
+            0.8458608388900757
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "day_storm": {
+        "settings": {
+          "utc": 1793378400,
+          "heading": 180,
+          "storm": 1
+        },
+        "metrics": {
+          "waterP10": 0.297803930452466,
+          "waterMedian": 0.36720314517021174,
+          "waterP95": 0.4820502206146717,
+          "waterP99": 0.551712177246809,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.26772934198379517,
+            0.39508572220802307,
+            0.4623471796512604
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      }
+    },
+    "after": {
+      "moonlit": {
+        "settings": {
+          "utc": 1793415600,
+          "heading": 67.8,
+          "clouds": 0.12,
+          "veil": 0.03
+        },
+        "metrics": {
+          "waterP10": 0.08189019785597919,
+          "waterMedian": 0.11830118273645639,
+          "waterP95": 0.7313513885617255,
+          "waterP99": 0.8890635360240936,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.1518399715423584,
+            0.1932247132062912,
+            0.21677595376968384
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "moonrise": {
+        "settings": {
+          "utc": 1793412600,
+          "heading": 60,
+          "clouds": 0.15,
+          "veil": 0.1
+        },
+        "metrics": {
+          "waterP10": 0.055252549720555544,
+          "waterMedian": 0.09253333501443267,
+          "waterP95": 0.14014275006204843,
+          "waterP99": 0.1977301991939545,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.06574697047472,
+            0.09728825837373734,
+            0.13007259368896484
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "moonlit_clouds": {
+        "settings": {
+          "utc": 1793412600,
+          "heading": 60,
+          "clouds": 0.4,
+          "veil": 0.1
+        },
+        "metrics": {
+          "waterP10": 0.04457333440184593,
+          "waterMedian": 0.07823137454465032,
+          "waterP95": 0.11691215788275001,
+          "waterP99": 0.18004157279729843,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.05839007720351219,
+            0.08127021789550781,
+            0.10844230651855469
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "starry": {
+        "settings": {
+          "utc": 1782014400,
+          "heading": 155,
+          "clouds": 0.12,
+          "veil": 0.05
+        },
+        "metrics": {
+          "waterP10": 0.07848313923552633,
+          "waterMedian": 0.12390588828474283,
+          "waterP95": 0.25940550453662875,
+          "waterP99": 0.31038589365482333,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.11488698422908783,
+            0.14307066798210144,
+            0.17131218314170837
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "moonless": {
+        "settings": {
+          "utc": 1794283200,
+          "heading": 270
+        },
+        "metrics": {
+          "waterP10": 0.03729647169448436,
+          "waterMedian": 0.06366196364834904,
+          "waterP95": 0.0860901981435716,
+          "waterP99": 0.09675372691974043,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.03726404160261154,
+            0.06556669622659683,
+            0.1022789254784584
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "storm": {
+        "settings": {
+          "utc": 1794283200,
+          "heading": 270,
+          "storm": 1,
+          "time": 60
+        },
+        "metrics": {
+          "waterP10": 0.014868236072547732,
+          "waterMedian": 0.021877647553943096,
+          "waterP95": 0.04515529502443969,
+          "waterP99": 0.06282823820784689,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.013958774507045746,
+            0.025520378723740578,
+            0.04223297908902168
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "noon": {
+        "settings": {
+          "utc": 1793378400,
+          "heading": 180
+        },
+        "metrics": {
+          "waterP10": 0.7314557022809982,
+          "waterMedian": 0.7643874650239945,
+          "waterP95": 0.9756368641972541,
+          "waterP99": 1.0,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.6761558651924133,
+            0.8176019191741943,
+            0.8458608388900757
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      },
+      "day_storm": {
+        "settings": {
+          "utc": 1793378400,
+          "heading": 180,
+          "storm": 1
+        },
+        "metrics": {
+          "waterP10": 0.297803930452466,
+          "waterMedian": 0.36720314517021174,
+          "waterP95": 0.4820502206146717,
+          "waterP99": 0.551712177246809,
+          "waterBlackFraction": 0.0,
+          "waterMeanRGB": [
+            0.26772934198379517,
+            0.39508572220802307,
+            0.4623471796512604
+          ]
+        },
+        "errors": [],
+        "windowCount": 0
+      }
+    },
+    "daytimeHDRAndDisplayExact": true,
+    "scope": "Finite HDR, readable water, stronger moonlit highlight contrast and exact daytime parity. Display luma proxies do not prove realism; inspect native captures. Eight fixed scenes, zero windows/providers/cache writes."
+  },
+  "regressions": {
+    "nightWater": {
+      "passed": true,
+      "scope": "Actual Metal geometry and camera height-field sampling; API/shader validation enabled. Includes a synthetic low-eye-height submersion fixture, raised crests, foam, rain, daylight, clear and portrait views. No windows, network, location prompts or user-cache writes.",
+      "cases": 13
+    },
+    "dayNight": {
+      "passed": true,
+      "scope": "Synthetic public coordinates only. No network requests, OS location access, windows or user cache writes. All sky/environment/sun readbacks checked; visual fixtures need review.",
+      "cases": 13
+    },
+    "celestialMotion": {
+      "passed": true,
+      "scope": "24-hour cached trajectory and actual GPU disk positions/motion. Each late capture runs from the same initial UTC as its early pair for 188 frames, so stale/frozen uniforms or sky cache cannot pass by restarting at the final date. Fixed camera, no windows/network/user-cache writes.",
+      "cases": 4
+    },
+    "lifecycle": {
+      "passed": true,
+      "scope": "No windows; diagnostics before first scene allocation and replacement drawable sizing with unchanged HDR dimensions. Actual OS visibility/login requires interactive testing.",
+      "cases": 0
+    }
+  },
+  "benchmarks": {
+    "order": [
+      "before-1",
+      "after-1",
+      "after-2",
+      "before-2"
+    ],
+    "scope": "Twelve sequential unprofiled runs, 240 frames each, 60 excluded GPU warmup frames; 1280x800 at 30 FPS. Process CPU excludes first 3 seconds. Two short runs per version and fixture, no energy/battery claim; excludes WindowServer. Metal allocation overlaps physical footprint. Benchmark moonlit fixture is moonrise, distinct from higher-Moon visual fixture.",
+    "runs": {
+      "before-1": {
+        "moonlit": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1793412600,
+            "heading": 60,
+            "clouds": 0.15,
+            "veil": 0.1
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 3.764691891595337,
+            "physicalFootprintMedianMiB": 99.8924560546875,
+            "physicalFootprintPeakMiB": 99.9237060546875,
+            "residentMedianMiB": 42.40625,
+            "processWakeupsPerSecond": 32.300363442134426,
+            "sampleSeconds": 5.07734225015156
+          },
+          "renderer": {
+            "gpuMeanMs": 8.592894911352131,
+            "gpuMedianMs": 7.276874966919422,
+            "gpuP95Ms": 14.504499966278672,
+            "gpuAllocatedBytes": 80150528,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        },
+        "moonless": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "clouds": 0.12,
+            "veil": 0.05
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 3.815379440185498,
+            "physicalFootprintMedianMiB": 97.9237060546875,
+            "physicalFootprintPeakMiB": 99.8924560546875,
+            "residentMedianMiB": 43.46875,
+            "processWakeupsPerSecond": 31.641530725436198,
+            "sampleSeconds": 5.056645374977961
+          },
+          "renderer": {
+            "gpuMeanMs": 8.462479169894424,
+            "gpuMedianMs": 7.327500032261014,
+            "gpuP95Ms": 13.621000107377768,
+            "gpuAllocatedBytes": 80150528,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        },
+        "storm": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "storm": 1
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 4.867583493771356,
+            "physicalFootprintMedianMiB": 121.64251708984375,
+            "physicalFootprintPeakMiB": 122.40814208984375,
+            "residentMedianMiB": 44.328125,
+            "processWakeupsPerSecond": 31.77274851833264,
+            "sampleSeconds": 5.319023624993861
+          },
+          "renderer": {
+            "gpuMeanMs": 10.876554621952689,
+            "gpuMedianMs": 7.60400015860796,
+            "gpuP95Ms": 23.82645825855434,
+            "gpuAllocatedBytes": 86441984,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        }
+      },
+      "after-1": {
+        "moonlit": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1793412600,
+            "heading": 60,
+            "clouds": 0.15,
+            "veil": 0.1
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 2.099355637211509,
+            "physicalFootprintMedianMiB": 99.1424560546875,
+            "physicalFootprintPeakMiB": 99.7049560546875,
+            "residentMedianMiB": 28.265625,
+            "processWakeupsPerSecond": 30.840591151902583,
+            "sampleSeconds": 5.350092000095174
+          },
+          "renderer": {
+            "gpuMeanMs": 9.16257199132815,
+            "gpuMedianMs": 8.473750203847885,
+            "gpuP95Ms": 14.697625068947673,
+            "gpuAllocatedBytes": 80150528,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        },
+        "moonless": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "clouds": 0.12,
+            "veil": 0.05
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 2.5357390938329996,
+            "physicalFootprintMedianMiB": 99.8455810546875,
+            "physicalFootprintPeakMiB": 99.8924560546875,
+            "residentMedianMiB": 28.703125,
+            "processWakeupsPerSecond": 30.758869249449948,
+            "sampleSeconds": 5.396817374974489
+          },
+          "renderer": {
+            "gpuMeanMs": 8.966883336607781,
+            "gpuMedianMs": 8.235374931246042,
+            "gpuP95Ms": 14.300541719421744,
+            "gpuAllocatedBytes": 80150528,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        },
+        "storm": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "storm": 1
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 3.0529593013363434,
+            "physicalFootprintMedianMiB": 122.8455810546875,
+            "physicalFootprintPeakMiB": 122.8612060546875,
+            "residentMedianMiB": 33.8828125,
+            "processWakeupsPerSecond": 30.95586940593286,
+            "sampleSeconds": 5.330168500076979
+          },
+          "renderer": {
+            "gpuMeanMs": 11.100818743256646,
+            "gpuMedianMs": 7.6870417688041925,
+            "gpuP95Ms": 24.733375059440732,
+            "gpuAllocatedBytes": 86441984,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        }
+      },
+      "after-2": {
+        "moonlit": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1793412600,
+            "heading": 60,
+            "clouds": 0.15,
+            "veil": 0.1
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 2.8377981262189667,
+            "physicalFootprintMedianMiB": 97.7205810546875,
+            "physicalFootprintPeakMiB": 99.7362060546875,
+            "residentMedianMiB": 26.96875,
+            "processWakeupsPerSecond": 29.964995697796716,
+            "sampleSeconds": 5.639914041850716
+          },
+          "renderer": {
+            "gpuMeanMs": 8.932012042755055,
+            "gpuMedianMs": 7.566124899312854,
+            "gpuP95Ms": 14.84420825727284,
+            "gpuAllocatedBytes": 80150528,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        },
+        "moonless": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "clouds": 0.12,
+            "veil": 0.05
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 4.837283112563676,
+            "physicalFootprintMedianMiB": 99.9705810546875,
+            "physicalFootprintPeakMiB": 100.0018310546875,
+            "residentMedianMiB": 30.4140625,
+            "processWakeupsPerSecond": 30.922923702945525,
+            "sampleSeconds": 5.335847334004939
+          },
+          "renderer": {
+            "gpuMeanMs": 8.266454856170135,
+            "gpuMedianMs": 7.024333346635103,
+            "gpuP95Ms": 13.66491662338376,
+            "gpuAllocatedBytes": 80150528,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        },
+        "storm": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "storm": 1
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 4.0675734691240235,
+            "physicalFootprintMedianMiB": 123.49407958984375,
+            "physicalFootprintPeakMiB": 123.54876708984375,
+            "residentMedianMiB": 43.1640625,
+            "processWakeupsPerSecond": 30.44298085789224,
+            "sampleSeconds": 5.84699641703628
+          },
+          "renderer": {
+            "gpuMeanMs": 10.536043983625454,
+            "gpuMedianMs": 7.3488750495016575,
+            "gpuP95Ms": 23.79425009712577,
+            "gpuAllocatedBytes": 86441984,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        }
+      },
+      "before-2": {
+        "moonlit": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1793412600,
+            "heading": 60,
+            "clouds": 0.15,
+            "veil": 0.1
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 4.647383652004971,
+            "physicalFootprintMedianMiB": 99.9393310546875,
+            "physicalFootprintPeakMiB": 99.9549560546875,
+            "residentMedianMiB": 43.4375,
+            "processWakeupsPerSecond": 30.759991396133234,
+            "sampleSeconds": 5.071522874990478
+          },
+          "renderer": {
+            "gpuMeanMs": 8.136890271109426,
+            "gpuMedianMs": 6.856333231553435,
+            "gpuP95Ms": 13.499250169843435,
+            "gpuAllocatedBytes": 80150528,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        },
+        "moonless": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "clouds": 0.12,
+            "veil": 0.05
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 3.9289643529023524,
+            "physicalFootprintMedianMiB": 98.3299560546875,
+            "physicalFootprintPeakMiB": 100.2987060546875,
+            "residentMedianMiB": 42.46875,
+            "processWakeupsPerSecond": 31.22287065362889,
+            "sampleSeconds": 5.0603931250516325
+          },
+          "renderer": {
+            "gpuMeanMs": 8.03191109120639,
+            "gpuMedianMs": 6.941125029698014,
+            "gpuP95Ms": 12.854750035330653,
+            "gpuAllocatedBytes": 80150528,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        },
+        "storm": {
+          "settings": {
+            "frames": 240,
+            "fixedDt": 0.03333333333333333,
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "storm": 1
+          },
+          "process": {
+            "steadyCPUPercentOneCore": 4.695255145099949,
+            "physicalFootprintMedianMiB": 121.8299560546875,
+            "physicalFootprintPeakMiB": 121.9080810546875,
+            "residentMedianMiB": 39.4140625,
+            "processWakeupsPerSecond": 30.9738681653524,
+            "sampleSeconds": 5.327071165898815
+          },
+          "renderer": {
+            "gpuMeanMs": 10.480414129172763,
+            "gpuMedianMs": 7.339833304286003,
+            "gpuP95Ms": 23.4011251013726,
+            "gpuAllocatedBytes": 86441984,
+            "width": 1280,
+            "height": 800,
+            "profiled": false,
+            "samples": 180,
+            "errors": []
+          }
+        }
+      }
+    },
+    "meanGPUMs": {
+      "moonlit": {
+        "before": 8.364892591230777,
+        "after": 9.047292017041602
+      },
+      "moonless": {
+        "before": 8.247195130550406,
+        "after": 8.616669096388957
+      },
+      "storm": {
+        "before": 10.678484375562725,
+        "after": 10.81843136344105
+      }
+    }
+  },
+  "daylightHashes": {
+    "noon": {
+      "HDR": {
+        "bytes": 8192000,
+        "sha256": "7c3df964497c10033b495bd196a358beb053eaf12c891281646aba8e47e240ff"
+      },
+      "display": {
+        "bytes": 4096000,
+        "sha256": "e94795607acd53b920737df05adb64da6d403c9212dda2ea02849010bad74524"
+      }
+    },
+    "day_storm": {
+      "HDR": {
+        "bytes": 8192000,
+        "sha256": "65f9bfe197f3cec78a99edf4cf300d5d4162e8270f4903db05c7ca1b934343d6"
+      },
+      "display": {
+        "bytes": 4096000,
+        "sha256": "add4a2a5d977611609e46c12cdb6fc5f0ffec2740c3ee699e0af6b3399b1a61b"
+      }
+    }
+  }
+}

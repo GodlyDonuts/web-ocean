@@ -16,6 +16,7 @@
 - [Weather providers, continuous storm state and idealized sea mapping](dynamic-weather.md)
 - [Volumetric clouds and measurements](volumetric-clouds.md)
 - [Cinematic night illumination](cinematic-night-lighting.md)
+- [Silver moonlight and deeper night water](silver-night-style.md)
 - [Camera waterline, overtaking storm waves and night foam](night-water-fix.md)
 - [Desktop wallpaper host and validation limits](wallpaper-host.md)
 - [Visibility diagnostic](../macos/Diagnostics/README.md)
