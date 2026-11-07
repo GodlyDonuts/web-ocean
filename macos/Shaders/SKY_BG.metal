@@ -44,6 +44,7 @@ struct Frame {
     metal::float4 cloudEvolution;
     metal::float4 weather; // severity, rain, mist, reserved
     metal::float4 moonPhaseLight;
+    metal::float4 cloudTypes; // low layers, middle coverage, high form, convection
 
 };
 struct Medium {

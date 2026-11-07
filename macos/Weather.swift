@@ -1,6 +1,42 @@
 import Foundation
 import simd
 
+// Weather supplies coverage/rain/wind, not measured cloud species. These
+// continuous artistic weights make plausible mixtures without changing seeds.
+enum CloudMorphology {
+    enum Kind: String, CaseIterable { case automatic="auto",cumulus,stratocumulus,stratus,nimbostratus,altocumulus,altostratus,cirrus,cirrocumulus,cirrostratus,cumulonimbus }
+    static func smooth(_ a: Double,_ b: Double,_ x: Double) -> Double { let t=max(0,min(1,(x-a)/(b-a)));return t*t*(3-2*t) }
+    static func weights(_ weather: OceanWeather,kind: Kind = .automatic) -> SIMD4<Float> {
+        switch kind {
+        case .cumulus,.cirrus: return SIMD4(0,0,0,0)
+        case .stratocumulus: return SIMD4(0.55,0,0.1,0)
+        case .stratus,.nimbostratus: return SIMD4(1,0,0.35,0)
+        case .altocumulus: return SIMD4(0,1,0,0)
+        case .altostratus: return SIMD4(0,1,1,0)
+        case .cirrocumulus: return SIMD4(0,0,0.5,0)
+        case .cirrostratus: return SIMD4(0,0,1,0)
+        case .cumulonimbus: return SIMD4(0,0,0,1)
+        case .automatic:
+            let tower=max(smooth(0.12,0.7,weather.thunder),smooth(0.55,0.95,weather.severity))
+            let layer=max(smooth(0.48,0.95,weather.cloud)*0.85,smooth(0.02,0.35,weather.rain))*(1-tower)
+            let middle=smooth(0.2,0.55,weather.cloud)*(1-smooth(0.7,0.95,weather.cloud))*(1-tower)*0.45
+            let sheet=smooth(0.55,0.98,weather.cloud)*(1-tower)*0.75
+            return SIMD4(Float(layer),Float(middle),Float(sheet),Float(tower))
+        }
+    }
+    static func coverage(_ kind: Kind) -> (low: Float,high: Float)? {
+        switch kind {
+        case .automatic:return nil
+        case .cumulus:return (0.4,0.12)
+        case .stratocumulus:return (0.72,0.12)
+        case .stratus,.nimbostratus:return (0.98,0.2)
+        case .altocumulus,.altostratus:return (0,0.8)
+        case .cirrus,.cirrocumulus,.cirrostratus:return (0,0.85)
+        case .cumulonimbus:return (1,0.15)
+        }
+    }
+}
+
 // Values are continuous, independently controlled meteorological inputs.
 struct OceanWeather: Codable, Equatable {
     var rain: Double // normalized optical rain density, 0...1

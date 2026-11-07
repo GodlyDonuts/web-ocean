@@ -17,6 +17,7 @@
 - [Shared centered Sun/Moon arc and real phases](wallpaper-moon.md)
 - [Weather providers, continuous storm state and idealized sea mapping](dynamic-weather.md)
 - [Volumetric clouds and measurements](volumetric-clouds.md)
+- [Cloud families and automatic weather mixtures](cloud-variety.md)
 - [Cinematic night illumination](cinematic-night-lighting.md)
 - [Silver moonlight and deeper night water](silver-night-style.md)
 - [Camera waterline, overtaking storm waves and night foam](night-water-fix.md)

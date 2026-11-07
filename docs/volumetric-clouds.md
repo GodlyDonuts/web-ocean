@@ -1,5 +1,7 @@
 # Native volumetric clouds
 
+The current [cloud family system](cloud-variety.md) extends this foundation with low decks, middle patches/sheets and high wisps/cells/veils. Measurements below describe the earlier volumetric revision; the new guide records current forms and validation.
+
 The low clouds now occupy a spherical layer from 1.5 to 2.75 km altitude in fair weather, growing toward a 1 to 7.25 km storm layer rather than a single textured shell. The fixed camera looks through three-dimensional density, with cellular/value-noise billows, altitude-dependent shaping, finer erosion and large-scale coverage variation. Four expanding sunlight samples provide interior shadows. Beer–Lambert extinction accumulates premultiplied radiance front-to-back; an inexpensive multiple-scattering term and distance haze soften the transition into the atmosphere. Broken high cirrus remain a thin, much less opaque layer.
 
 `VOLUMETRIC_CLOUDS.metalinc` is inserted into the three native sky libraries at startup. The visible sky, all six reflection faces and seven direct-sun visibility rays use the same density/coverage/advection model. The sun's optical transmission is separate from the aerial-perspective opacity used when compositing cloud radiance, so distant haze does not accidentally make thick clouds transparent to the sun. The sun-visibility basis also handles a sun directly overhead.

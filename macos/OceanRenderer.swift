@@ -420,7 +420,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         galaxyAtlas=try GalaxyAtlas.make(device:device,queue:queue,enabled:dayNightEnabled)
         let stars=try StarField.make(device:device,queue:queue,enabled:dayNightEnabled,atlasSize:options["starAtlasReference"] == "1" ? 2048 : 1024)
         starAtlas=stars.atlas;starCatalogue=stars.catalogue;starCount=stars.count
-        frameBuffer = try buffer(560+AnimationClock.cloudShiftCount*16, "frame")
+        frameBuffer = try buffer(576+AnimationClock.cloudShiftCount*16, "frame")
         displacementBounds = try buffer(16,"displacement guard bounds")
         partialBounds = try buffer(16*16*cascades*16,"partial displacement bounds",privateStorage:true)
         simBuffer = try buffer(224, "spectrum parameters")
@@ -635,6 +635,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         seaSettling=max(0,seaSettling-dt)
     }
     private func writeWeatherUniforms(dt:Double) {
+        defer { writeCloudMorphology() }
         let frame=frameBuffer.contents().assumingMemoryBound(to:Float.self)
         let post=compositeBuffer.contents().assumingMemoryBound(to:Float.self)
         for i in 8..<16 { post[i]=0 }
@@ -679,6 +680,14 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         if let seaResponseBuffer {
             write([Float(1-exp(-dt/90)),0,0,0],to:seaResponseBuffer)
         }
+    }
+    private func writeCloudMorphology() {
+        let f=frameBuffer.contents().assumingMemoryBound(to:Float.self)
+        let kind=CloudMorphology.Kind(rawValue:options["cloudType"] ?? "auto") ?? .automatic
+        let w=weatherActive ? weatherDynamics.current : OceanWeather(rain:0,cloud:Double(f[93]),wind:Double(f[58]),direction:118,thunder:0,mist:0)
+        if let coverage=CloudMorphology.coverage(kind) { f[93]=coverage.low;f[74]=coverage.high }
+        if kind == .cumulonimbus { f[191]=1 }
+        frameBuffer.contents().assumingMemoryBound(to:SIMD4<Float>.self)[49]=CloudMorphology.weights(w,kind:kind)
     }
     private func prepareWeatherSpectrum() {
         weatherSpectrumPrepared=false

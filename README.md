@@ -17,6 +17,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Fixed ocean viewpoint, animated waves, foam and reflections | Implemented |
 | Native Metal rendering, bounded resolution, 30 FPS default | Implemented |
 | Volumetric clouds, scene-space rain, gradual storm transitions | Implemented |
+| Ten cloud families across low/middle/high layers, with weather-driven mixtures | Implemented; [appearance and validation](docs/cloud-variety.md) |
 | Shared centered Sun/Moon arc, local sunrise/sunset and real lunar phases | Implemented |
 | Approximate IP location, cached weather and offline fallback | Implemented; no GPS permission prompt |
 | Desktop windows behind icons, menu bar controls and shared HDR presentation across displays | Implemented on this branch; real display arrangements need manual verification |

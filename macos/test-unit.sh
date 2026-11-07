@@ -10,6 +10,7 @@ run_unit() {
   "macos/build/unit/${test_name}"
 }
 run_unit WeatherTests macos/Weather.swift
+run_unit CloudMorphologyTests macos/Weather.swift
 run_unit WeatherProviderTests macos/CelestialCycle.swift macos/Weather.swift macos/WeatherProvider.swift
 run_unit CelestialCycleTests macos/CelestialCycle.swift
 run_unit IPLocationTests macos/CelestialCycle.swift macos/ObserverLocationProvider.swift
