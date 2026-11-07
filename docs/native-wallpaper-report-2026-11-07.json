@@ -28,7 +28,8 @@
   },
   "visualReview": {
     "initialDedicatedNativeHost": "User confirmed Ocean is visible and moving on lock screen, then reported severe judder after transition",
-    "pacingFix": "Timer now runs at selected FPS without a second gate; flushes remote layer transactions; latest visual confirmation pending"
+    "pacingFix": "Installed; user confirmed: It stays smooth now, after a requested 15-second lock-screen check.",
+    "finalLockScreenConfirmed": true
   },
   "pacingProbe": {
     "seconds": 16,
@@ -64,6 +65,20 @@
     "coveredDesktopControlFPS": 0,
     "oldDesktopRendererSubmittedFrames": 0,
     "installedAndRunning": true,
-    "visualPacingConfirmation": "pending user reply"
-  }
+    "visualPacingConfirmation": "User confirmed the locked ocean stays smooth after the transition"
+  },
+  "finalLockedRuntimeSamples": [
+    {
+      "frames": 476,
+      "locked": true,
+      "targetFPS": 24,
+      "surfaces": 1
+    },
+    {
+      "frames": 684,
+      "locked": true,
+      "targetFPS": 24,
+      "surfaces": 1
+    }
+  ]
 }
