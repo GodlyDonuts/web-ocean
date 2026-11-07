@@ -147,15 +147,16 @@ final class NativeWallpaperSetup {
             } catch { self.configuring=false;self.status(error.localizedDescription) }
         }
     }
-    func restore(completion:@escaping()->Void) {
+    func restore(completion:@escaping(Bool)->Void) {
         queue.async {
-            defer { DispatchQueue.main.async { completion() } }
+            var success=false
+            defer { let restored=success;DispatchQueue.main.async { completion(restored) } }
             do {
                 let before=try Data(contentsOf:self.store),current=try self.dictionary(before),previous=try self.dictionary(Data(contentsOf:self.backup))
                 let restored=Self.restoring(current,from:previous)
                 guard try Data(contentsOf:self.store)==before else { throw OceanFailure(message:"Wallpaper settings changed during restore") }
                 try PropertyListSerialization.data(fromPropertyList:restored,format:.binary,options:0).write(to:self.store,options:.atomic)
-                _ = self.restartAgent();UserDefaults.standard.set(false,forKey:"OceanNativeWallpaper")
+                _ = self.restartAgent();UserDefaults.standard.set(false,forKey:"OceanNativeWallpaper");success=true
             } catch { self.status("Restore live wallpaper: \(error.localizedDescription)") }
         }
     }

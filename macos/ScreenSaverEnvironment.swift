@@ -20,15 +20,22 @@ enum ScreenSaverEnvironment {
         let weather=(try? Data(contentsOf:directory.appendingPathComponent("weather.json")))
             .flatMap { try? JSONDecoder().decode(WeatherProvider.Saved.self,from:$0) }
         let matching=weather?.location==location?.location
+        let preview=(UserDefaults.standard.object(forKey:"OceanWeatherPreview") as? NSNumber)?.doubleValue
+        let manual=preview.flatMap { $0.isFinite && (0...1).contains($0) ? OceanWeather.storm($0) : nil }
         let saved=Saved(daylightTime:UserDefaults.standard.string(forKey:"OceanDaylightTime") ?? "automatic",
                         location:location?.location,timeZoneID:location?.timeZoneID,
-                        weather:matching ? weather?.weather : nil,weatherMeasuredAt:matching ? weather?.measuredAt : nil)
+                        weather:manual ?? (matching ? weather?.weather : nil),weatherMeasuredAt:manual != nil ? Date() : (matching ? weather?.measuredAt : nil))
         guard let data=try? JSONEncoder().encode(saved) else { return }
         LiveWallpaperFiles.write(data,name:"environment.json")
         for domain in [module] {
             guard let defaults=ScreenSaverDefaults(forModuleWithName:domain) else { continue }
             defaults.set(data,forKey:"OceanEnvironment");defaults.synchronize()
         }
+    }
+    static func currentWeather(_ saved:Saved,now:Date=Date())->OceanWeather {
+        guard let date=saved.weatherMeasuredAt,let weather=saved.weather,weather.isValid,
+              now.timeIntervalSince(date)>=0,now.timeIntervalSince(date)<86400 else { return .fair }
+        return weather
     }
     static func read() -> Saved? {
         let domain=Bundle.main.bundleIdentifier==wallpaperModule ? wallpaperModule : module

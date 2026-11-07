@@ -3,7 +3,7 @@ set -eu
 cd "$(dirname "$0")/.."
 app_path="$PWD/macos/build/Ocean.app"
 mkdir -p "$app_path/Contents/MacOS" "$app_path/Contents/Resources/Shaders"
-xcrun swiftc -O macos/main.swift macos/SharedSurfaceDemand.swift macos/CelestialCycle.swift macos/ObserverLocationProvider.swift macos/Weather.swift macos/WeatherProvider.swift macos/OceanRenderer.swift macos/CloudNoise.swift macos/StarField.swift macos/GalaxyAtlas.swift macos/GPUProfiler.swift macos/ViewportLayout.swift macos/ViewportMesh.swift macos/MipmapRounding.swift macos/AnimationClock.swift macos/PerformancePolicy.swift macos/RegionalRendering.swift macos/WallpaperIntegration.swift macos/AutomaticScreenSaverSetup.swift macos/ScreenSaverEnvironment.swift macos/LiveWallpaperControl.swift macos/NativeWallpaperSetup.swift \
+xcrun swiftc -O macos/main.swift macos/ProductPolicy.swift macos/OceanControlWindow.swift macos/OceanInstaller.swift macos/SharedSurfaceDemand.swift macos/CelestialCycle.swift macos/ObserverLocationProvider.swift macos/Weather.swift macos/WeatherProvider.swift macos/OceanRenderer.swift macos/CloudNoise.swift macos/StarField.swift macos/GalaxyAtlas.swift macos/GPUProfiler.swift macos/ViewportLayout.swift macos/ViewportMesh.swift macos/MipmapRounding.swift macos/AnimationClock.swift macos/PerformancePolicy.swift macos/RegionalRendering.swift macos/WallpaperIntegration.swift macos/AutomaticScreenSaverSetup.swift macos/ScreenSaverEnvironment.swift macos/LiveWallpaperControl.swift macos/NativeWallpaperSetup.swift \
   -o "$app_path/Contents/MacOS/Ocean" \
   -framework AppKit -framework ScreenSaver -framework Metal -framework MetalKit -framework QuartzCore -framework IOKit -framework ServiceManagement \
   -target "$(uname -m)-apple-macosx13.0"
@@ -15,8 +15,15 @@ rm -f "$app_path/Contents/Resources/ocean.html"
 mkdir -p "$app_path/Contents/Resources/Assets/Galaxy"
 cp macos/Assets/Galaxy/* "$app_path/Contents/Resources/Assets/Galaxy/"
 cp macos/Info.plist "$app_path/Contents/Info.plist"
+cp macos/Resources/Help.html macos/Resources/Ocean.icns "$app_path/Contents/Resources/"
+mkdir -p "$app_path/Contents/Resources/Licenses"
+cp LICENSE "$app_path/Contents/Resources/Licenses/Ocean-LICENSE"
+cp macos/WallpaperExtension/Aerial-LICENSE "$app_path/Contents/Resources/Licenses/"
+cp macos/Assets/Galaxy/CREDITS.md "$app_path/Contents/Resources/Licenses/Galaxy-CREDITS.md"
 zsh macos/build-screensaver.sh
 ditto "$PWD/macos/build/Ocean.saver" "$app_path/Contents/Resources/Ocean.saver"
 zsh macos/build-wallpaper-extension.sh
-codesign --force --sign - "$app_path"
+ocean_manifest_sources=(macos/build.sh macos/build-screensaver.sh macos/build-wallpaper-extension.sh macos/*.swift macos/Info.plist macos/ScreenSaver/*.swift macos/ScreenSaver/Info.plist macos/WallpaperExtension/*.{swift,m,h,plist,entitlements} macos/Shaders/* macos/Assets/Galaxy/* macos/Resources/Help.html macos/Resources/Ocean.icns)
+shasum -a 256 "${ocean_manifest_sources[@]}" > "$app_path/Contents/Resources/SourceManifest.sha256"
+codesign --force --sign - --options runtime "$app_path"
 echo "Built $app_path (native Metal)"

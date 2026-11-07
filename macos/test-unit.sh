@@ -30,3 +30,5 @@ run_unit SaverSchedulingTests macos/SharedSurfaceDemand.swift macos/PerformanceP
 run_unit NativeWallpaperSetupTests macos/NativeWallpaperSetup.swift macos/AutomaticScreenSaverSetup.swift macos/CelestialCycle.swift
 
 run_unit PresentationStateTests macos/WallpaperExtension/PresentationState.swift
+run_unit ProductPolicyTests macos/ProductPolicy.swift macos/LiveWallpaperControl.swift macos/WallpaperExtension/PresentationState.swift
+run_unit InstallerTests macos/OceanInstaller.swift

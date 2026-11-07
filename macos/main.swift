@@ -46,6 +46,9 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var wallpaperLayoutView: MTKView?
     private var wallpaperUsesTiles=false
     private var nativePresentationActive=false
+    private var hasStarted=false
+    private var installationInProgress=false
+    private var controls:OceanControlWindow?
     private var lastNativeEnvironmentRefresh = -Double.infinity
     private let wallpaperIntegration=WallpaperIntegration()
     private var stillTimer: Timer?
@@ -90,6 +93,29 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if let argument = CommandLine.arguments.first(where: { $0.hasPrefix("--query=") }),
            let items = URLComponents(string: "?" + argument.dropFirst(8))?.queryItems {
             for item in items { options[item.name] = item.value }
+        }
+        if CommandLine.arguments.contains("--setup-preview") { showSetupPreview();return }
+        if OceanRunMode.wallpaper {
+            let developerRun=CommandLine.arguments.contains("--diagnostics") || options["systemIntegration"]=="0"
+            if !developerRun && !OceanProduct.isInstalled(Bundle.main.bundleURL) {
+                installationInProgress=true
+                if CommandLine.arguments.contains("--installed-copy") { OceanInstaller.showManualInstallHelp() }
+                else { OceanInstaller.installAndRelaunch() }
+                return
+            }
+            let existing=defaults.bool(forKey:"OceanNativeWallpaperConfigured") || defaults.bool(forKey:"OceanScreenSaverConfigured")
+            let enabled=defaults.object(forKey:"OceanEnabled") as? Bool
+            if !developerRun && OceanProduct.needsWelcome(enabled:enabled,completed:defaults.bool(forKey:"OceanWelcomeCompleted"),previouslyConfigured:existing) {
+                showControls(welcome:true);return
+            }
+        }
+        startOcean()
+    }
+    private func startOcean() {
+        hasStarted=true
+        if OceanRunMode.wallpaper {
+            defaults.set(true,forKey:"OceanEnabled");defaults.set(true,forKey:"OceanWelcomeCompleted")
+            suspension.set(.userPaused,active:defaults.bool(forKey:"OceanUserPaused"))
         }
         if !OceanRunMode.offscreen {
             daylightTime=DaylightTime(value:options["daylightTime"] ?? defaults.string(forKey:"OceanDaylightTime") ?? "automatic") ?? DaylightTime()
@@ -172,6 +198,9 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         } catch { showError(error.localizedDescription) }
         if OceanRunMode.offscreen { return }
+        if let preview=defaults.object(forKey:"OceanWeatherPreview") as? NSNumber,(0...1).contains(preview.doubleValue) {
+            followsWeather=false;renderer?.previewStorm(preview.doubleValue);stormSlider?.doubleValue=preview.doubleValue
+        }
         let weather=WeatherProvider();weatherProvider=weather
         weather.onChange={ [weak self] value in self?.renderer?.setLocalWeather(value) }
         weather.onStatus={ [weak self] text in if self?.followsWeather == true { self?.weatherStatus?.title=text } }
@@ -281,6 +310,76 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         refreshCoverage()
     }
 
+    private func controlState()->OceanControlWindow.State {
+        let preview=(defaults.object(forKey:"OceanWeatherPreview") as? NSNumber)?.doubleValue
+        let levels=[0.0,0.08,0.4,0.75,1.0]
+        let weather=preview.map { value in (levels.indices.min { abs(levels[$0]-value)<abs(levels[$1]-value) } ?? 0)+1 } ?? 0
+        let live=wallpaperIntegration.nativeSetup.verified || (NativeWallpaperSetup.moduleURL==nil && hasStarted)
+        return OceanControlWindow.State(paused:suspension.isSuspended(.userPaused),daylight:daylightTime.value,weather:weather,
+            quality:OceanProduct.qualityIndex(fps:requestedFPS,pixels:requestedBudget),login:SMAppService.mainApp.status == .enabled,
+            status:live ? (suspension.isSuspended(.userPaused) ? "Animation is paused" : "Ocean is running · automatic power saving is active") : (integrationStatus?.title ?? "Preparing Ocean…"))
+    }
+    @objc private func openSettings() { showControls(welcome:!hasStarted) }
+    private func showControls(welcome:Bool) {
+        let ui=controls ?? OceanControlWindow();controls=ui
+        ui.onStart={ [weak self] login in
+            guard let self else { return }
+            self.defaults.set(false,forKey:"OceanUserPaused");self.startOcean()
+            if login { self.setLogin(true) }
+        }
+        ui.onCancel={ NSApp.terminate(nil) }
+        ui.onPause={ [weak self] in self?.togglePause() }
+        ui.onDaylight={ [weak self] value in
+            if value=="custom" { self?.chooseCustomDaylightTime() }
+            else if let selection=DaylightTime(value:value) { self?.applyDaylightTime(selection) }
+            self?.refreshMenuState()
+        }
+        ui.onWeather={ [weak self] index in
+            guard let self else { return }
+            if index==0 { self.followWeather() }
+            else {
+                let levels=[0.0,0.08,0.4,0.75,1.0]
+                let item=NSMenuItem(title:"Selected weather",action:nil,keyEquivalent:"")
+                item.representedObject=levels[max(0,min(4,index-1))];self.weatherPreset(item)
+            }
+        }
+        ui.onQuality={ [weak self] index in
+            guard let self,OceanProduct.qualities.indices.contains(index) else { return }
+            let quality=OceanProduct.qualities[index]
+            self.defaults.set(quality.fps,forKey:"OceanFramesPerSecond");self.defaults.set(quality.pixels,forKey:"OceanPixelBudget")
+            self.refreshMenuState();self.refreshCoverage()
+        }
+        ui.onLogin={ [weak self] enabled in self?.setLogin(enabled) }
+        ui.onRepair={ [weak self] in self?.installScreenSaver() }
+        ui.onRestore={ [weak self] in self?.restoreSystemWallpaper() }
+        ui.onSupport={ [weak self] in self?.copySupportInfo() }
+        if welcome { NSApp.setActivationPolicy(.regular) }
+        ui.show(welcome:welcome,state:controlState())
+    }
+    private func showSetupPreview() {
+        // An interactive design canary: no renderer, preferences, installation,
+        // location lookup, login registration or wallpaper-store changes.
+        let ui=OceanControlWindow();controls=ui;ui.closeOnStart=false
+        var state=OceanControlWindow.State(status:"Preview · no settings are being changed")
+        ui.onStart={ _ in ui.show(welcome:false,state:state) }
+        ui.onCancel={ NSApp.terminate(nil) }
+        ui.onPause={ state.paused.toggle();ui.update(state) }
+        ui.onDaylight={ state.daylight=$0;ui.update(state) }
+        ui.onWeather={ state.weather=$0;ui.update(state) }
+        ui.onQuality={ state.quality=$0;ui.update(state) }
+        ui.onLogin={ state.login=$0;ui.update(state) }
+        ui.onRepair={ state.status="Preview · setup would be repaired";ui.update(state) }
+        ui.onRestore={ state.status="Preview · your previous wallpaper would be restored";ui.update(state) }
+        NSApp.setActivationPolicy(.regular);ui.show(welcome:true,state:state)
+    }
+    private func copySupportInfo() {
+        let version=Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "development"
+        let build=Bundle.main.object(forInfoDictionaryKey:"CFBundleVersion") as? String ?? "?"
+        let state=controlState()
+        let text="Ocean \(version) (\(build))\nmacOS: \(ProcessInfo.processInfo.operatingSystemVersionString)\nHardware: Apple silicon\nNative wallpaper: \(wallpaperIntegration.nativeSetup.verified)\nPaused: \(state.paused)\nDaylight: \(state.daylight)\nPerformance preset: \(state.quality)\nOpen at Login: \(state.login)\n"
+        NSPasteboard.general.clearContents();NSPasteboard.general.setString(text,forType:.string)
+    }
+
     private func installWallpaperControls() {
         NSApp.setActivationPolicy(.accessory)
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -289,6 +388,8 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if button.image == nil { button.title = "≋" }
         }
         let menu = NSMenu()
+        let settings=NSMenuItem(title:"Ocean Settings…",action:#selector(openSettings),keyEquivalent:",")
+        settings.target=self;menu.addItem(settings);menu.addItem(.separator())
         let status = NSMenuItem(title: "Ocean wallpaper", action: nil, keyEquivalent: "")
         menu.addItem(status); performanceStatus = status
         let pause = NSMenuItem(title: "Pause Wallpaper", action: #selector(togglePause), keyEquivalent: "p")
@@ -308,14 +409,18 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let entry = NSMenuItem(title: "   " + title, action: #selector(chooseQuality(_:)), keyEquivalent: "")
             entry.target = self; entry.representedObject = budget; performanceMenu.addItem(entry); qualityItems.append(entry)
         }
-        performance.submenu = performanceMenu; menu.addItem(performance)
+        performance.submenu = performanceMenu
+        let advanced=NSMenuItem(title:"Advanced",action:nil,keyEquivalent:"")
+        let advancedMenu=NSMenu(title:"Advanced");advancedMenu.addItem(performance);advanced.submenu=advancedMenu
         let displays = NSMenuItem(title: "Displays", action: nil, keyEquivalent: "")
         let displaysMenu = NSMenu(title: "Displays")
         for (title, all) in [("All Displays", true), ("Main Display Only", false)] {
             let entry = NSMenuItem(title: title, action: #selector(chooseDisplays(_:)), keyEquivalent: "")
             entry.target = self; entry.tag = all ? 1 : 0; displaysMenu.addItem(entry); displayItems.append(entry)
         }
-        displays.submenu = displaysMenu; menu.addItem(displays)
+        displays.submenu = displaysMenu
+        if NativeWallpaperSetup.moduleURL==nil { advancedMenu.addItem(displays) }
+        menu.addItem(advanced)
         menu.addItem(.separator())
         let login = NSMenuItem(title: "Open at Login", action: #selector(toggleLogin), keyEquivalent: "")
         login.target = self; menu.addItem(login); loginItem = login
@@ -323,11 +428,11 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(integration);integrationStatus=integration
         for (title,action) in [("Refresh Lock Screen",#selector(enableSystemWallpaper)),
                                ("Restore Previous Wallpaper and Screen Saver",#selector(restoreSystemWallpaper)),
-                               ("Repair Screen Saver Setup",#selector(installScreenSaver))] {
+                               ("Repair Ocean Setup",#selector(installScreenSaver))] {
             let command=NSMenuItem(title:title,action:action,keyEquivalent:"")
             command.target=self;menu.addItem(command)
         }
-        menu.addItem(withTitle: "Quit Ocean", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let quit=NSMenuItem(title:"Turn Off & Quit Ocean…",action:#selector(restoreSystemWallpaper),keyEquivalent:"q");quit.target=self;menu.addItem(quit)
         item.menu = menu
         statusItem = item
         refreshMenuState()
@@ -344,14 +449,14 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return !self.suspension.isSuspended(.screenLocked) && !self.suspension.isSuspended(.screenSaver)
         }
         wallpaperIntegration.screenSaverSetup.onStatus={ [weak self] text in
-            self?.integrationStatus?.title=text
+            self?.integrationStatus?.title=text;self?.refreshMenuState()
             if CommandLine.arguments.contains("--diagnostics") { print("Ocean integration: \(text)") }
         }
         wallpaperIntegration.nativeSetup.onStatus={ [weak self] text in
-            self?.integrationStatus?.title=text
+            self?.integrationStatus?.title=text;self?.refreshMenuState()
             if CommandLine.arguments.contains("--diagnostics") { print("Ocean native integration: \(text)") }
         }
-        wallpaperIntegration.nativeSetup.onReady={ [weak self] in self?.refreshCoverage() }
+        wallpaperIntegration.nativeSetup.onReady={ [weak self] in self?.refreshCoverage();self?.refreshMenuState() }
         refreshCoverage()
         if options["systemIntegration"] != "0" {
             ScreenSaverEnvironment.publishFromApp()
@@ -390,10 +495,27 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
     @objc private func restoreSystemWallpaper() {
-        stillTimer?.invalidate();stillTimer=nil
-        defaults.set(false,forKey:"OceanSyncSystemWallpaper")
-        renderer?.snapshotRequested=nil
-        wallpaperIntegration.restore()
+        let alert=NSAlert();alert.messageText="Turn off Ocean?"
+        alert.informativeText="Your previous wallpaper and screen saver will be restored, Open at Login will be turned off, and Ocean will quit. Your appearance preferences will be kept."
+        alert.addButton(withTitle:"Turn Off Ocean");alert.addButton(withTitle:"Cancel")
+        NSApp.activate(ignoringOtherApps:true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        stillTimer?.invalidate();stillTimer=nil;coverageTimer?.invalidate();coverageTimer=nil
+        suspension.set(.userPaused,active:true);defaults.set(true,forKey:"OceanUserPaused")
+        renderer?.snapshotRequested=nil;renderer?.isPaused=true
+        for surface in surfaces { surface.view.isPaused=true;surface.window.orderOut(nil) }
+        LiveWallpaperControl.publish(framesPerSecond:0,pixelBudget:requestedBudget,userPaused:true)
+        wallpaperIntegration.restore { [weak self] success in
+            guard let self else { return }
+            if success {
+                self.defaults.set(false,forKey:"OceanEnabled");self.defaults.set(false,forKey:"OceanSyncSystemWallpaper")
+                try? SMAppService.mainApp.unregister();NSApp.terminate(nil)
+            } else {
+                self.refreshMenuState()
+                let failure=NSAlert();failure.messageText="Ocean couldn’t restore your previous wallpaper"
+                failure.informativeText="Your settings were kept. Try Repair Setup or choose another wallpaper in System Settings.";failure.runModal()
+            }
+        }
     }
     @objc private func installScreenSaver() {
         wallpaperIntegration.enableLiveSetup(force:true)
@@ -405,6 +527,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         for item in displayItems { item.state = (item.tag == 1) == allDisplays ? .on : .off }
         pauseItem?.title = suspension.isSuspended(.userPaused) ? "Resume Wallpaper" : "Pause Wallpaper"
         loginItem?.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        controls?.update(controlState())
     }
 
     @objc private func chooseRate(_ item: NSMenuItem) { defaults.set(item.tag, forKey: "OceanFramesPerSecond"); refreshMenuState(); refreshCoverage() }
@@ -415,14 +538,25 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         defaults.set(item.tag == 1, forKey: "OceanAllDisplays"); refreshMenuState(); screensChanged()
     }
     @objc private func togglePause() {
-        suspension.set(.userPaused, active: !suspension.isSuspended(.userPaused)); refreshMenuState(); updatePlayback()
+        suspension.set(.userPaused, active: !suspension.isSuspended(.userPaused))
+        defaults.set(suspension.isSuspended(.userPaused),forKey:"OceanUserPaused")
+        refreshMenuState(); updatePlayback()
     }
-    @objc private func toggleLogin() {
+    @objc private func toggleLogin() { setLogin(SMAppService.mainApp.status != .enabled) }
+    private func setLogin(_ enabled:Bool) {
         do {
-            if SMAppService.mainApp.status == .enabled { try SMAppService.mainApp.unregister() } else { try SMAppService.mainApp.register() }
+            if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+            if SMAppService.mainApp.status == .requiresApproval {
+                let alert=NSAlert();alert.messageText="Allow Ocean to start at login"
+                alert.informativeText="macOS needs your approval in Login Items. Turn on Ocean there to finish."
+                alert.addButton(withTitle:"Open Login Settings");alert.addButton(withTitle:"Later")
+                if alert.runModal() == .alertFirstButtonReturn { SMAppService.openSystemSettingsLoginItems() }
+            }
         } catch {
-            let alert = NSAlert(); alert.messageText = "Open at Login is unavailable"
-            alert.informativeText = "Move Ocean.app to /Applications and try again.\n\(error.localizedDescription)"; alert.runModal()
+            let alert=NSAlert();alert.messageText="Open at Login is unavailable"
+            alert.informativeText="macOS couldn’t change the login setting. Keep Ocean in Applications, then add or remove it in System Settings → General → Login Items."
+            alert.addButton(withTitle:"Open Login Settings");alert.addButton(withTitle:"Later")
+            if alert.runModal() == .alertFirstButtonReturn { SMAppService.openSystemSettingsLoginItems() }
         }
         refreshMenuState()
     }
@@ -562,7 +696,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     private func applyDaylightTime(_ selection: DaylightTime) {
         daylightTime=selection;renderer?.setDaylightTime(selection)
-        defaults.set(selection.value,forKey:"OceanDaylightTime");refreshDaylightTimeMenu()
+        defaults.set(selection.value,forKey:"OceanDaylightTime");refreshDaylightTimeMenu();refreshMenuState()
         if OceanRunMode.wallpaper { updateSystemWallpaper() }
     }
     @objc private func chooseDaylightTime(_ item: NSMenuItem) {
@@ -585,19 +719,24 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         applyDaylightTime(DaylightTime(mode:.custom,minutes:(parts.hour ?? 0)*60+(parts.minute ?? 0)))
     }
 
-    @objc private func followWeather() { followsWeather=true;renderer?.followLocalWeather();weatherProvider?.refresh();weatherStatus?.title="Following local weather · Open-Meteo" }
+    @objc private func followWeather() { followsWeather=true;defaults.removeObject(forKey:"OceanWeatherPreview");renderer?.followLocalWeather();weatherProvider?.refresh();weatherStatus?.title="Following local weather · Open-Meteo";updateSystemWallpaper();refreshMenuState() }
     @objc private func refreshWeather() { weatherProvider?.refresh(force:true) }
     @objc private func weatherPreset(_ item:NSMenuItem) {
         guard let value=item.representedObject as? Double else { return }
-        followsWeather=false;stormSlider?.doubleValue=value;renderer?.previewStorm(value);weatherStatus?.title="Preview · \(item.title) · transitions gradually"
+        followsWeather=false;defaults.set(value,forKey:"OceanWeatherPreview");stormSlider?.doubleValue=value;renderer?.previewStorm(value);weatherStatus?.title="Preview · \(item.title) · transitions gradually";updateSystemWallpaper();refreshMenuState()
     }
     @objc private func stormStrength(_ slider:NSSlider) {
-        followsWeather=false;renderer?.previewStorm(slider.doubleValue);weatherStatus?.title="Storm preview · \(Int(slider.doubleValue*100))% · transitions gradually"
+        followsWeather=false;defaults.set(slider.doubleValue,forKey:"OceanWeatherPreview");renderer?.previewStorm(slider.doubleValue);weatherStatus?.title="Storm preview · \(Int(slider.doubleValue*100))% · transitions gradually";updateSystemWallpaper();refreshMenuState()
     }
     @objc private func refreshLocation() { locationProvider?.refresh(force:true) }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { OceanRunMode.preview }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { !installationInProgress && (OceanRunMode.preview || !hasStarted || CommandLine.arguments.contains("--setup-preview")) }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if installationInProgress { return true }
+        if CommandLine.arguments.contains("--setup-preview") {
+            controls?.window?.deminiaturize(nil);controls?.showWindow(nil);controls?.window?.makeKeyAndOrderFront(nil);return true
+        }
+        if OceanRunMode.wallpaper { showControls(welcome:!hasStarted);return true }
         guard let window else { return false }
         window.deminiaturize(nil)
         window.makeKeyAndOrderFront(nil)
@@ -660,7 +799,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         renderer.hostSaverRendering=suspension.isSuspended(.screenSaver)
         let nativeActive=options["systemIntegration"] != "0" && NativeWallpaperSetup.moduleURL != nil && wallpaperIntegration.nativeSetup.verified && defaults.bool(forKey:"OceanNativeWallpaper")
         if nativeActive {
-            LiveWallpaperControl.publish(framesPerSecond:suspension.isSuspended(.userPaused) ? 0 : fps,pixelBudget:decision.pixelBudget)
+            LiveWallpaperControl.publish(framesPerSecond:suspension.isSuspended(.userPaused) ? 0 : fps,pixelBudget:decision.pixelBudget,userPaused:suspension.isSuspended(.userPaused),requestedFPS:requestedFPS)
             if !nativePresentationActive { for surface in surfaces { surface.window.orderOut(nil) };nativePresentationActive=true }
             for surface in surfaces { surface.view.isPaused=true }
             renderer.presentationSurfaces=[];renderer.isPaused=true

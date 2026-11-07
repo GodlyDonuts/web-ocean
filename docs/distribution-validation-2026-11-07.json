@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-07",
+  "version": "0.3.0",
+  "build": "5",
+  "plannedTag": "v0.3.0-beta.1",
+  "platform": "Apple M1, macOS 26.7",
+  "signing": {
+    "kind": "ad-hoc",
+    "hardenedRuntime": true,
+    "developerID": false,
+    "notarized": false,
+    "stableUnsignedReleaseRefused": true
+  },
+  "localChecks": {
+    "nativeBuild": "passed",
+    "cpuSuites": 21,
+    "sourceAndTagPackagingRejectionTests": 5,
+    "saverLifecycle": "passed",
+    "nativeABIAndRemoteSurfaceRecovery": "passed",
+    "wallpaperLifecycle": "passed",
+    "strictSignatures": "passed for source and installed app",
+    "readOnlyDMGStructure": "passed",
+    "sourceManifestStaleBuildGuard": "passed: package rejected after source change, rebuilt before retest",
+    "repositoryConsistency": "passed"
+  },
+  "uiReview": {
+    "scope": "Isolated AppKit helper with distinct identifier, no production extension or installer/weather/login implementation",
+    "welcomeAndSettings": "visually reviewed, no clipped controls",
+    "interactions": "Use Ocean transition, daylight preset, weather preset, performance preset, pause/resume labels",
+    "installedAppReopen": "passed: settings displayed from Applications",
+    "existingUserMigration": "passed on current configured account"
+  },
+  "installation": {
+    "from": "read-only local DMG",
+    "to": "/Applications/Ocean.app",
+    "selfCopyAndRelaunch": "passed after fixing premature exit on last dialog close",
+    "imageDetachedAfterInstall": true,
+    "nativeExecutable": "/Applications/Ocean.app/Contents/PlugIns/OceanLiveWallpaper.appex/Contents/MacOS/OceanLiveWallpaper",
+    "controllerPID": 3393,
+    "nativePID": 3417,
+    "onlyInstalledExtensionRegistered": true
+  },
+  "nativeControlProbe": {
+    "scope": "Temporary local cache client with compare-and-swap restoration; application preferences were not changed",
+    "states": [
+      24,
+      0,
+      24
+    ],
+    "resumedPresentedSamples": [
+      508,
+      628
+    ],
+    "sampleSeconds": 5.002,
+    "rendererErrors": [],
+    "originalControlRestored": true
+  },
+  "privacy": {
+    "newGPSPermission": false,
+    "analyticsAdded": false,
+    "automaticSupportUploads": false,
+    "supportCopyOmitsIPAndCoordinates": true,
+    "thirdPartyLocationAndWeatherDisclosure": "shown before Use Ocean; details bundled offline"
+  },
+  "limits": [
+    "Not a clean-user or quarantined browser-download test; Gatekeeper approval remains required for the unnotarized beta",
+    "Open at Login registration on an unsigned consumer installation was not exercised",
+    "New restore UI was not run against the personal backup during this review; mapping/restore contracts passed CPU checks",
+    "Mixed-monitor/Space and protected lock/wake visual checks were not repeated for this UI/distribution revision",
+    "Local test image was built from a dirty development tree; tagged CI rebuilds clean source before publishing"
+  ]
+}

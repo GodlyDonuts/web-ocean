@@ -16,7 +16,7 @@ jobs:
   gallery:
     # This label has successfully run this project's Metal gallery on arm64.
     # Intel runners cannot compile the renderer's native Float16 readbacks.
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4

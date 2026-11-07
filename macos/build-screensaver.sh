@@ -11,5 +11,5 @@ xcrun swiftc -O -emit-library -Xlinker -bundle -module-name OceanScreenSaver mac
 ditto macos/build/Ocean.app/Contents/Resources/Shaders "$saver_path/Contents/Resources/Shaders"
 ditto macos/build/Ocean.app/Contents/Resources/Assets "$saver_path/Contents/Resources/Assets"
 cp macos/ScreenSaver/Info.plist "$saver_path/Contents/Info.plist"
-codesign --force --sign - "$saver_path"
+codesign --force --sign - --options runtime "$saver_path"
 echo "Built $saver_path"

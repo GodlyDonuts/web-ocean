@@ -17,5 +17,5 @@ ditto macos/build/Ocean.app/Contents/Resources/Shaders "$extension_path/Contents
 ditto macos/build/Ocean.app/Contents/Resources/Assets "$extension_path/Contents/Resources/Assets"
 cp macos/WallpaperExtension/Info.plist "$extension_path/Contents/Info.plist"
 cp macos/WallpaperExtension/OceanFallback.png macos/WallpaperExtension/Aerial-LICENSE "$extension_path/Contents/Resources/"
-codesign --force --sign - --entitlements macos/WallpaperExtension/OceanWallpaper.entitlements "$extension_path"
+codesign --force --sign - --options runtime --entitlements macos/WallpaperExtension/OceanWallpaper.entitlements "$extension_path"
 echo "Built $extension_path"

@@ -129,9 +129,10 @@ final class AutomaticScreenSaverSetup {
         }
         return visit(current,original)
     }
-    func restore() {
+    func restore(completion:((Bool)->Void)?=nil) {
         queue.async {
-            defer { DispatchQueue.main.async { self.onRestored?() } }
+            var success=false
+            defer { let restored=success;DispatchQueue.main.async { if restored { self.onRestored?() };completion?(restored) } }
             UserDefaults.standard.set(false,forKey:"OceanAutomaticScreenSaver")
             do {
                 if #unavailable(macOS 14) {
@@ -141,7 +142,7 @@ final class AutomaticScreenSaverSetup {
                         legacy.synchronize()
                     }
                     UserDefaults.standard.set(false,forKey:"OceanScreenSaverConfigured")
-                    self.status("Previous screen saver restored");return
+                    success=true;self.status("Previous screen saver restored");return
                 }
                 let original=try self.read(Data(contentsOf:self.backup)),before=try Data(contentsOf:self.store)
                 let current=try self.read(before)
@@ -150,7 +151,7 @@ final class AutomaticScreenSaverSetup {
                 guard try Data(contentsOf:self.store)==before else { throw OceanFailure(message:"Wallpaper settings changed during restore") }
                 try data.write(to:self.store,options:.atomic);self.reloadAgent()
                 UserDefaults.standard.set(false,forKey:"OceanScreenSaverConfigured")
-                self.status("Previous screen saver restored")
+                success=true;self.status("Previous screen saver restored")
             } catch { self.status("Screen saver restore: \(error.localizedDescription)") }
         }
     }

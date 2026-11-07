@@ -67,9 +67,14 @@ final class WallpaperIntegration {
         if NativeWallpaperSetup.moduleURL != nil { nativeSetup.enable(force:force) }
         else { screenSaverSetup.enableIfNeeded(force:force) }
     }
-    func restore() {
-        if UserDefaults.standard.bool(forKey:"OceanNativeWallpaper") { nativeSetup.restore { self.screenSaverSetup.restore() } }
-        else { screenSaverSetup.restore() }
+    func restore(completion:((Bool)->Void)?=nil) {
+        let restoreSaver:()->Void = {
+            if UserDefaults.standard.bool(forKey:"OceanScreenSaverConfigured") { self.screenSaverSetup.restore(completion:completion) }
+            else { completion?(true) }
+        }
+        if UserDefaults.standard.bool(forKey:"OceanNativeWallpaper") {
+            nativeSetup.restore { success in if success { restoreSaver() } else { completion?(false) } }
+        } else { restoreSaver() }
     }
     private func restoreDesktop() {
         let original=UserDefaults.standard.dictionary(forKey:"OceanPreviousDesktopImages") as? [String:String] ?? [:]

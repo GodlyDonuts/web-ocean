@@ -2,7 +2,17 @@
 
 A cinematic ocean being developed into a live macOS wallpaper. The current app uses **Swift, AppKit, MetalKit and Metal**, with a fixed view across the water. Waves, volumetric clouds, rain, sunlight, moonlight and stars respond to time and weather.
 
-**Start here:** [developer handoff](docs/handoff.md) · [architecture](docs/architecture.md) · [testing](docs/testing.md) · [next work](docs/engineering-roadmap.md).
+## Get Ocean for Mac
+
+**[Download the GitHub beta](https://github.com/GodlyDonuts/web-ocean/releases/tag/v0.3.0-beta.1)** · Apple silicon (M1 or newer) · macOS 26+
+
+Download **Ocean-…-arm64.dmg**, open it, drag Ocean to Applications, then open Ocean and choose **Use Ocean**. No Xcode, Terminal or source-code build is needed. The wave icon in your menu bar opens Ocean Settings; opening Ocean again shows your controls too.
+
+This community beta is **not Apple-notarized**. macOS may block the first launch; only approve a download you trust from this repository, following [Apple’s instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac). Do not disable system security. Intel and older macOS versions are not supported by this beta download.
+
+[Getting started, updates and removal](docs/getting-started.md) · [Privacy](docs/privacy.md) · [Release notes](docs/releases/BETA.md).
+
+**For developers:** [handoff](docs/handoff.md) · [architecture](docs/architecture.md) · [testing](docs/testing.md) · [next work](docs/engineering-roadmap.md) · [packaging releases](docs/distribution.md).
 
 ![Native moonlit ocean](docs/silver-night-preview.png)
 
@@ -10,7 +20,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 
 ## Current status
 
-`main` is the current native Metal implementation. The root HTML/JavaScript renderer is retained as a browser reference. The separate historical `feature/native-macos-wallpaper` branch and its browser-host implementation predate the Metal rewrite.
+The GitHub beta uses the native Metal implementation. The root HTML/JavaScript renderer is retained as a browser reference. The separate historical `feature/native-macos-wallpaper` branch and its browser-host implementation predate the Metal rewrite.
 
 | Capability | Status |
 |---|---|
@@ -38,7 +48,7 @@ The objective is a lightweight, continuous wallpaper with real local daylight an
 Use an Apple silicon Mac with macOS 13+ and Xcode Command Line Tools:
 
 ```sh
-git clone https://github.com/GodlyDonuts/web-ocean.git
+git clone --branch v0.3.0-beta.1 https://github.com/GodlyDonuts/web-ocean.git
 cd web-ocean
 zsh macos/build.sh
 open macos/build/Ocean.app
@@ -46,7 +56,7 @@ open macos/build/Ocean.app
 
 No npm packages, Python, Rust, development server or downloaded assets are required for the native build. Swift builds the app bundle; packaged Metal sources compile into retained pipeline states at startup. The included galaxy asset is ready to use. See its [credits and provenance](macos/Assets/Galaxy/CREDITS.md).
 
-The app starts in desktop wallpaper mode with a wave icon in the menu bar. It offers pause, local daylight/weather, frame-rate and resolution budgets, display selection, and Open at Login. For the original resizable/full-screen development window, use:
+The installed app first shows a setup window. Choose Use Ocean to start; the wave icon in the menu bar opens Ocean Settings. It offers pause, local daylight/weather, frame-rate and resolution budgets, display selection, and Open at Login. For the original resizable/full-screen development window, use:
 
 ```sh
 macos/build/Ocean.app/Contents/MacOS/Ocean --preview

@@ -642,7 +642,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         localWeather=adjusted
         if !weatherManual { setWeather(adjusted) }
     }
-    func followLocalWeather() { weatherManual=false;if let value=localWeather { setWeather(value) } }
+    func followLocalWeather() { weatherManual=false;setWeather(localWeather ?? .fair) }
     func previewStorm(_ value:Double) { weatherManual=true;setWeather(.storm(value)) }
     private func setWeather(_ value:OceanWeather) {
         guard value.isValid,value != weatherDynamics.target else { return }

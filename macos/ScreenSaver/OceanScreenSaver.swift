@@ -26,8 +26,7 @@ private final class SaverWorld {
         if let saved=ScreenSaverEnvironment.read() {
             renderer.setDaylightTime(DaylightTime(value:saved.daylightTime) ?? DaylightTime())
             renderer.setObserverLocation(saved.location,timeZone:saved.timeZoneID.flatMap(TimeZone.init(identifier:)))
-            if let date=saved.weatherMeasuredAt,Date()>=date,Date().timeIntervalSince(date)<86400,
-               let weather=saved.weather { renderer.setLocalWeather(weather) }
+            renderer.setLocalWeather(ScreenSaverEnvironment.currentWeather(saved))
         } else {
             // First launch before the app has published its cached environment.
             let location=ObserverLocationProvider()

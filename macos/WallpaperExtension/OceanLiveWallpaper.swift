@@ -33,6 +33,7 @@ final class OceanWallpaperWorld:NSObject {
     private var fps=30
     private var pixelBudget=PerformancePolicy.balancedBudget
     private var snapshotPending=false
+    private var needsPresentation=true
     private var lastEnvironment:ScreenSaverEnvironment.Saved?
     private var pendingEnvironment:ScreenSaverEnvironment.Saved?
     private var locked=false
@@ -60,6 +61,7 @@ final class OceanWallpaperWorld:NSObject {
     static func releaseIfUnused() {
         if shared?.surfaces.isEmpty==true { shared?.timer?.invalidate();shared=nil }
     }
+    func requestPresentation() { needsPresentation=true;begin() }
     func begin(interval:Double=1.0/30) {
         guard timer?.timeInterval != interval else { return }
         timer?.invalidate()
@@ -78,13 +80,15 @@ final class OceanWallpaperWorld:NSObject {
             if let info=IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),let source=IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue() as String? { input.onBattery=source=="Battery Power" }
             let control=LiveWallpaperControl.read()
             let fullScreen=locked || systemSaver || surfaces.values.contains { $0.request.mode=="locked" }
-            if let control,!fullScreen {
-                input.requestedFPS=control.framesPerSecond;input.requestedPixelBudget=control.pixelBudget
-                input.visibleFraction=control.framesPerSecond==0 ? 0 : 1
+            if let control {
+                input.requestedFPS=OceanPresentation.requestedRate(desktop:control.framesPerSecond,preference:control.requestedFPS,fullScreen:fullScreen)
+                input.requestedPixelBudget=control.pixelBudget
+                if !fullScreen { input.visibleFraction=control.framesPerSecond==0 ? 0 : 1 }
             }
             let decision=PerformancePolicy.decide(input)
-            if fps != decision.framesPerSecond { lastFrameTime=nil;frameIntervals=[] }
-            fps=decision.framesPerSecond;pixelBudget=decision.pixelBudget
+            let nextFPS=OceanPresentation.frameRate(policy:decision.framesPerSecond,userPaused:control?.userPaused ?? false)
+            if fps != nextFPS { lastFrameTime=nil;frameIntervals=[] }
+            fps=nextFPS;pixelBudget=decision.pixelBudget
             renderer?.pixelBudget=decision.pixelBudget
             begin(interval:fps==0 ? 0.5 : 1.0/Double(fps))
         }
@@ -99,7 +103,7 @@ final class OceanWallpaperWorld:NSObject {
         let activity="locked=\(locked) active=\(active.count)/\(surfaces.count) fps=\(fps)"
         if activity != lastActivityLog { lastActivityLog=activity;debugLog("Ocean activity: \(activity)") }
         guard let first=active.first else { begin(interval:0.5);return }
-        guard renderer==nil || fps>0 else { return }
+        guard renderer==nil || fps>0 || needsPresentation else { return }
         do {
             if renderer==nil {
                 renderer=try OceanRenderer(view:first.view,diagnostics:false,options:[:])
@@ -112,7 +116,7 @@ final class OceanWallpaperWorld:NSObject {
                 lastEnvironment=saved
                 renderer.setDaylightTime(DaylightTime(value:saved.daylightTime) ?? DaylightTime())
                 renderer.setObserverLocation(saved.location,timeZone:saved.timeZoneID.flatMap(TimeZone.init(identifier:)))
-                if let date=saved.weatherMeasuredAt,Date().timeIntervalSince(date)>=0,Date().timeIntervalSince(date)<86400,let weather=saved.weather { renderer.setLocalWeather(weather) }
+                renderer.setLocalWeather(ScreenSaverEnvironment.currentWeather(saved))
                 debugLog("Loaded Ocean environment; daylight=\(saved.daylightTime)")
             }
             renderer.presentationSurfaces=active.map(\.view);renderer.layoutView=first.view;renderer.isPaused=false
@@ -121,6 +125,7 @@ final class OceanWallpaperWorld:NSObject {
             first.view.releaseDrawables()
             CATransaction.flush()
             if renderer.submittedFrames>previous {
+                needsPresentation=false
                 if let lastFrameTime,renderer.submittedFrames>3,frameIntervals.count<256 { frameIntervals.append((now-lastFrameTime)*1000) }
                 lastFrameTime=now
             }
@@ -136,6 +141,7 @@ final class OceanWallpaperWorld:NSObject {
         } catch { debugLog("Ocean render initialization failed: \(error.localizedDescription)") }
     }
     func recover(reason:String) {
+        needsPresentation=true
         for surface in surfaces.values { surface.recover(reason:reason) }
         renderer?.presentationSurfaces=[];renderer?.layoutView=nil
         lastFrameTime=nil;frameIntervals=[];nextPolicy = -Double.infinity
@@ -198,7 +204,7 @@ final class OceanWallpaperHandler:NSObject,WallpaperExtensionXPCProtocol {
             guard let surface=OceanRemoteSurface(request),let boxed=OceanWrapContext(OceanRemoteContextID(surface.context)) else { reply(nil,NSError(domain:"OceanWallpaper",code:2));return }
             world.surfaces[id]=surface
             debugLog("Acquire Ocean surface; mode=\(request.mode) suspended=\(request.suspended) size=\(request.size)")
-            reply(boxed,nil);world.begin()
+            reply(boxed,nil);world.requestPresentation()
         }
     }
     func update(withId id:Any?,request:Any?,reply:@escaping(Error?)->Void) {
