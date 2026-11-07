@@ -54,6 +54,9 @@ struct PerformancePolicyTests {
         let gap=DesktopCoverage.visibleFraction(of:hd,covers:[CGRect(x:0,y:0,width:950,height:1080),
               CGRect(x:960,y:0,width:960,height:1080)])
         check(gap>0,"sub-grid interior gap remains visible")
+        check(PerformancePolicy.coveragePollInterval(framesPerSecond:0)==2,"covered desktop backs off polling")
+        check(PerformancePolicy.coveragePollInterval(framesPerSecond:8)==0.25,"visible slivers retain responsive polling")
+        check(PerformancePolicy.coveragePollInterval(framesPerSecond:30)==0.75,"normal coverage cadence")
         print("PASS: performance policy, conservative strips/gaps and complete rectangle coverage")
     }
 }

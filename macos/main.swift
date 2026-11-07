@@ -62,6 +62,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var qualityItems: [NSMenuItem] = []
     private var displayItems: [NSMenuItem] = []
     private var coverageTimer: Timer?
+    private var rebuildingSurfaces = false
     private var visibleFraction: [CGDirectDisplayID: Double] = [:]
     private var onBattery = false
     private var lastPowerCheck = -Double.infinity
@@ -204,6 +205,8 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func buildSurfaces() {
         guard let device else { return }
+        rebuildingSurfaces=true
+        defer { rebuildingSurfaces=false }
         for surface in surfaces {
             surface.view.isPaused=true;surface.view.delegate=nil
             surface.window.orderOut(nil);surface.window.close()
@@ -366,8 +369,9 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         renderer?.governor = "\(next.framesPerSecond) FPS, \(next.reason), visible \(Int((input.visibleFraction*100).rounded()))%"
         if budgetChanged { renderer?.pixelBudget = next.pixelBudget; sizeSecondaryDrawables() }
         updatePlayback()
-        // Poll faster while throttled so a revealed desktop resumes promptly.
-        let interval = next.framesPerSecond < 15 ? 0.25 : 0.75
+        // Reveal notifications refresh immediately. Poll slowly while fully hidden
+        // as a fallback, retaining fast coverage tracking for visible slivers.
+        let interval = PerformancePolicy.coveragePollInterval(framesPerSecond:next.framesPerSecond)
         if coverageTimer?.timeInterval != interval {
             coverageTimer?.invalidate()
             coverageTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in self?.refreshCoverage() }
@@ -427,7 +431,12 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
         return true
     }
-    func windowDidChangeOcclusionState(_ notification: Notification) { updatePlayback() }
+    func windowDidChangeOcclusionState(_ notification: Notification) {
+        guard !rebuildingSurfaces else { return }
+        // A reveal must refresh coverage now, rather than waiting for the
+        // covered-desktop fallback poll. Preview behavior remains unchanged.
+        if OceanRunMode.wallpaper { refreshCoverage() } else { updatePlayback() }
+    }
     func windowDidMiniaturize(_ notification: Notification) { updatePlayback() }
     func windowDidDeminiaturize(_ notification: Notification) { updatePlayback() }
     @objc private func powerOrSessionChanged(_ notification: Notification) {

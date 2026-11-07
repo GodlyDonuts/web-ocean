@@ -24,6 +24,11 @@ enum PerformancePolicy {
     static let balancedBudget = 1280.0*800
     static let adaptiveFPS = 30
 
+    static func coveragePollInterval(framesPerSecond: Int) -> TimeInterval {
+        if framesPerSecond==0 { return 2 }
+        return framesPerSecond<15 ? 0.25 : 0.75
+    }
+
     static func decide(_ input: PerformanceInputs) -> PerformanceDecision {
         let ceiling = max(1, min(120, input.displayMaxFPS))
         var fps = input.requestedFPS > 0 ? min(input.requestedFPS, ceiling) : min(adaptiveFPS, ceiling)

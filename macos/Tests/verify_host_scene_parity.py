@@ -24,4 +24,4 @@ for name,settings in cases.items():
   assert a and a==b,(name,suffix,'Scene changed')
   hashes['HDR' if not suffix else 'display']={'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
  results.append({'scene':name,'settings':settings,'exact':True,'outputs':hashes});print('PASS: exact HDR/display',name,flush=True)
-report.write_text(json.dumps({'passed':True,'cases':results,'scope':'Matched offscreen captures against a separately built main app. Host modifications preserve these three core scenes; this does not test physical multi-monitor presentation.'},indent=2)+'\n')
+report.write_text(json.dumps({'passed':True,'cases':results,'baselineApp':str(args.baseline_app.resolve()),'scope':'Matched offscreen captures against an explicit baseline app. Host modifications preserve these three core scenes; this does not test physical multi-monitor presentation.'},indent=2)+'\n')

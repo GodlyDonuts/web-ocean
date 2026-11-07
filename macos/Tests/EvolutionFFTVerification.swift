@@ -25,15 +25,16 @@ import Metal
         parameters[48] = 1.25; parameters[50] = 600
         var seed: UInt32 = 0x81726354
         var results: [[String:Any]] = []
-        for pattern in ["zero","impulse","random","large"] {
+        for pattern in ["zero","negative_zero","impulse","sparse","random","large"] {
             let values = h0.contents().bindMemory(to:Float.self,capacity:count)
             for index in 0..<count {
                 switch pattern {
                 case "zero": values[index] = 0
+                case "negative_zero": values[index] = Float(bitPattern:index%3==0 ? 0x80000000 : 0)
                 case "impulse": values[index] = index%1024 >= 124 && index%1024 < 128 ? Float(index%4+1)*0.001 : 0
                 default:
                     seed = seed &* 1664525 &+ 1013904223
-                    values[index] = (Float(seed>>8)/16777216-0.5)*(pattern == "large" ? 20 : 0.0005)
+                    values[index] = pattern == "sparse" && (index/4)%23 != 0 ? 0 : (Float(seed>>8)/16777216-0.5)*(pattern == "large" ? 20 : 0.0005)
                 }
             }
             for phase: Float in [0,45,120,599.95] {
@@ -63,12 +64,12 @@ import Metal
                 }
                 let result: [String:Any] = ["pattern":pattern,"time":phase,"comparedFloat32Values":count*2,"changedValues":changed,"changedBitPatterns":changedBits,"maximumError":maximumError]
                 results.append(result)
-                print(String(data:try JSONSerialization.data(withJSONObject:result,options:.sortedKeys),encoding:.utf8)!)
+                print(String(data:try JSONSerialization.data(withJSONObject:result,options:.sortedKeys),encoding:.utf8)!); fflush(stdout)
                 guard changed == 0 && changedBits == 0 else { fatalError("Fused evolution changed float32 FFT rows") }
             }
         }
         let report: [String:Any] = ["passed":true,"device":device.name,"cases":results]
         try JSONSerialization.data(withJSONObject:report,options:[.prettyPrinted,.sortedKeys]).write(to:root.appendingPathComponent("macos/build/evolution-fft-verification.json"))
-        print("PASS: fused evolution matches every reference float32 row bit across sixteen input/phase cases.")
+        print("PASS: fused evolution matches every reference float32 row bit across twenty-four input/phase cases.")
     }
 }

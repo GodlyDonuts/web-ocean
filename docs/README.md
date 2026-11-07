@@ -7,6 +7,7 @@
 - [Native architecture and shader ownership](architecture.md)
 - [Testing, captures, CI and performance methodology](testing.md)
 - [Handoff validation, 4 November 2026](validation-2026-11-04.md)
+- [Resource usage and covered-desktop optimization, 6 November 2026](resource-usage-2026-11-06.md)
 - [Detailed engineering roadmap and decision gates](engineering-roadmap.md)
 
 ## Implemented behavior

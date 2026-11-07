@@ -55,6 +55,8 @@ Measure normal unprofiled command-buffer times after warmup, using the same reso
 
 `python3 macos/Tests/benchmark.py --help` describes isolated baseline modes. Several preserve historical appearances, so label differences clearly; they are not all equivalent-quality comparisons. Record mean/median/P95, CPU encode time and allocations separately. Whole-system energy, WindowServer behavior and reveal latency need separate measurements. Lower GPU time alone does not prove longer battery life.
 
+`python3 macos/Tests/benchmark_resources.py` records process CPU, physical footprint, wakeup counters and Metal allocation alongside renderer timings without root. `benchmark_covered_desktop.py --app macos/build/Ocean.app --out macos/build/resources-covered` opens one temporary desktop process and requires zero submitted frames before reporting covered-startup usage. See the [dated resource report](resource-usage-2026-11-06.md) for reproduction commands, measured savings and scope limits.
+
 CI deliberately runs native compilation and CPU tests without assuming a hosted GPU. The browser CI job installs npm dependencies and rebuilds the reference artifacts. Real Metal validation and interactive wallpaper behavior require a supported Mac.
 
 ## Desktop host regression checks
