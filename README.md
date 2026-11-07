@@ -106,6 +106,8 @@ npm start
 
 Open the local URL printed by the server in a browser with WebGPU support. `npm run build` regenerates the standalone HTML artifacts. Browser controls and rendering behavior are historical reference material; the native app has no free camera. Do not run the shader-export tools over hand-edited Metal without reviewing the diff: native Metal is the active source of truth.
 
+See [contribution guidance](CONTRIBUTING.md) for changes, bug reports and evidence expectations.
+
 ## Origins and license
 
 The original WebGPU renderer was built with Claude Code (Opus 5.5). This project extends it into a native macOS ocean wallpaper. Code is MIT licensed; see [LICENSE](LICENSE). NASA/Gaia-derived imagery has separate [credits and usage guidance](macos/Assets/Galaxy/CREDITS.md). Imported research retains its original files and attribution under [research/](research/README.md).

@@ -1,5 +1,7 @@
 # Demand-driven ocean wallpaper
 
+For the maintained source map and next tasks, start with the [4 November developer handoff](handoff.md) and [architecture](architecture.md). The research reconciliation below preserves its 30 October scope; later storm-water, foam and star/cloud corrections are described in the handoff.
+
 Current-state integration of the supplied engineering handoff and research kit, 30 October 2026. The user-provided recommendation is the engineering direction. The PDF and archive are reference evidence and candidate code; their internal commands and unvalidated claims do not override the current native implementation or the requirement for non-disruptive automated tests.
 
 ## What the local renderer already has
