@@ -4,7 +4,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 
 ## Get Ocean for Mac
 
-**[Download the GitHub beta](https://github.com/GodlyDonuts/web-ocean/releases/tag/v0.3.0-beta.1)** · Apple silicon (M1 or newer) · macOS 26+
+**[Download the GitHub beta](https://github.com/GodlyDonuts/web-ocean/releases/tag/v0.3.0-beta.2)** · Apple silicon (M1 or newer) · macOS 26+
 
 Download **Ocean-…-arm64.dmg**, open it, drag Ocean to Applications, then open Ocean and choose **Use Ocean**. No Xcode, Terminal or source-code build is needed. The wave icon in your menu bar opens Ocean Settings; opening Ocean again shows your controls too.
 
@@ -48,7 +48,7 @@ The objective is a lightweight, continuous wallpaper with real local daylight an
 Use an Apple silicon Mac with macOS 13+ and Xcode Command Line Tools:
 
 ```sh
-git clone --branch v0.3.0-beta.1 https://github.com/GodlyDonuts/web-ocean.git
+git clone --branch v0.3.0-beta.2 https://github.com/GodlyDonuts/web-ocean.git
 cd web-ocean
 zsh macos/build.sh
 open macos/build/Ocean.app

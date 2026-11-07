@@ -4,7 +4,7 @@ Ocean is a live ocean for your desktop, screen saver and lock screen. The first 
 
 ## Install
 
-1. Open [Ocean’s GitHub release page](https://github.com/GodlyDonuts/web-ocean/releases/tag/v0.3.0-beta.1).
+1. Open [Ocean’s GitHub release page](https://github.com/GodlyDonuts/web-ocean/releases/tag/v0.3.0-beta.2).
 2. Download **Ocean-…-arm64.dmg** under Assets. You do not need the Source code downloads.
 3. Open the disk image and drag **Ocean** to **Applications**.
 4. Open Ocean from Applications. Read the welcome screen and choose **Use Ocean**. Choose whether you want it to start at login.

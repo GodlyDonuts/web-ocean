@@ -1,6 +1,6 @@
 # GitHub distribution
 
-The first distributable is **v0.3.0-beta.1**, Apple silicon, macOS 26+. Consumers download a self-contained DMG, move/install the app to Applications and choose Use Ocean. There are no developer-tool or server requirements for users.
+The first distributable is **v0.3.0-beta.2**, Apple silicon, macOS 26+. Consumers download a self-contained DMG, move/install the app to Applications and choose Use Ocean. There are no developer-tool or server requirements for users.
 
 This is an **ad-hoc-signed, unnotarized community beta**. A development certificate is not a Developer ID distribution certificate. GitHub hosting does not remove Gatekeeper requirements. Release instructions explicitly disclose the first-launch warning and link to Apple’s per-app approval documentation; never recommend disabling Gatekeeper or removing quarantine attributes.
 
@@ -22,7 +22,7 @@ zsh macos/test-unit.sh
 zsh macos/Tests/test-screensaver.sh
 zsh macos/Tests/test-native-wallpaper.sh
 python3 macos/Tests/verify_wallpaper_lifecycle.py
-python3 tools/package-release.py --unsigned-beta --tag v0.3.0-beta.1
+python3 tools/package-release.py --unsigned-beta --tag v0.3.0-beta.2
 ```
 
 Commit source first. Packaging rejects dirty trees by default; `--allow-dirty` exists only for local review and marks the manifest accordingly. The app records hashes of its build inputs. Packaging rejects a stale app when those inputs change. Bundle versions must agree with each other and with the tag. The package includes Ocean.app, an Applications shortcut, a first-read help page and the MIT license. `.sha256` and `.json` sidecars identify the source commit and signing state.

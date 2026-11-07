@@ -2,7 +2,7 @@
   "date": "2026-11-07",
   "version": "0.3.0",
   "build": "5",
-  "plannedTag": "v0.3.0-beta.1",
+  "plannedTag": "v0.3.0-beta.2",
   "platform": "Apple M1, macOS 26.7",
   "signing": {
     "kind": "ad-hoc",
@@ -68,5 +68,6 @@
     "New restore UI was not run against the personal backup during this review; mapping/restore contracts passed CPU checks",
     "Mixed-monitor/Space and protected lock/wake visual checks were not repeated for this UI/distribution revision",
     "Local test image was built from a dirty development tree; tagged CI rebuilds clean source before publishing"
-  ]
+  ],
+  "ciPackagingNote": "The first unpublished tag passed compilation and 21 CPU suites, then failed because the hosted runner lacked rg. The saver bundle check now uses built-in /usr/bin/grep with the same assertion."
 }
