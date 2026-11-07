@@ -51,7 +51,6 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var lastVisibilityDescription=""
     private var renderer: OceanRenderer?
     private var suspension = SurfaceSuspensionState()
-    private var saverActivity=SaverActivityTracker()
     private var automationTimer: Timer?
     private var followsWeather=true
     private var weatherProvider:WeatherProvider?
@@ -202,11 +201,6 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             workspace.addObserver(self,selector:#selector(powerOrSessionChanged(_:)),name:name,object:nil)
         }
         let distributed = DistributedNotificationCenter.default()
-        if OceanRunMode.wallpaper {
-            for name in [ScreenSaverActivity.rendered,ScreenSaverActivity.stopped] {
-                distributed.addObserver(self,selector:#selector(saverRenderingChanged(_:)),name:name,object:nil)
-            }
-        }
         for name in ["com.apple.screenIsLocked","com.apple.screenIsUnlocked","com.apple.screensaver.didstart","com.apple.screensaver.didstop"] {
             distributed.addObserver(self,selector:#selector(lockOrScreenSaverChanged(_:)),name:Notification.Name(name),object:nil)
         }
@@ -429,7 +423,6 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard OceanRunMode.wallpaper,!refreshingCoverage else { return }
         refreshingCoverage=true;defer { refreshingCoverage=false }
         let now = CACurrentMediaTime()
-        suspension.set(.saverRendering,active:saverActivity.isActive(at:now))
         if now-lastPowerCheck > 10 {
             lastPowerCheck = now
             if let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
@@ -616,12 +609,6 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         updatePlayback()
         if !suspension.isSuspended,OceanRunMode.wallpaper { updateSystemWallpaper() }
     }
-    @objc private func saverRenderingChanged(_ notification: Notification) {
-        guard let token=notification.object as? String,token.count<=128 else { return }
-        if notification.name==ScreenSaverActivity.rendered { saverActivity.rendered(token:token,at:CACurrentMediaTime()) }
-        else { saverActivity.stopped(token:token) }
-        refreshCoverage()
-    }
     @objc private func lockOrScreenSaverChanged(_ notification: Notification) {
         switch notification.name.rawValue {
         case "com.apple.screenIsLocked": suspension.set(.screenLocked,active:true)
@@ -654,7 +641,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func updateWallpaperPlayback(_ renderer: OceanRenderer) {
         let fps = decision.framesPerSecond
         renderer.hostLocked=suspension.isSuspended(.screenLocked)
-        renderer.hostSaverRendering=suspension.isSuspended(.saverRendering)
+        renderer.hostSaverRendering=suspension.isSuspended(.screenSaver)
         let requests = surfaces.enumerated().map { index,surface -> SurfaceDemandRequest in
             let id = (surface.screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? 0
             let osVisible = surface.window.occlusionState.contains(.visible)
@@ -681,7 +668,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let state: String
         if suspension.isSuspended(.userPaused) { state = "Paused" }
         else if suspension.isSuspended(.screenLocked) { state="Idle · screen locked" }
-        else if suspension.isSuspended(.screenSaver) || suspension.isSuspended(.saverRendering) { state="Idle · Ocean screen saver" }
+        else if suspension.isSuspended(.screenSaver) { state="Idle · Ocean screen saver" }
         else if suspension.isSuspended(.inactiveSession) { state="Idle · session inactive" }
         else if driver == nil { state = "Idle · desktop covered" }
         else { state = "Live · \(fps) FPS · \(decision.reason)" }

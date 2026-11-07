@@ -8,14 +8,14 @@
     "Opt-in experimental regional scene rendering; normal app retains single-window host",
     "Shared byte-exact tile presentation with one-source-texel overlap",
     "Automatic native saver installation/selection and system wallpaper still",
-    "Pause wallpaper while native saver or preview submits frames",
+    "Suspend on OS saver/lock events; previews cannot freeze wallpaper",
     "Adaptive saver battery, Low Power Mode and thermal limits"
   ],
   "interactiveEvidence": {
     "automaticSelection": "Observed Ocean selected in System Settings after app setup without selecting it manually in final verification",
     "systemWallpaper": "NSWorkspace returned generated Ocean PNG",
     "saverAppearance": "User reported native saver looks nice",
-    "handoff": "Wallpaper diagnostics held at 16 submitted/completed frames and zero FPS while native preview advertised activity",
+    "handoff": "Historical: preview heartbeat produced zero-FPS desktop rendering. User reported a frozen image; removed preview-heartbeat suspension as a regression.",
     "coverageAndRecovery": "Unlocked opaque-window probe did not change four-strip visibility; experimental regional host disabled by default. Wallpaper resumed rendering after saver preview closure and host refresh."
   },
   "limits": [
@@ -234,5 +234,21 @@
     "windowCount": 2,
     "errors": [],
     "scope": "Updated default single-window host; observed moving frames after saver preview closure and module refresh. Not an isolated resource benchmark."
+  },
+  "previewFreezeFix": {
+    "cause": "ScreenSaver helper continued publishing activity while desktop was visible and unlocked",
+    "change": "Removed private module activity protocol; desktop suspension follows OS saver/lock/sleep/session events",
+    "schedulingTest": "OS saver and lock reasons remain independent; cadence limits retained",
+    "liveVerification": {
+      "passed": true,
+      "framesBefore": 220,
+      "framesAfter": 296,
+      "paused": false,
+      "saverRenderingPaused": false,
+      "screenLocked": false,
+      "errors": [],
+      "scope": "Actual default wallpaper kept advancing after old preview rendered notification was broadcast three times; unlocked visible desktop."
+    },
+    "otherChecks": "Native build, strict signatures, saver lifecycle/shared allocation/in-flight teardown, windowless wallpaper lifecycle, scheduling test and repository consistency passed"
   }
 }

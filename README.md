@@ -25,7 +25,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Pause on occlusion, minimization, lock, screensaver, sleep and inactive session | Implemented |
 | Regional scene shading experiment | GPU pixel checks pass; opt-in pending OS visibility proof |
 | Native Ocean screensaver / system wallpaper still | Automatic installation/selection and system still synchronization |
-| Screensaver efficiency | Battery/thermal limits, lightweight preview and wallpaper handoff |
+| Screensaver efficiency | Battery/thermal limits and lightweight preview; OS-controlled desktop pause |
 | Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
 | Shared simulation/HDR across displays | Host implemented; physical multi-monitor verification remains open |
 | Regional rendering demand | Planned; pure demand/layout contracts and a diagnostic exist |

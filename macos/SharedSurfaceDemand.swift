@@ -41,28 +41,11 @@ enum SharedSurfaceDemand {
 
 // Reasons are independent: a wake notification must not clear an inactive session.
 struct SurfaceSuspensionState {
-    enum Reason: Hashable { case systemSleep, displaySleep, inactiveSession, screenLocked, screenSaver, saverRendering, userPaused }
+    enum Reason: Hashable { case systemSleep, displaySleep, inactiveSession, screenLocked, screenSaver, userPaused }
     private var reasons: Set<Reason> = []
     var isSuspended: Bool { !reasons.isEmpty }
     func isSuspended(_ reason: Reason) -> Bool { reasons.contains(reason) }
     mutating func set(_ reason: Reason, active: Bool) {
         if active { reasons.insert(reason) } else { reasons.remove(reason) }
-    }
-}
-
-// Leased activity also covers the Settings preview, which does not emit the
-// system's screensaver-start notification. A crashed saver cannot freeze the
-// wallpaper indefinitely. All times are monotonic; no new polling timer.
-struct SaverActivityTracker {
-    private var leases: [String:Double]=[:]
-    mutating func rendered(token: String,at time: Double) {
-        guard !token.isEmpty,token.count<=128,time.isFinite else { return }
-        leases=leases.filter { $0.value>time }
-        guard leases.count<32 || leases[token] != nil else { return }
-        leases[token]=time+12
-    }
-    mutating func stopped(token: String) { leases.removeValue(forKey:token) }
-    mutating func isActive(at time: Double) -> Bool {
-        leases=leases.filter { $0.value>time };return !leases.isEmpty
     }
 }

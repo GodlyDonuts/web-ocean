@@ -14,9 +14,6 @@ private final class SaverWorld {
     let renderer: OceanRenderer
     var views: [MTKView]=[]
     private let preview: Bool
-    private let activityToken="\(ProcessInfo.processInfo.processIdentifier):\(UUID().uuidString)"
-    private var advertised=false
-    private var heartbeat = -Double.infinity
     private var nextPolicy = -Double.infinity
     private var cadence=FrameSubmissionCadence()
     private var policyDescription=""
@@ -39,10 +36,6 @@ private final class SaverWorld {
     func add(_ view: MTKView) { views.append(view);sync() }
     func remove(_ view: MTKView) {
         views.removeAll { $0 === view };sync()
-        if views.isEmpty,advertised {
-            DistributedNotificationCenter.default().postNotificationName(ScreenSaverActivity.stopped,object:activityToken,userInfo:nil,deliverImmediately:true)
-            advertised=false
-        }
         if views.isEmpty,SaverWorld.fullScreen === self { SaverWorld.fullScreen=nil }
     }
     private func sync() {
@@ -67,12 +60,8 @@ private final class SaverWorld {
         guard views.first === view else { return }
         let now=CACurrentMediaTime();refreshPolicy(at:now)
         guard cadence.shouldSubmit(at:now,framesPerSecond:framesPerSecond) else { return }
-        let previous=renderer.submittedFrames
         renderer.draw(in:view)
-        if renderer.submittedFrames>previous,now-heartbeat>=5 {
-            heartbeat=now;advertised=true
-            DistributedNotificationCenter.default().postNotificationName(ScreenSaverActivity.rendered,object:activityToken,userInfo:nil,deliverImmediately:true)
-        }
+
     }
 }
 

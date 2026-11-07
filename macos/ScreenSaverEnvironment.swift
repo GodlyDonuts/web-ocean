@@ -39,10 +39,3 @@ enum ScreenSaverEnvironment {
         return saved
     }
 }
-
-// Object strings carry only an ephemeral instance token; no userInfo payload
-// is needed by sandboxed saver hosts.
-enum ScreenSaverActivity {
-    static let rendered=Notification.Name("local.wallpaper.ocean.saver-rendered")
-    static let stopped=Notification.Name("local.wallpaper.ocean.saver-stopped")
-}
