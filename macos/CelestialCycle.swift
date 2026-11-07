@@ -1,6 +1,37 @@
 import Foundation
 import simd
 
+struct DaylightTime: Equatable {
+    enum Mode: String, CaseIterable { case automatic,sunrise,midday,goldenHour,sunset,midnight,custom }
+    let mode: Mode
+    let minutes: Int
+    init(mode: Mode = .automatic, minutes: Int = 0) {
+        self.mode=mode;self.minutes=max(0,min(1439,minutes))
+    }
+    init?(value: String) {
+        if let mode=Mode(rawValue:value),mode != .custom { self.init(mode:mode);return }
+        let parts=value.split(separator:":",omittingEmptySubsequences:false)
+        guard parts.count==2,parts.allSatisfy({$0.count==2 && $0.allSatisfy({$0.isASCII && $0.isNumber})}),
+              let hour=Int(parts[0]),let minute=Int(parts[1]),(0...23).contains(hour),(0...59).contains(minute) else { return nil }
+        self.init(mode:.custom,minutes:hour*60+minute)
+    }
+    var value: String { mode == .custom ? String(format:"%02d:%02d",minutes/60,minutes%60) : mode.rawValue }
+    func date(reference: Date, day: SolarDay, zone: TimeZone) -> Date? {
+        switch mode {
+        case .automatic: return reference
+        case .sunrise: return day.sunrise.map(Date.init(timeIntervalSince1970:))
+        case .midday: return Date(timeIntervalSince1970:day.solarNoon)
+        case .goldenHour: return day.sunset.map { Date(timeIntervalSince1970:$0-min(2700,max(0,($0-(day.sunrise ?? day.start))*0.25))) }
+        case .sunset: return day.sunset.map(Date.init(timeIntervalSince1970:))
+        case .midnight,.custom:
+            var calendar=Calendar(identifier:.gregorian);calendar.timeZone=zone
+            let minute=mode == .midnight ? 0 : minutes
+            return calendar.date(bySettingHour:minute/60,minute:minute%60,second:0,of:reference,
+                                 matchingPolicy:.nextTime,repeatedTimePolicy:.first,direction:.forward)
+        }
+    }
+}
+
 struct ObserverLocation: Codable, Equatable {
     let latitude: Double
     let longitude: Double

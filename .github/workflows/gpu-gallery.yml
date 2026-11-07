@@ -50,3 +50,5 @@ jobs:
             macos/build/coverage/report.json
             macos/build/headless/report.json
             macos/build/wallpaper-lifecycle/verification.json
+            macos/build/daylight-time/*.json
+            macos/build/daylight-time/*.log

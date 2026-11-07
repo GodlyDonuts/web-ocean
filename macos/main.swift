@@ -52,6 +52,10 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var locationProvider: ObserverLocationProvider?
     private var daylightStatus: NSMenuItem?
     private var solarTimesItem: NSMenuItem?
+    private var daylightTime=DaylightTime()
+    private var daylightTimeItems: [NSMenuItem] = []
+    private var customDaylightItem: NSMenuItem?
+    private var lastSolarDay: SolarDay?
     private var options: [String: String] = [:]
     // Wallpaper performance state.
     private var statusItem: NSStatusItem?
@@ -76,6 +80,9 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if let argument = CommandLine.arguments.first(where: { $0.hasPrefix("--query=") }),
            let items = URLComponents(string: "?" + argument.dropFirst(8))?.queryItems {
             for item in items { options[item.name] = item.value }
+        }
+        if !OceanRunMode.offscreen {
+            daylightTime=DaylightTime(value:options["daylightTime"] ?? defaults.string(forKey:"OceanDaylightTime") ?? "automatic") ?? DaylightTime()
         }
         if OceanRunMode.preview {
             let menu = NSMenu()
@@ -128,6 +135,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let diagnostics = CommandLine.arguments.contains("--diagnostics") || CommandLine.arguments.contains("--verify") || CommandLine.arguments.contains("--profile") || CommandLine.arguments.contains("--benchmark")
         do {
             renderer = try OceanRenderer(view: viewport, diagnostics: diagnostics, options: options)
+            if !OceanRunMode.offscreen { renderer?.setDaylightTime(daylightTime);refreshDaylightTimeMenu() }
             if OceanRunMode.offscreen && options["testIdleDiagnostics"] == "1" {
                 // A covered wallpaper can receive diagnostic ticks before any
                 // scene textures or uniforms have been initialized.
@@ -163,6 +171,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             provider.onStatus={ [weak self] status in self?.daylightStatus?.title=status }
             renderer?.onLocationMaintenance={ [weak provider,weak weather] in provider?.refresh();weather?.refresh() }
             renderer?.onSolarDayChanged={ [weak self] day in
+                self?.lastSolarDay=day;self?.refreshDaylightTimeMenu()
                 let formatter=DateFormatter();formatter.timeStyle = .short;formatter.timeZone=TimeZone(identifier:day.timeZoneID)
                 func time(_ stamp: Double?) -> String { stamp.map { formatter.string(from:Date(timeIntervalSince1970:$0)) } ?? "—" }
                 if day.daylight=="polarDay" { self?.solarTimesItem?.title="Midnight sun — no sunset today" }
@@ -385,9 +394,20 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let daylightItem=NSMenuItem(title:"Daylight",action:nil,keyEquivalent:"")
         let daylightMenu=NSMenu(title:"Daylight")
         let status=NSMenuItem(title:"Daylight follows your approximate IP location",action:nil,keyEquivalent:"")
+        status.isEnabled=false
         daylightMenu.addItem(status);daylightStatus=status
         let times=NSMenuItem(title:"Sunrise — · Sunset —",action:nil,keyEquivalent:"")
+        times.isEnabled=false
         daylightMenu.addItem(times);solarTimesItem=times
+        daylightMenu.addItem(.separator())
+        daylightMenu.autoenablesItems=false
+        for (title,mode) in [("Follow Local Time",DaylightTime.Mode.automatic),("Sunrise",.sunrise),("Midday",.midday),("Golden Hour",.goldenHour),("Sunset",.sunset),("Midnight",.midnight)] {
+            let item=NSMenuItem(title:title,action:#selector(chooseDaylightTime(_:)),keyEquivalent:"")
+            item.target=self;item.representedObject=mode.rawValue;daylightMenu.addItem(item);daylightTimeItems.append(item)
+        }
+        let custom=NSMenuItem(title:"Custom Time…",action:#selector(chooseCustomDaylightTime),keyEquivalent:"")
+        custom.target=self;daylightMenu.addItem(custom);customDaylightItem=custom
+        refreshDaylightTimeMenu()
         daylightMenu.addItem(.separator())
         let refresh=NSMenuItem(title:"Refresh Approximate Location",action:#selector(refreshLocation),keyEquivalent:"")
         refresh.target=self;daylightMenu.addItem(refresh)
@@ -411,6 +431,42 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         sliderItem.view=controls;weatherMenu.addItem(sliderItem)
         weatherItem.submenu=weatherMenu
         return [daylightItem,weatherItem]
+    }
+
+    private func refreshDaylightTimeMenu() {
+        let enabled=renderer?.dayNightEnabled ?? true
+        for item in daylightTimeItems {
+            let mode=DaylightTime.Mode(rawValue:item.representedObject as? String ?? "")
+            item.state=mode == daylightTime.mode ? .on : .off
+            let needsRise=mode == .sunrise,needsSet=mode == .sunset || mode == .goldenHour
+            item.isEnabled=enabled && !(lastSolarDay != nil && ((needsRise && lastSolarDay?.sunrise == nil) || (needsSet && lastSolarDay?.sunset == nil)))
+        }
+        customDaylightItem?.state=daylightTime.mode == .custom ? .on : .off
+        customDaylightItem?.isEnabled=enabled
+        customDaylightItem?.title=daylightTime.mode == .custom ? "Custom Time… (\(daylightTime.value))" : "Custom Time…"
+    }
+    private func applyDaylightTime(_ selection: DaylightTime) {
+        daylightTime=selection;renderer?.setDaylightTime(selection)
+        defaults.set(selection.value,forKey:"OceanDaylightTime");refreshDaylightTimeMenu()
+    }
+    @objc private func chooseDaylightTime(_ item: NSMenuItem) {
+        guard let value=item.representedObject as? String,let selection=DaylightTime(value:value) else { return }
+        applyDaylightTime(selection)
+    }
+    @objc private func chooseCustomDaylightTime() {
+        let zone=renderer?.daylightTimeZone ?? .autoupdatingCurrent
+        var calendar=Calendar(identifier:.gregorian);calendar.timeZone=zone
+        let picker=NSDatePicker(frame:NSRect(x:0,y:0,width:240,height:32))
+        picker.datePickerStyle = .textFieldAndStepper;picker.datePickerElements = .hourMinute
+        picker.timeZone=zone;picker.calendar=calendar
+        picker.dateValue=daylightTime.mode == .custom ? calendar.date(bySettingHour:daylightTime.minutes/60,minute:daylightTime.minutes%60,second:0,of:Date()) ?? Date() : Date()
+        let alert=NSAlert();alert.messageText="Choose daylight time"
+        alert.informativeText="Hold the sky at this local time. Waves and weather keep moving."
+        alert.accessoryView=picker;alert.addButton(withTitle:"Apply");alert.addButton(withTitle:"Cancel")
+        NSApp.activate(ignoringOtherApps:true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        let parts=calendar.dateComponents([.hour,.minute],from:picker.dateValue)
+        applyDaylightTime(DaylightTime(mode:.custom,minutes:(parts.hour ?? 0)*60+(parts.minute ?? 0)))
     }
 
     @objc private func followWeather() { followsWeather=true;renderer?.followLocalWeather();weatherProvider?.refresh();weatherStatus?.title="Following local weather · Open-Meteo" }

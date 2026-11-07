@@ -13,6 +13,7 @@
 ## Implemented behavior
 
 - [Local daylight, Moon and remote night sky](day-night-cycle.md)
+- [Choose a daylight preset or custom time](daylight-controls.md)
 - [Shared centered Sun/Moon arc and real phases](wallpaper-moon.md)
 - [Weather providers, continuous storm state and idealized sea mapping](dynamic-weather.md)
 - [Volumetric clouds and measurements](volumetric-clouds.md)

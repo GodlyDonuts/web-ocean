@@ -1,5 +1,7 @@
 # Local daylight and the remote night sky
 
+The [Daylight menu](daylight-controls.md) now supports holding Sunrise, Midday, Golden Hour, Sunset, Midnight or a custom local clock time. Follow Local Time restores the normal live cycle. Water, cloud motion and weather remain animated in either mode.
+
 Normal preview launches now follow real UTC and approximate location obtained from the public IP address. There is no GPS, macOS location prompt, location-entry dialog, geocoder or API key. [Local weather](dynamic-weather.md) now reuses these coordinates for a separate cached current-conditions request. A small asynchronous HTTPS request to [ipwho.is](https://ipwhois.io/documentation) asks only for success, latitude, longitude and IANA time zone. It normally runs once per 24 hours. Rounded coordinates, time zone and timestamps stay in `~/Library/Application Support/OceanWallpaper/ip-location.json`; the public IP and raw response are not saved.
 
 The provider keeps using saved coordinates while offline and backs failed requests off for 15 minutes, including across app restarts. A local expiry check shares active rendering about once a minute; no new background timer wakes a hidden wallpaper. The Daylight menu shows today's sunrise/sunset and offers **Refresh Approximate Location**. On first launch without connectivity or any saved location, the preview retains fixed lighting until a lookup succeeds. VPNs/relays can change the approximate area; this follows the requested IP-based policy.

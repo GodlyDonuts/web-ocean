@@ -50,6 +50,8 @@ macos/build/Ocean.app/Contents/MacOS/Ocean --preview
 
 The camera remains fixed. Use weather controls for manual storm previews or automatic mode for local weather. Quit through the menu bar. See [the desktop host and verification limits](docs/wallpaper-host.md).
 
+To keep a particular look, choose **Daylight → Sunset** or another preset, or use **Custom Time…** for a specific hour/minute. Waves and weather keep moving. The selection is saved; **Follow Local Time** restores automatic daylight. See [daylight time controls](docs/daylight-controls.md).
+
 The preview caps its internal image at approximately 1,024,000 pixels, preserves aspect ratio and defaults to 30 FPS. The standard 1280×800 view uses 98,304 ocean triangles. Wave simulation updates six periodic 256×256 FFT bands; these are reusable wave tiles rather than a fully meshed world. Geometry is concentrated in the viewport with sparse displacement guards, including a near patch behind the camera that prevents holes during overtaking storm waves.
 
 [Measured resource usage on an M1](docs/resource-usage-2026-11-06.md): roughly 5–6% of one CPU core, 97–121 MiB physical footprint and 8–11 ms mean GPU work per frame in offscreen 1280×800/30 FPS fixtures. Backing off covered-desktop polling reduced measured idle CPU from 0.36% to 0.12%, with zero submitted rendering frames. These measurements exclude WindowServer overhead and do not establish battery life.

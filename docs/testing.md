@@ -32,6 +32,8 @@ The current gate includes `WallpaperMoonTests` and `verify_wallpaper_moon.py`: o
 
 ## Captures and interpretation
 
+`DaylightTimeTests` and `python3 macos/Tests/verify_daylight_time.py` cover held daylight independently of the animation clock, custom time/timezone/DST resolution, and automatic mode. The GPU fixtures use `daylightTime=sunset` or `HH:mm` query inputs; saved user preferences are ignored. See [daylight controls](daylight-controls.md).
+
 Generated artifacts are under ignored `macos/build/` subdirectories. `--query` supplies URL-style `key=value&key=value` settings; quote the whole argument in the shell. Useful deterministic controls include `fixedDt`, `time`, `dayNight`, `latitude`, `longitude`, `timeZone`, `utc`, `heading`, `storm`, `rainParticles`, `renderWidth`, `renderHeight` and `dump`.
 
 ```sh
