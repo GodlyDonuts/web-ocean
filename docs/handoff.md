@@ -67,3 +67,7 @@ On macOS 26, continue from [the live lock-screen guide](live-lock-screen.md). Th
 ## Daytime appearance refinement
 
 Continue from [the daylight lighting guide](cinematic-daylight.md). A bounded artistic daytime look reduces excessive diffuse sea fill, restores cloud-base shading, eases the global blue cast and exposes for the directional key. Its weight follows the displayed Sun and fades out at low elevations/night, retaining the established golden-hour and lunar appearance. The composite and mirror paths use identical arithmetic. No ray counts, texture allocations, passes, mesh budgets or weather/time controls were added. See the guide for matched capture and runtime validation.
+
+## Offshore sea-state audit
+
+The [sea-state audit](sea-state.md) separates local wind sea from the idealized remote swell. Rain no longer adds metres of swell or increases whitecap thresholds. Background swell keeps a nominal 1.8 m significant height with an 11 s peak period, independent of local conditions. Wind-only spectrum retargeting retains oscillator phases and avoids regeneration for cloud/rain-only updates. New GPU fixtures require byte-identical wave displacement for dry/wet cases with the same wind, bounded persistent swell in light wind, and increasing energy with stronger wind. See the audit for measured height proxies, camera scale, assumptions and updated storm-foam fixture criteria.

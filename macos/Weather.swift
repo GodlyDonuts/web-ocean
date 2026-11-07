@@ -45,7 +45,20 @@ struct OceanWeather: Codable, Equatable {
     var direction: Double // degrees toward, in scene coordinates
     var thunder: Double
     var mist: Double
-    var severity: Double { max(rain*0.75,min(1,max(0,(wind-10)/35))) }
+    var windSeaSeverity: Double { min(1,max(0,(wind-10)/35)) }
+    var severity: Double { max(rain*0.75,windSeaSeverity) }
+    func hasSameWind(as other:Self) -> Bool {
+        wind==other.wind && (direction-other.direction).truncatingRemainder(dividingBy:360)==0
+    }
+    // Headless diagnostics can isolate rain/cloud changes from wind changes.
+    static func fixture(_ text:String) -> Self? {
+        let fields=text.split(separator:",",omittingEmptySubsequences:false)
+        guard fields.count==6 else { return nil }
+        let values=fields.compactMap { Double($0) }
+        guard values.count==6 else { return nil }
+        let weather=Self(values)
+        return weather.isValid ? weather : nil
+    }
     static let fair = OceanWeather(rain:0,cloud:0.4,wind:7,direction:118,thunder:0,mist:0)
     static func storm(_ amount: Double) -> OceanWeather {
         let t=max(0,min(1,amount))

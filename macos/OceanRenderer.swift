@@ -233,8 +233,9 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         self.skipCloudOctaves = options["skipCloudOctaves"] != "0"
         self.packedJacobian = options["packedJacobian"] != "0"
         self.useSharedLighting = options["sharedLighting"] == "1" && options["perPixelLighting"] != "1"
-        if let level=Double(options["storm"] ?? options["weatherFrom"] ?? ""),level.isFinite {
-            var initial=OceanWeather.storm(level)
+        let fixtureWeather=options["weatherValues"].flatMap(OceanWeather.fixture)
+        let fixtureStorm=Double(options["storm"] ?? options["weatherFrom"] ?? "").flatMap { $0.isFinite ? OceanWeather.storm($0) : nil }
+        if var initial=fixtureWeather ?? fixtureStorm {
             if let heading=Double(options["weatherHeadingFrom"] ?? ""),heading.isFinite,(0...360).contains(heading) { initial.direction=heading }
             self.weatherDynamics=WeatherDynamics(initial);self.weatherActive=true;self.weatherManual=true
             self.cloudEvolutionTime=clock.elapsed
@@ -472,7 +473,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         h0 = try buffer(bytes, "initial spectrum", privateStorage: true)
         // Allocate the second sea state only for local/manual weather, not
         // legacy offscreen reference captures.
-        if !OceanRunMode.offscreen || options["storm"] != nil || options["weatherFrom"] != nil {
+        if !OceanRunMode.offscreen || weatherManual {
             seaTarget=try buffer(bytes,"weather target spectrum",privateStorage:true)
             weatherSimBuffer=try buffer(224,"weather target parameters")
             seaResponseBuffer=try buffer(16,"sea relaxation")
@@ -582,7 +583,10 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             s[16+c] = c < cascades-1 ? (2 * .pi * 6)/cascadeLengths[c+1] : (.pi*Float(n)/cascadeLengths[c])*0.98
         }
         s[40] = wind; s[41] = windDirection; s[42] = 90000; s[43] = 3.3
-        s[44] = weatherActive ? Float(1.8+weatherDynamics.current.severity*8) : value("swellHs", 1.8); s[45] = 94*d2r; s[46] = sqrt(9.81*2 * .pi/120); s[47] = 48
+        // Remote swell is independent of the user's local rain and wind. This
+        // is an idealized offshore background, not a marine forecast.
+        s[44] = max(0,value("swellHs",1.8)); s[45] = 94*d2r
+        s[46] = 2 * .pi / min(25,max(4,value("swellPeriod",11))); s[47] = 48
         s[48] = value("choppy", 1.25); s[49] = 0.0012; s[50] = 600; s[51] = 1
         s[52] = time; s[53] = dt; s[54] = 2.2; s[55] = 1
         write(s, to: simBuffer)
@@ -648,7 +652,8 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             cloudDrift = -SIMD2(cos(a),sin(a))*(Double(self.value("windSpeed",7))*0.001*clock.elapsed)
             weatherDetailDrift=SIMD2(cos(a),sin(a))*(Double(Float(0.0004))*clock.elapsed)
         }
-        weatherActive=true;weatherDynamics.setTarget(value);weatherTargetDirty=true
+        weatherTargetDirty = weatherTargetDirty || !value.hasSameWind(as:weatherDynamics.target)
+        weatherActive=true;weatherDynamics.setTarget(value)
     }
     private func updateWeather(dt:Double) {
         if let to=Double(options["weatherTo"] ?? ""),!fixtureWeatherChanged,
@@ -675,7 +680,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         for i in 188..<192 { frame[i]=0 }
         memset(rainBuffer.contents(),0,64)
         guard weatherActive else { return }
-        let w=weatherDynamics.current,severity=w.severity
+        let w=weatherDynamics.current,severity=w.severity,seaSeverity=w.windSeaSeverity
         let formation=max(0,min(1,(w.cloud-0.45)/0.5))
         let growth=severity*formation*formation*(3-2*formation)
         let canopy=max(0,min(1,(w.cloud-0.55)/0.38))
@@ -684,7 +689,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         frame[56]=Float(cos(w.direction*Double.pi/180));frame[57]=Float(sin(w.direction*Double.pi/180));frame[58]=Float(w.wind)
         frame[93]=Float(w.cloud);frame[94]=Float(2.2+severity*2.0)
         frame[74]=Float(max(Double(value("veil",0.36)),w.cloud*0.8))
-        frame[84]=0.36+0.12*value("foam",1)+Float(severity*0.42)
+        frame[84]=0.36+0.12*value("foam",1)+Float(seaSeverity*0.42)
         // Dense marine rain/fog fades the horizon in world distance.
         let fog=Float(w.mist)*0.0025
         frame[88]=(5.802e-3+4.40e-3*value("haze",3))*1e-3+fog
@@ -708,7 +713,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         for bucket in 0..<8 { particles[4+bucket]=AnimationClock.fraction(cloudEvolutionTime*Double(20+bucket)/64)*64 }
         particles[12]=post[15];particles[13]=Float(rain)
         let foam=foamBuffer.contents().assumingMemoryBound(to:Float.self)
-        foam[11]=Float(0.22+severity*0.45);foam[12]=0.52+0.16*value("foam",1)-Float(severity*0.28)
+        foam[11]=Float(0.22+seaSeverity*0.45);foam[12]=0.52+0.16*value("foam",1)-Float(seaSeverity*0.28)
         foam[32]=frame[56]*Float(w.wind)*0.03;foam[33]=frame[57]*Float(w.wind)*0.03
         if let seaResponseBuffer {
             write([Float(1-exp(-dt/90)),0,0,0],to:seaResponseBuffer)
@@ -730,7 +735,8 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let p=weatherSimBuffer.contents().assumingMemoryBound(to:Float.self)
         let w=weatherDynamics.target
         p[40]=Float(max(0.2,w.wind));p[41]=Float(w.direction*Double.pi/180)
-        p[44]=Float(1.8+w.severity*8);p[43]=Float(3.3+w.severity*0.7)
+        // Retain independent swell height/period and the same JONSWAP peak
+        // shape as startup. Only local wind speed/direction retarget wind sea.
         seaSettling=900
     }
 

@@ -23,6 +23,17 @@ import Foundation
     var north=OceanWeather.fair;north.direction=359
     var turning=WeatherDynamics(north);north.direction=1;turning.setTarget(north);turning.advance(1)
     precondition(turning.current.direction>359 || turning.current.direction<1)
+    var wet=OceanWeather.fair;wet.rain=1;wet.cloud=1;wet.thunder=1;wet.mist=1
+    precondition(wet.severity>OceanWeather.fair.severity)
+    precondition(wet.windSeaSeverity==OceanWeather.fair.windSeaSeverity && wet.hasSameWind(as:.fair))
+    wet.wind=30;precondition(wet.windSeaSeverity>0 && !wet.hasSameWind(as:.fair))
+    wet=OceanWeather.fair;wet.direction+=1;precondition(!wet.hasSameWind(as:.fair))
+    var northWind=OceanWeather.fair;northWind.direction=0;wet=northWind;wet.direction=360
+    precondition(wet.hasSameWind(as:northWind))
+    precondition(OceanWeather.fixture("1,1,2.75,171,1,0.8")?.windSeaSeverity==0)
+    for invalid in ["1,1,2", "1,,2.75,171,1,0.8", "1,1,nan,171,1,0.8", "1,1,100,171,1,0.8", "1,1,2.75,171,1,0.8,0"] {
+        precondition(OceanWeather.fixture(invalid)==nil)
+    }
     let now=Date(timeIntervalSince1970:1793394900)
     let raw=#"{"current":{"time":1793394900,"interval":900,"precipitation":2,"rain":1,"showers":1,"weather_code":95,"cloud_cover":100,"wind_speed_10m":20,"wind_direction_10m":270,"wind_gusts_10m":40}}"#.data(using:.utf8)!
     let (weather,_)=try WeatherReply.decode(raw,status:200,now:now)

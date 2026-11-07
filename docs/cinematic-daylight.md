@@ -6,6 +6,8 @@ The daytime ocean could wash into one pale gray-blue range, even when sunrise, s
 
 Left: before. Right: after. Top: the cached mixed marine-cloud conditions at a fixed morning time. Bottom: a dense stratus stress case. These are actual Metal readbacks at 960×600 with fixed wave time, location, lighting UTC and weather in each pair. They are controlled renders, not screenshots of the native wallpaper host or photographs. The reference supplied by the user informed tonal/color separation; its low Sun and broken clouds are a different weather/time condition.
 
+The later [sea-state audit](sea-state.md) changes swell period and weather coupling. These captures precede that wave-geometry correction; the daytime lighting treatment remains in use.
+
 ## Rendering changes
 
 - `OceanRenderer.swift` writes a daytime look weight into the existing reserved composite `q.w`. It is reset every frame and derived from `smoothstep(0.08,0.30,displayedSun.y) * (1-night)`. The reference/static-Sun path retains zero weight.

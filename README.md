@@ -31,7 +31,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 | Regional rendering demand | Planned; pure demand/layout contracts and a diagnostic exist |
 | Open at Login | Registration control provided; installed/signed bundle behavior needs manual verification |
 
-The objective is a lightweight, continuous wallpaper with real local daylight and weather, a fixed ocean composition, and cinematic nights without city light pollution. Inland weather drives an idealized sea state; it is not a marine swell forecast.
+The objective is a lightweight, continuous wallpaper with real local daylight and weather, a fixed ocean composition, and cinematic nights without city light pollution. Inland wind drives an idealized wind sea over an independent long-period swell; rain alone does not enlarge waves. See [the sea-state audit](docs/sea-state.md). This is not a marine swell forecast.
 
 ## Build and run
 
