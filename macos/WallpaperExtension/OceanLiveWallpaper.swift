@@ -135,14 +135,11 @@ final class OceanWallpaperWorld:NSObject {
             }
         } catch { debugLog("Ocean render initialization failed: \(error.localizedDescription)") }
     }
-    func recover(reason:String,delayed:Bool=true) {
+    func recover(reason:String) {
         for surface in surfaces.values { surface.recover(reason:reason) }
         renderer?.presentationSurfaces=[];renderer?.layoutView=nil
         lastFrameTime=nil;frameIntervals=[];nextPolicy = -Double.infinity
         begin(interval:1.0/30)
-        if delayed {
-            DispatchQueue.main.asyncAfter(deadline:.now()+2) { [weak self] in self?.recover(reason:reason+"+2s",delayed:false) }
-        }
     }
     func snapshot(_ reply:@escaping(Any?,Error?)->Void) {
         guard !snapshotPending,let renderer,let view=surfaces.values.first?.view else { reply(fallbackSnapshot(),nil);return }

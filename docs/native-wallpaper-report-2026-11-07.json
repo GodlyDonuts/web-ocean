@@ -29,8 +29,10 @@
   "visualReview": {
     "initialDedicatedNativeHost": "User confirmed Ocean is visible and moving on lock screen, then reported severe judder after transition",
     "pacingFix": "Installed; user confirmed: It stays smooth now, after a requested 15-second lock-screen check.",
-    "finalLockScreenConfirmed": false,
-    "followupRegression": "User reported freezing after Control-Command-Q or lid-close/wake despite the earlier short pacing check."
+    "finalLockScreenConfirmed": true,
+    "followupRegression": "User reported freezing after Control-Command-Q or lid-close/wake despite the earlier short pacing check.",
+    "freshDrawableUserResult": "For both after 1.5 second a tiny black flash happens. But the rest of it is good now.",
+    "finalUserResult": "No flash; both stay smooth"
   },
   "pacingProbe": {
     "seconds": 16,
@@ -61,12 +63,12 @@
     "No temperature, power or battery-life reduction measured"
   ],
   "finalRuntime": {
-    "controllerPID": 91255,
-    "extensionPID": 91260,
+    "controllerPID": 92358,
+    "extensionPID": 92370,
     "coveredDesktopControlFPS": 0,
-    "oldDesktopRendererSubmittedFrames": 69,
+    "oldDesktopRendererSubmittedFrames": 28,
     "installedAndRunning": true,
-    "visualPacingConfirmation": "Fresh-drawable build installed; sustained actual presentation callbacks observed unlocked. Keyboard-lock/lid-wake user test pending."
+    "visualPacingConfirmation": "User confirmed no flash and smooth playback on both keyboard-lock and lid-wake paths after removal of the delayed layer replacement."
   },
   "finalLockedRuntimeSamples": [
     {
@@ -110,7 +112,7 @@
       "Preserve normal MTKView delegate acquisition for the app",
       "Separate submitted, successful GPU completion and actual drawable presentation counters; mirror renderer errors to host logs"
     ],
-    "visualValidation": "Pending physical keyboard-lock and lid-wake tests of this correction",
+    "visualValidation": "User confirmed both keyboard-lock and lid-wake playback is good, except for a tiny black flash about 1.5 seconds after the transition. No specific watch duration was confirmed.",
     "installed": true,
     "controllerPID": 91255,
     "extensionPID": 91260,
@@ -137,5 +139,13 @@
     "nativeABIAndRemoteSurfaceRecovery": "passed",
     "cpuSuites": "All 19 passed",
     "legacySaverLifecycle": "passed: load/start/stop/restart, shared allocation, in-flight teardown, zero windows"
+  },
+  "transitionFlashCorrection": {
+    "change": "Remove unconditional +2-second layer replacement; retain immediate event-driven recovery. Replacing an already healthy layer can briefly expose the empty new surface.",
+    "visualValidation": "User confirmed: No flash; both stay smooth (keyboard lock and lid wake). Brief check; no exact duration confirmed.",
+    "installed": true,
+    "controllerPID": 92358,
+    "extensionPID": 92370,
+    "buildAndStrictSignatures": "passed"
   }
 }
