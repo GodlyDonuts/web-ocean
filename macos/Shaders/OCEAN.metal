@@ -37,6 +37,8 @@ struct Frame {
     metal::float4 starX;
     metal::float4 starY;
     metal::float4 starZ;
+    metal::float4 motionPadding[2]; // cloud evolution and weather
+    metal::float4 moonPhaseLight;
 
 };
 struct Medium {

@@ -10,7 +10,7 @@ app=root/'macos/build/Ocean.app/Contents/MacOS/Ocean'
 results=[]
 for fixture in trajectory['fixtures']:
  name=fixture['name'];target=out/f'{name}.rgba16f'
- query={'dayNight':1,'latitude':40.7128,'longitude':-74.006,'timeZone':'America/New_York','fixedDt':1/30,'cycleRate':300,'verifyFrame':fixture['verifyFrame'],'clouds':0,'veil':0,'renderWidth':1280,'renderHeight':800,'utc':fixture['anchorUTC'],'heading':fixture['heading'],'dump':target}
+ query={'dayNight':1,'moonPath':'astronomical','latitude':40.7128,'longitude':-74.006,'timeZone':'America/New_York','fixedDt':1/30,'cycleRate':300,'verifyFrame':fixture['verifyFrame'],'clouds':0,'veil':0,'renderWidth':1280,'renderHeight':800,'utc':fixture['anchorUTC'],'heading':fixture['heading'],'dump':target}
  p=subprocess.run([str(app),'--verify','--query='+'&'.join(f'{k}={v}' for k,v in query.items())],capture_output=True,text=True,timeout=90)
  (out/f'{name}.log').write_text(p.stdout+p.stderr)
  assert p.returncode==0,p.stdout+p.stderr

@@ -43,7 +43,7 @@ metal::float3 moonDisk(metal::float3 dir, float pixAng, constant Frame& F,
     metal::float2 uv=metal::float2(metal::dot(dir,right),metal::dot(dir,up))/radius;
     float r2=metal::dot(uv,uv);
     metal::float3 normal=metal::normalize(right*uv.x+up*uv.y-center*metal::sqrt(metal::max(0.0,1.0-r2)));
-    float illumination=metal::max(metal::dot(normal,F.sunDir.xyz),0.0);
+    float illumination=metal::max(metal::dot(normal,F.moonPhaseLight.xyz),0.0);
     float maria=0.83+0.12*metal::sin(uv.x*13.0+metal::sin(uv.y*7.0))*metal::sin(uv.y*11.0-uv.x*3.0);
     float edge=1.0-metal::smoothstep(radius-aa,radius+aa,angle);
     float footprint=metal::min(1.0,radius*radius/(aa*aa));

@@ -28,6 +28,8 @@ Except scripts that build explicitly, GPU scripts require `macos/build/Ocean.app
 
 GPU fixtures call the app binary with `--verify`; benchmarks use `--benchmark`. Both modes prohibit activation, create zero `NSWindow`s and read offscreen GPU output. Do not substitute visible app launches in a loop. Deterministic local-coordinate fixtures do not need provider network access or update the user's saved astronomy state. Metal API/shader validation is enabled by the current suite for daylight/weather; night-water enables it itself. Debug validation is not a performance measurement.
 
+The current gate includes `WallpaperMoonTests` and `verify_wallpaper_moon.py`: a visible sunset-to-sunrise arc, real phase geometry, cached night bounds, and actual GPU disk motion. Run CPU tests first to generate its fixture JSON. `verify_celestial_motion.py` separately selects `moonPath=astronomical` to preserve coverage of the underlying geographic model. See [Moon presentation](wallpaper-moon.md).
+
 ## Captures and interpretation
 
 Generated artifacts are under ignored `macos/build/` subdirectories. `--query` supplies URL-style `key=value&key=value` settings; quote the whole argument in the shell. Useful deterministic controls include `fixedDt`, `time`, `dayNight`, `latitude`, `longitude`, `timeZone`, `utc`, `heading`, `storm`, `rainParticles`, `renderWidth`, `renderHeight` and `dump`.

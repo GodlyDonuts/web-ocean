@@ -413,7 +413,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         galaxyAtlas=try GalaxyAtlas.make(device:device,queue:queue,enabled:dayNightEnabled)
         let stars=try StarField.make(device:device,queue:queue,enabled:dayNightEnabled,atlasSize:options["starAtlasReference"] == "1" ? 2048 : 1024)
         starAtlas=stars.atlas;starCatalogue=stars.catalogue;starCount=stars.count
-        frameBuffer = try buffer(544+AnimationClock.cloudShiftCount*16, "frame")
+        frameBuffer = try buffer(560+AnimationClock.cloudShiftCount*16, "frame")
         displacementBounds = try buffer(16,"displacement guard bounds")
         partialBounds = try buffer(16*16*cascades*16,"partial displacement bounds",privateStorage:true)
         simBuffer = try buffer(224, "spectrum parameters")
@@ -701,17 +701,22 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         vectors[40]=SIMD4(0.004675,0.0045,0,0)
         vectors[41]=staticSun;vectors[42]=SIMD4(staticSun.x,staticSun.y,staticSun.z,0.004675)
         vectors[43]=SIMD4(1,0,0,0);vectors[44]=SIMD4(0,1,0,0);vectors[45]=SIMD4(0,0,1,0)
+        vectors[48]=staticSun
         guard dayNightEnabled else { return }
         let rate=Double(options["cycleRate"] ?? "").flatMap { $0.isFinite && $0>0 && $0<=86400 ? $0 : nil } ?? 1
         let date=cycleAnchor.map { $0.addingTimeInterval((clock.elapsed-cycleStartElapsed)*rate) } ?? Date()
         let zone=options["timeZone"].flatMap(TimeZone.init(identifier:)) ?? observerTimeZone ?? .autoupdatingCurrent
         guard let state=celestialCycle.state(at:date,zone:zone) else { return }
         celestialState=state
+        let moon = options["moonPath"] == "astronomical" ? state.moon :
+            celestialCycle.wallpaperMoon(at:date,zone:zone,horizontalTangent:Double(frame[20])) ?? state.moon
+        let phaseLight=WallpaperMoon.phaseLight(state:state,displayedMoon:moon)
+        vectors[48]=SIMD4(Float(phaseLight.x),Float(phaseLight.y),Float(phaseLight.z),0)
         for i in 0..<3 {
             let axis=state.skyBasis[i];vectors[43+i]=SIMD4(Float(axis.x),Float(axis.y),Float(axis.z),0)
         }
         vectors[8]=SIMD4(Float(state.sun.x),Float(state.sun.y),Float(state.sun.z),14)
-        vectors[39]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(state.moonIllumination))
+        vectors[39]=SIMD4(Float(moon.x),Float(moon.y),Float(moon.z),Float(state.moonIllumination))
         vectors[40]=SIMD4(Float(state.sunRadius),Float(state.moonRadius),Float(state.night),1)
         vectors[42]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),Float(state.sunRadius))
         if state.sunAltitude > -1 {
@@ -720,8 +725,8 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             // Photographic lunar key: the real phase/horizon still gate the
             // source. Strong specular light against restrained sky fill gives
             // a broken silver path instead of a uniformly blue sea.
-            let brightness=0.35*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,state.moon.y)
-            vectors[41]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(brightness))
+            let brightness=0.35*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,moon.y)
+            vectors[41]=SIMD4(Float(moon.x),Float(moon.y),Float(moon.z),Float(brightness))
         }
         compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)*Float(1+3*state.night)
         if let day=celestialCycle.day,lastSolarDayStart != day.start {

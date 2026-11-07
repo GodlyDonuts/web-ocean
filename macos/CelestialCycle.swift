@@ -55,6 +55,31 @@ struct CelestialState {
     let night: Double
 }
 
+// Presentation is independent of the astronomical direction: repositioning
+// the Moon must not turn its real crescent into a full disk or reverse waxing.
+enum WallpaperMoon {
+    static func direction(progress: Double, horizontalTangent: Double) -> SIMD3<Double> {
+        let angle=Double.pi*progress
+        let halfWidth=atan(max(0.05,horizontalTangent)*0.76)
+        let azimuth = -halfWidth*cos(angle)
+        let elevation=18*CelestialMath.rad*sin(angle)
+        return SIMD3(sin(azimuth)*cos(elevation),sin(elevation),-cos(azimuth)*cos(elevation))
+    }
+    static func diskAxes(_ center: SIMD3<Double>) -> (SIMD3<Double>,SIMD3<Double>) {
+        let axis=abs(center.y)>0.99 ? SIMD3<Double>(1,0,0) : SIMD3<Double>(0,1,0)
+        let right=simd_normalize(simd_cross(center,axis))
+        return (right,simd_cross(right,center))
+    }
+    static func phaseLight(state: CelestialState, displayedMoon: SIMD3<Double>) -> SIMD3<Double> {
+        let (realRight,realUp)=diskAxes(state.moon)
+        let (right,up)=diskAxes(displayedMoon)
+        let tangent=SIMD2(simd_dot(state.sun,realRight),simd_dot(state.sun,realUp))
+        let orientation=simd_length(tangent)>1e-10 ? simd_normalize(tangent) : SIMD2(1.0,0.0)
+        let radial=1-2*state.moonIllumination
+        return displayedMoon*radial+(right*orientation.x+up*orientation.y)*sqrt(max(0,1-radial*radial))
+    }
+}
+
 // Pure offline astronomy. Solar coordinates: USNO approximate almanac equations.
 // Moon: low-precision mean-element model (see docs/day-night-cycle.md), with
 // observer parallax. This is visual astronomy, not a navigation ephemeris.
@@ -180,7 +205,8 @@ final class CelestialCycle {
     private(set) var calculationCount=0
     private(set) var cacheWriteCount=0
     private(set) var cacheError: String?
-    var location: ObserverLocation? { didSet { if oldValue != location { day=nil } } }
+    private var moonNightSpan: (start: Double,end: Double)?
+    var location: ObserverLocation? { didSet { if oldValue != location { day=nil;moonNightSpan=nil } } }
     var heading=270.0 // geographic west, fixed view; camera does not chase the sun
     init(cacheURL: URL? = nil) {
         self.cacheURL=cacheURL
@@ -188,25 +214,52 @@ final class CelestialCycle {
             archive=Array(saved.days.filter{$0.isValid}.suffix(8))
         }
     }
+    private func cachedDay(at date: Date, location: ObserverLocation, zone: TimeZone) -> SolarDay {
+        if let cached=archive.last(where:{$0.matches(date,location:location,zone:zone)}) { return cached }
+        let fresh=CelestialMath.makeDay(date:date,location:location,zone:zone)
+        calculationCount+=1;archive.append(fresh);archive=Array(archive.suffix(8))
+        if let url=cacheURL {
+            do {
+                try FileManager.default.createDirectory(at:url.deletingLastPathComponent(),withIntermediateDirectories:true)
+                let encoder=JSONEncoder();encoder.outputFormatting=[.prettyPrinted,.sortedKeys]
+                try encoder.encode(Archive(days:archive)).write(to:url,options:[.atomic,.completeFileProtectionUnlessOpen])
+                cacheWriteCount+=1;cacheError=nil
+            } catch { cacheError=error.localizedDescription }
+        }
+        return fresh
+    }
     func state(at date: Date, zone: TimeZone = .autoupdatingCurrent) -> CelestialState? {
         guard let location,location.isValid else { return nil }
-        if day?.matches(date,location:location,zone:zone) != true {
-            day=archive.last(where:{$0.matches(date,location:location,zone:zone)})
-            if day == nil {
-                let fresh=CelestialMath.makeDay(date:date,location:location,zone:zone)
-                day=fresh;calculationCount+=1;archive.append(fresh);archive=Array(archive.suffix(8))
-                if let url=cacheURL {
-                    do {
-                        try FileManager.default.createDirectory(at:url.deletingLastPathComponent(),withIntermediateDirectories:true)
-                        let encoder=JSONEncoder();encoder.outputFormatting=[.prettyPrinted,.sortedKeys]
-                        try encoder.encode(Archive(days:archive)).write(to:url,options:[.atomic,.completeFileProtectionUnlessOpen])
-                        cacheWriteCount+=1;cacheError=nil
-                    } catch { cacheError=error.localizedDescription }
-                }
-            }
-        }
+        if day?.matches(date,location:location,zone:zone) != true { day=cachedDay(at:date,location:location,zone:zone) }
         guard let day else { return nil }
         return CelestialMath.state(CelestialMath.interpolate(day,time:date.timeIntervalSince1970),at:date.timeIntervalSince1970,location:location,heading:heading)
+    }
+    func wallpaperMoon(at date: Date, zone: TimeZone, horizontalTangent: Double) -> SIMD3<Double>? {
+        guard let day,let location,day.matches(date,location:location,zone:zone) else { return nil }
+        let t=date.timeIntervalSince1970
+        var progress: Double
+        if let rise=day.sunrise,let set=day.sunset,rise<set {
+            if t>=rise && t<=set {
+                progress=1+(t-rise)/(set-rise) // Return below the horizon by day.
+            } else {
+                if moonNightSpan.map({t >= $0.start && t < $0.end}) != true {
+                    if t<rise {
+                        let previous=cachedDay(at:Date(timeIntervalSince1970:day.start-1),location:location,zone:zone)
+                        moonNightSpan=previous.sunset.map { ($0,rise) }
+                    } else {
+                        let next=cachedDay(at:Date(timeIntervalSince1970:day.end),location:location,zone:zone)
+                        moonNightSpan=next.sunrise.map { (set,$0) }
+                    }
+                }
+                if let span=moonNightSpan,span.end>span.start { progress=(t-span.start)/(span.end-span.start) }
+                else { progress=(t-day.solarNoon)/43200-0.5 }
+            }
+        } else {
+            // No rise/set at polar latitudes: a continuous 24-hour arc with
+            // the upper half centered on local solar midnight.
+            progress=(t-day.solarNoon)/43200-0.5
+        }
+        return WallpaperMoon.direction(progress:progress,horizontalTangent:horizontalTangent)
     }
     static var supportDirectory: URL {
         FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("OceanWallpaper",isDirectory:true)

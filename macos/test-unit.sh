@@ -14,6 +14,7 @@ run_unit WeatherProviderTests macos/CelestialCycle.swift macos/Weather.swift mac
 run_unit CelestialCycleTests macos/CelestialCycle.swift
 run_unit IPLocationTests macos/CelestialCycle.swift macos/ObserverLocationProvider.swift
 run_unit CelestialMotionTests macos/CelestialCycle.swift
+run_unit WallpaperMoonTests macos/CelestialCycle.swift
 run_unit ViewportLayoutTests macos/ViewportLayout.swift
 run_unit ViewportMeshTests macos/ViewportMesh.swift
 run_unit DisplayDemandTests macos/Diagnostics/DisplayTileLayout.swift macos/SharedSurfaceDemand.swift

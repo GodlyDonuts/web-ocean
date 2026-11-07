@@ -4,7 +4,7 @@ The November 2026 reference images call for dark open water, bright broken lunar
 
 ![Native moonlit fixture](silver-night-preview.png)
 
-This is a deterministic native Metal capture with the real astronomical Moon for the fixture's time and heading. The live wallpaper retains the user's local time, Moon phase, fixed heading and weather. A bright lunar path appears when the Moon's direction and cloud transmission allow it; moonless nights remain darker. The camera does not chase the Moon.
+This is a deterministic native Metal capture with the real astronomical Moon for the fixture's time and heading. This lighting capture predates the later [visible nighttime Moon arc](wallpaper-moon.md). The live wallpaper retains local time, real Moon phase, fixed camera and weather. A bright lunar path appears when the Moon's direction and cloud transmission allow it; moonless nights remain darker. The camera does not chase the Moon.
 
 ## Rendering changes
 

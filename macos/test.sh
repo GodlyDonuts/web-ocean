@@ -21,6 +21,10 @@ mkdir -p macos/build/celestial-motion
 xcrun swiftc -O -parse-as-library macos/CelestialCycle.swift macos/Tests/CelestialMotionTests.swift -o macos/build/celestial-motion/CelestialMotionTests
 macos/build/celestial-motion/CelestialMotionTests
 python3 macos/Tests/verify_celestial_motion.py
+mkdir -p macos/build/unit
+xcrun swiftc -O -parse-as-library macos/CelestialCycle.swift macos/Tests/WallpaperMoonTests.swift -o macos/build/unit/WallpaperMoonTests
+macos/build/unit/WallpaperMoonTests
+python3 macos/Tests/verify_wallpaper_moon.py
 zsh macos/Tests/test-night-resources.sh
 xcrun swiftc -O -parse-as-library macos/ViewportLayout.swift macos/Tests/ViewportLayoutTests.swift -o macos/build/ViewportLayoutTests
 macos/build/ViewportLayoutTests
