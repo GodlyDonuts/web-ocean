@@ -10,11 +10,23 @@ run_unit() {
   "macos/build/unit/${test_name}"
 }
 run_unit WeatherTests macos/Weather.swift
+run_unit CloudMorphologyTests macos/Weather.swift
 run_unit WeatherProviderTests macos/CelestialCycle.swift macos/Weather.swift macos/WeatherProvider.swift
 run_unit CelestialCycleTests macos/CelestialCycle.swift
 run_unit IPLocationTests macos/CelestialCycle.swift macos/ObserverLocationProvider.swift
 run_unit CelestialMotionTests macos/CelestialCycle.swift
+run_unit WallpaperMoonTests macos/CelestialCycle.swift
+run_unit DaylightTimeTests macos/CelestialCycle.swift
 run_unit ViewportLayoutTests macos/ViewportLayout.swift
 run_unit ViewportMeshTests macos/ViewportMesh.swift
 run_unit DisplayDemandTests macos/Diagnostics/DisplayTileLayout.swift macos/SharedSurfaceDemand.swift
 run_unit AnimationClockTests macos/AnimationClock.swift
+run_unit PerformancePolicyTests macos/PerformancePolicy.swift
+run_unit RegionalRenderingTests macos/RegionalRendering.swift
+run_unit AutomaticScreenSaverSetupTests macos/AutomaticScreenSaverSetup.swift macos/CelestialCycle.swift
+run_unit ScreenSaverEnvironmentTests macos/LiveWallpaperControl.swift macos/ScreenSaverEnvironment.swift macos/CelestialCycle.swift macos/ObserverLocationProvider.swift macos/Weather.swift macos/WeatherProvider.swift
+run_unit SaverSchedulingTests macos/SharedSurfaceDemand.swift macos/PerformancePolicy.swift
+
+run_unit NativeWallpaperSetupTests macos/NativeWallpaperSetup.swift macos/AutomaticScreenSaverSetup.swift macos/CelestialCycle.swift
+
+run_unit PresentationStateTests macos/WallpaperExtension/PresentationState.swift

@@ -2,6 +2,8 @@
 
 Night is lit for a wallpaper rather than strict physical darkness. The Sun/Moon positions, phase, sunset timings and rotating star field still follow the existing local-time model. Lighting continuously blends through its existing twilight/night factor.
 
+The latest [silver-night refinement](silver-night-style.md) follows the November reference images: darker water, less uniform blue fill, stronger lunar reflection and quieter foam. The measurements below describe the earlier readability work; the new guide and dated report describe the current lighting.
+
 The scene uses three complementary sources:
 
 - A deep indigo horizon and softly brighter overhead hemisphere separate cloud silhouettes and provide reflection detail. A broad off-frame sky key adds direction without an artificial visible celestial disk or city-light glow.

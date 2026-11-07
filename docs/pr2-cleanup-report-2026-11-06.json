@@ -1,0 +1,74 @@
+{
+  "passed": true,
+  "date": "2026-11-06",
+  "baselineCommit": "514060e689877abd97cd9ad3980ab6656428c0ca",
+  "localChecks": {
+    "daylight": {
+      "passed": true,
+      "cases": 13
+    },
+    "weather": {
+      "passed": true,
+      "cases": 18
+    },
+    "nightWater": {
+      "passed": true,
+      "cases": 13
+    },
+    "coverage": {
+      "passed": true,
+      "cases": 12
+    },
+    "headless": {
+      "passed": true,
+      "cases": 3
+    },
+    "cpuSuites": {
+      "passed": true,
+      "count": 10
+    },
+    "galleryFailureInjection": {
+      "passed": true,
+      "tests": 8
+    },
+    "startupAndRecreatedView": {
+      "passed": true,
+      "idleFrames": 0,
+      "renderedFrames": 8
+    },
+    "sceneParity": {
+      "passed": true,
+      "cases": 3,
+      "HDRAndDisplayByteExact": true
+    },
+    "gallery": {
+      "passed": true,
+      "scenes": 12,
+      "benchmarks": {
+        "noon": {
+          "gpuMeanMs": 8.32799536227766,
+          "gpuMedianMs": 7.138750050216913,
+          "gpuP95Ms": 14.408500166609883
+        },
+        "dark_night": {
+          "gpuMeanMs": 8.149059714439014,
+          "gpuMedianMs": 6.911874981597066,
+          "gpuP95Ms": 13.154583517462015
+        },
+        "hurricane_night": {
+          "gpuMeanMs": 10.701714577670726,
+          "gpuMedianMs": 7.227125111967325,
+          "gpuP95Ms": 24.486999958753586
+        }
+      }
+    }
+  },
+  "coveredDesktopStartup": {
+    "passed": true,
+    "diagnosticTicks": 15,
+    "frames": 0,
+    "gpuMs": 0,
+    "scope": "Actual covered desktop launch survived repeated diagnostics with no scene allocation. Accessibility could not attach; interactive menu/hot-plug/login remain unverified."
+  },
+  "scope": "Local deterministic GPU/CPU tests; shared scene restored from main. Hosted CI is separate. Gallery timings are unprofiled local samples, not a before/after speedup or energy claim."
+}

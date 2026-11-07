@@ -1,0 +1,178 @@
+{
+  "date": "2026-11-07",
+  "platform": "Apple M1, macOS 26.7",
+  "cameraHeightAboveMeanSeaM": 2.4,
+  "nominalSwellHsInputM": 1.8,
+  "backgroundSwellPeakPeriodS": 11,
+  "backgroundSwellPeakWavelengthM": 188.91850899951072,
+  "windFetchM": 90000,
+  "waveResponseTimeConstantS": 90,
+  "beforeDiagnosticFields": {
+    "current-calm": {
+      "windMps": 2.75,
+      "inputSwellHsM": 1.8,
+      "spectralHsProxyM": 1.7322581728943456,
+      "cascadeHeightVariance": [
+        0.15419802440362596,
+        0.031141770442041875,
+        0.0021304410749412727,
+        7.288357646451166e-05,
+        1.7592780898173375e-06,
+        1.982229010077633e-08
+      ]
+    },
+    "fair": {
+      "windMps": 7,
+      "inputSwellHsM": 1.8,
+      "spectralHsProxyM": 2.1325232996600967,
+      "cascadeHeightVariance": [
+        0.22859045536278583,
+        0.052496997082232835,
+        0.0030348908285163347,
+        0.0001035945263464139,
+        2.5106677573150317e-06,
+        2.8006935449400133e-08
+      ]
+    },
+    "rain-only-old-swell": {
+      "windMps": 2.75,
+      "inputSwellHsM": 7.8,
+      "spectralHsProxyM": 6.98586584293579,
+      "cascadeHeightVariance": [
+        2.8759143720545626,
+        0.16383362382218597,
+        0.010082755641915563,
+        0.00030751960601501304,
+        6.738850009526335e-06,
+        8.849387293994585e-08
+      ]
+    },
+    "hurricane-old": {
+      "windMps": 45,
+      "inputSwellHsM": 9.8,
+      "spectralHsProxyM": 11.151753712261712,
+      "cascadeHeightVariance": [
+        7.391548379585847,
+        0.36137893037462376,
+        0.01905054953174643,
+        0.0006091848364247286,
+        1.3466020986862035e-05,
+        1.6833430041981974e-07
+      ]
+    }
+  },
+  "afterGPUChecks": {
+    "passed": true,
+    "cases": {
+      "light_wind": {
+        "heightProxyMeters": 1.5229070358994437,
+        "windMps": 2.75,
+        "errors": []
+      },
+      "heavy_rain_light_wind": {
+        "heightProxyMeters": 1.5229070358994437,
+        "windMps": 2.75,
+        "errors": []
+      },
+      "breeze": {
+        "heightProxyMeters": 1.9717968493218028,
+        "windMps": 7,
+        "errors": []
+      },
+      "strong_wind": {
+        "heightProxyMeters": 3.0347938726131605,
+        "windMps": 15,
+        "errors": []
+      },
+      "gale": {
+        "heightProxyMeters": 5.273560766138388,
+        "windMps": 30,
+        "errors": []
+      },
+      "extreme_wind": {
+        "heightProxyMeters": 7.053815066385328,
+        "windMps": 45,
+        "errors": []
+      },
+      "light_wind_t10": {
+        "heightProxyMeters": 1.4976137684565956,
+        "windMps": 2.75,
+        "errors": []
+      },
+      "light_wind_t60": {
+        "heightProxyMeters": 1.5568551972059632,
+        "windMps": 2.75,
+        "errors": []
+      },
+      "light_wind_t120": {
+        "heightProxyMeters": 1.5606497189401938,
+        "windMps": 2.75,
+        "errors": []
+      },
+      "light_wind_without_swell": {
+        "heightProxyMeters": 0.6336342965288265,
+        "windMps": 2.75,
+        "errors": []
+      }
+    },
+    "rainOnlyDisplacementByteExact": true,
+    "scope": "Real GPU fields at fixed wave time. Height proxy is 4*sqrt(sum of six cascade elevation variances), not observed local marine conditions or the maximum individual wave. No windows, forecast calls, location prompts or user cache writes."
+  },
+  "validation": {
+    "cpuSuites": 19,
+    "weatherScenes": 18,
+    "nightWaterScenes": 13,
+    "newSeaStateScenes": 10,
+    "wallpaperLifecycle": "passed",
+    "buildAndStrictSignatures": "passed",
+    "repositoryConsistency": "passed"
+  },
+  "foamMaskFixture": {
+    "reason": "New independent swell no longer produces the previous rain-amplified opaque foam patches",
+    "areaThreshold": ">1000 pixels with coverage >0.25",
+    "peakThreshold": ">0.4",
+    "waterlineAndNightLightingAssertions": "retained",
+    "measuredFoamPixelsAboveQuarterCoverage": 4382,
+    "measuredOvertakingPixels": 7703
+  },
+  "resources": {
+    "additionalFFTs": 0,
+    "additionalTextures": 0,
+    "additionalBuffers": 0,
+    "additionalPasses": 0,
+    "spectrumRegeneration": "Only wind speed/direction changes; rain/cloud-only targets no longer regenerate it"
+  },
+  "sources": {
+    "windWaveAndSwellExplanation": "https://www.noaa.gov/jetstream/ocean/waves",
+    "varianceBasedHeightMethod": "https://www.ndbc.noaa.gov/wavemeas.pdf"
+  },
+  "limits": [
+    "Idealized offshore scene driven by user regional weather, not actual marine wave data",
+    "Fixed fetch and remote swell energy/direction; gust-influenced visual wind estimate",
+    "Height proxy sums finite cascade elevation variances, not a buoy time record or maximum wave",
+    "90-second response compresses actual sea growth times; no full breaking-wave fluid model"
+  ],
+  "runtime": {
+    "controllerPID": 96702,
+    "nativeExtensionPID": 96713,
+    "runningProductExecutableVerified": true,
+    "selectedByController": true,
+    "registeredOceanExtensions": 1,
+    "automaticWeatherAndTimeRetained": true,
+    "nativePresentationCheck": {
+      "scope": "Unlocked native host, temporary 24 FPS control for 12 seconds with no concurrent test renderer, original control restored",
+      "targetFPS": 24,
+      "successfulCompletions": [
+        120,
+        240
+      ],
+      "presentedDrawables": [
+        118,
+        238
+      ],
+      "sampleIntervalSeconds": 5.001,
+      "rendererErrors": [],
+      "duplicateDrawableErrors": false
+    }
+  }
+}

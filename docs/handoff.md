@@ -2,7 +2,7 @@
 
 ## What to continue
 
-The active implementation is `macos/`, a Swift/AppKit/MetalKit host and native Metal renderer. The product is currently a resizable preview window, not an installed desktop wallpaper. `main` contains the accumulated Metal implementation, assets, research, tests and evidence. The old browser-host branch `feature/native-macos-wallpaper` predates this implementation; do not treat it as the next version of the app.
+The active implementation is `macos/`, a Swift/AppKit/MetalKit host and native Metal renderer. The app now has desktop wallpaper windows and shared HDR presentation, with `--preview` retaining the resizable development window. Actual multi-monitor, installed login and OS reveal behavior still need manual verification; see [the desktop host](wallpaper-host.md). `main` contains the accumulated Metal implementation, assets, research, tests and evidence. The old browser-host branch `feature/native-macos-wallpaper` predates this implementation; do not treat it as the next version of the app.
 
 The original main had only the WebGPU renderer and MIT license. The native work was accumulated locally before this publication. Main is advanced with normal commits, preserving that ancestry; there is no need to delete the branch or rewrite its history to publish this snapshot.
 
@@ -11,7 +11,7 @@ The original main had only the WebGPU renderer and MIT license. The native work 
 1. Read the root [README](../README.md) and [architecture](architecture.md).
 2. Build with `zsh macos/build.sh`. It compiles Swift, packages all shader sources/assets and ad-hoc signs `macos/build/Ocean.app`.
 3. Run `zsh macos/test-current.sh` after installing the optional [Python dependencies](../requirements-dev.txt). This is the current GPU/CPU handoff gate. For a CPU-only environment, use `zsh macos/test-unit.sh`.
-4. Open the preview once for visual review. Compare clear day, sunrise/sunset, moonlit and moonless nights, storm buildup, rain, raised wave crests, and narrow/full-screen windows.
+4. Open the app with `--preview` once for visual review. Compare clear day, sunrise/sunset, moonlit and moonless nights, storm buildup, rain, raised wave crests, and narrow/full-screen windows.
 5. Read [the roadmap](engineering-roadmap.md) and pick one scoped change. Preserve a matched baseline build in an ignored directory if comparing appearance or performance; archive artifacts are not fetched automatically by tests.
 
 Use `git status` before and after work. Build products, Python environments, captures, logs and Cargo targets are ignored. Source, packaged assets, optional tooling, documentation and curated evidence are committed. Do not commit local location/weather caches or machine credentials.
@@ -30,7 +30,7 @@ Use `git status` before and after work. Build products, Python environments, cap
 
 The app has six-cascade FFT waves, persistent foam clipmaps, volumetric low clouds, high wisps, environment reflections, geometric rain particles, lightning/mist and continuous weather-driven sea state. A NASA/Gaia-derived galaxy asset ships locally; 12,000 analytic point sprites provide resolved stars.
 
-Astronomy uses daily cached solar timings and hourly celestial samples. Sun and Moon move independently; UTC is independent of the wave phase. Approximate IP location is cached for 24 hours. Weather uses cached Open-Meteo conditions and smooth state transitions. See [day/night](day-night-cycle.md) and [weather](dynamic-weather.md).
+Astronomy uses daily cached solar timings and hourly celestial samples. [Both bodies share one centered camera arc](wallpaper-moon.md): the Sun during daylight and the Moon at night, with real lunar phases. UTC is independent of wave phase. Approximate IP location is cached for 24 hours. Weather uses cached Open-Meteo conditions and smooth state transitions. See [day/night](day-night-cycle.md) and [weather](dynamic-weather.md).
 
 The latest appearance work separates the camera's dim night backdrop from the cinematic illumination of water/clouds; suppresses stars through clouds; and fades galactic contrast with cloud cover. The storm-water fix extends the near guard geometry behind the eye, corrects raised-crest footprints/Fresnel, lights foam consistently, removes foam on wave undersides and handles submerged backgrounds. See [waterline details](night-water-fix.md). The camera's low-height override is verification-only.
 
@@ -40,8 +40,8 @@ At 1280×800 the mesh has 98,304 triangles. The pixel budget is approximately 1.
 
 1. **Shared world ownership.** Separate simulation and shared environment resources from per-surface color/depth/postprocess targets. Start from `SharedSurfaceDemand.swift` and the pure layout/demand tests. Do not duplicate the whole simulation per monitor.
 2. **Presentation and reveal.** Establish real OS visibility behavior, hidden-time recovery and consistent reveal frames. Current pause behavior is implemented; elapsed-time recovery and multiple consumers need explicit design and GPU evidence.
-3. **Wallpaper integration.** Build a desktop surface around the shared renderer, then settings/launch behavior. The historical WebKit host is reference material, not a drop-in Metal solution.
-4. **Regional rendering.** Implement only after accounting for displaced geometry, foam advection, reflections and bloom support. A screenshot scissor does not prove upstream GPU work is saved.
+3. **Wallpaper integration.** The first desktop host and settings now exist; verify multi-display/Spaces/reveal behavior and installed login registration. The historical WebKit host is reference material, not a drop-in Metal solution.
+4. **Regional rendering.** An opt-in 1280×800 scene shading and four-strip presentation experiment accounts for bloom support; see [regional integration](regional-rendering.md). GPU pixel checks pass, but live unlocked occlusion/reveal and multi-Space behavior remain explicit validation work. A screenshot scissor does not prove upstream GPU work is saved.
 5. **Visual/performance refinement.** Use persistent animation captures and matched measurements, with clear error budgets for FFT resolution changes, temporal reconstruction, density caching and foam formats.
 
 The [engineering roadmap](engineering-roadmap.md) contains detailed gates and rejected experiments. The supplied research kit is reference evidence; its original commands and workload counts do not override current implementation constraints. Imported scripts may default to interactive windows, while adapted project diagnostics default to windowless operation.
@@ -53,3 +53,21 @@ Curated JSON, PNG and MP4 evidence is under `docs/`; generated raw textures, com
 Some historical comparisons deliberately require local `Before.app` bundles or obsolete image snapshots. They are not fresh-clone prerequisites. The maintained night-water test runs without any saved before captures; a historical comparison is generated only when those captures exist. Historical exact-image checks against pre-waterline geometry have been removed from the broad test runner, while current isolated equivalence checks remain.
 
 CI builds the browser reference, verifies repository links/shader inventory, builds the native app and runs CPU tests. Metal runtime validation and cinematic quality must be checked on an actual supported Mac. CI success alone does not establish rendering correctness, frame pacing, total-system energy or desktop behavior.
+
+## November 7 integration and screensaver efficiency
+
+Ocean now builds, installs and selects its native saver automatically, shares cached environment settings with it, and refreshes a system wallpaper still. Restore/repair commands are in the app menu. Startup reads the existing session lock state; OS lock/saver events pause the desktop renderer. Preview heartbeat suspension was removed after it froze visible wallpaper. The saver uses battery/thermal policy and an enforced submission cadence. Automatic installation/selection was observed in Settings; the user reported the saver looks good.
+
+An atmosphere lookup reuse experiment was removed after separate-process comparisons proved inconsistent, including with identical original dispatch schedules. The original atmosphere math/scheduling remain. Investigate deterministic capture/renderer behavior before attempting reuse again. No GPU energy, battery life or temperature improvement has been measured. Regional benchmark runs contaminated by a native preview are exploratory, not evidence of a resource reduction. The unlocked probe still reported all four strips visible under its opaque cover; the experimental path is disabled by default. Establish reliable OS visibility before enabling it. See [the integration guide](regional-rendering.md) and [current validation](integration-validation-2026-11-07.json).
+
+## Native wallpaper extension
+
+On macOS 26, continue from [the live lock-screen guide](live-lock-screen.md). The dedicated `com.apple.wallpaper` extension replaces the desktop overlay and PNG lock background once setup verifies it. The controller still supplies weather/time/coverage controls. A public `.saver` and PNG remain for older systems. Do not use a `com.apple.screensaver` module as a Wallpaper store desktop provider: macOS rejected that prototype. The native binary requires the NSExtensionMain bootstrap. The current shader math is unchanged. User testing confirmed live lock-screen imagery, then exposed a 30 Hz/24 FPS pacing mismatch; the native timer was corrected to the selected rate. The short visual test passed, but later keyboard-lock and lid-close/wake tests exposed freezing. A follow-up lifecycle build is installed: explicit locked presentation, physical display-sleep gating, wake callbacks and stale Metal-view replacement. The longer user test still failed. Core Animation then exposed repeated presentation of a cached MTKView drawable despite advancing submission counters. Manual native/saver hosts now acquire fresh layer drawables and report successful GPU completions and presentation callbacks separately. The user confirmed sustained playback on both paths but saw a brief transition flash. The unnecessary delayed layer reset was removed; the user then confirmed no flash and smooth playback on both paths; do not treat submission pacing or the earlier short test as final proof. See [the native report](native-wallpaper-report-2026-11-07.json).
+
+## Daytime appearance refinement
+
+Continue from [the daylight lighting guide](cinematic-daylight.md). A bounded artistic daytime look reduces excessive diffuse sea fill, restores cloud-base shading, eases the global blue cast and exposes for the directional key. Its weight follows the displayed Sun and fades out at low elevations/night, retaining the established golden-hour and lunar appearance. The composite and mirror paths use identical arithmetic. No ray counts, texture allocations, passes, mesh budgets or weather/time controls were added. See the guide for matched capture and runtime validation.
+
+## Offshore sea-state audit
+
+The [sea-state audit](sea-state.md) separates local wind sea from the idealized remote swell. Rain no longer adds metres of swell or increases whitecap thresholds. Background swell keeps a nominal 1.8 m significant height with an 11 s peak period, independent of local conditions. Wind-only spectrum retargeting retains oscillator phases and avoids regeneration for cloud/rain-only updates. New GPU fixtures require byte-identical wave displacement for dry/wet cases with the same wind, bounded persistent swell in light wind, and increasing energy with stronger wind. See the audit for measured height proxies, camera scale, assumptions and updated storm-foam fixture criteria.

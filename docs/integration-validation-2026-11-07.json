@@ -1,0 +1,254 @@
+{
+  "date": "2026-11-07",
+  "device": "Apple M1, macOS 26.7",
+  "status": "Passed final native build, strict code signatures, 17 CPU suites, saver and wallpaper lifecycle checks; regional GPU experiment passed pixel checks but is disabled by default",
+  "cpuSuites": 17,
+  "earlierCompleteGate": "Passed before final saver cadence/cache/gutter adjustments; raw local log macos/build/regional/current-checks.log",
+  "features": [
+    "Opt-in experimental regional scene rendering; normal app retains single-window host",
+    "Shared byte-exact tile presentation with one-source-texel overlap",
+    "Automatic native saver installation/selection and system wallpaper still",
+    "Suspend on OS saver/lock events; previews cannot freeze wallpaper",
+    "Adaptive saver battery, Low Power Mode and thermal limits"
+  ],
+  "interactiveEvidence": {
+    "automaticSelection": "Observed Ocean selected in System Settings after app setup without selecting it manually in final verification",
+    "systemWallpaper": "NSWorkspace returned generated Ocean PNG",
+    "saverAppearance": "User reported native saver looks nice",
+    "handoff": "Historical: preview heartbeat produced zero-FPS desktop rendering. User reported a frozen image; removed preview-heartbeat suspension as a regression.",
+    "coverageAndRecovery": "Unlocked opaque-window probe did not change four-strip visibility; experimental regional host disabled by default. Wallpaper resumed rendering after saver preview closure and host refresh."
+  },
+  "limits": [
+    "No measured temperature, power or battery-life result",
+    "Regional timings were contaminated by a concurrent native saver and are not isolated speedup evidence",
+    "Atmosphere reuse experiment removed after inconsistent separate-process image comparisons; original atmosphere scheduling retained.",
+    "macOS 14+ saver selection uses a guarded private store; macOS 13 branch compiled but not physically tested",
+    "Lock-screen wallpaper is a system still; no authentication UI injection or FileVault pre-login changes"
+  ],
+  "gpuRegional": {
+    "passed": true,
+    "cases": [
+      {
+        "scene": "day",
+        "region": "left",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "day",
+        "region": "right",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "day",
+        "region": "top",
+        "shadedFraction": 0.71625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "day",
+        "region": "bottom",
+        "shadedFraction": 0.71625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "day",
+        "region": "center",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "day",
+        "region": "reveal",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "day",
+        "region": "move",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "night",
+        "region": "left",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "night",
+        "region": "right",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "night",
+        "region": "top",
+        "shadedFraction": 0.71625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "night",
+        "region": "bottom",
+        "shadedFraction": 0.71625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "night",
+        "region": "center",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "night",
+        "region": "reveal",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "night",
+        "region": "move",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "storm",
+        "region": "left",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "storm",
+        "region": "right",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "storm",
+        "region": "top",
+        "shadedFraction": 0.71625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "storm",
+        "region": "bottom",
+        "shadedFraction": 0.71625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "storm",
+        "region": "center",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "storm",
+        "region": "reveal",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "scene": "storm",
+        "region": "move",
+        "shadedFraction": 0.44765625,
+        "maxHDRDifference": 0.0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "extent": [
+          1279,
+          799
+        ],
+        "region": "left",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "extent": [
+          1400,
+          400
+        ],
+        "region": "left",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0,
+        "maxDisplayLSB": 0
+      },
+      {
+        "extent": [
+          400,
+          1200
+        ],
+        "region": "left",
+        "shadedFraction": 1,
+        "maxHDRDifference": 0,
+        "maxDisplayLSB": 0
+      }
+    ],
+    "snapshotReadback": true,
+    "tileReconstruction": {
+      "scenes": [
+        "day",
+        "night",
+        "storm"
+      ],
+      "sameFrameByteExact": true
+    },
+    "scope": "Metal validation, zero windows; visible HDR exact, display <=1 LSB, full reveal and snapshot. OS visibility separately requires interactive validation."
+  },
+  "nativeSaverLifecycle": "Passed: Mach-O bundle/resource load, preview restart, shared full-screen allocation, in-flight teardown, zero windows",
+  "wallpaperLifecycle": "Passed: zero-frame diagnostics, first render, replacement drawable sizing, zero windows",
+  "build": "Native app and Mach-O saver built; strict deep code signature verified",
+  "rejectedAtmosphereCache": {
+    "retained": false,
+    "reason": "Separate process image comparisons were inconsistent, including a static scene and changing weather with original dispatch schedules in both runs. Original lookup dispatch and shader math retained.",
+    "energyClaim": false
+  },
+  "finalLiveSmoke": {
+    "frames": 293,
+    "fps": 14.8,
+    "paused": false,
+    "saverRenderingPaused": false,
+    "screenLocked": false,
+    "windowCount": 2,
+    "errors": [],
+    "scope": "Updated default single-window host; observed moving frames after saver preview closure and module refresh. Not an isolated resource benchmark."
+  },
+  "previewFreezeFix": {
+    "cause": "ScreenSaver helper continued publishing activity while desktop was visible and unlocked",
+    "change": "Removed private module activity protocol; desktop suspension follows OS saver/lock/sleep/session events",
+    "schedulingTest": "OS saver and lock reasons remain independent; cadence limits retained",
+    "liveVerification": {
+      "passed": true,
+      "framesBefore": 220,
+      "framesAfter": 296,
+      "paused": false,
+      "saverRenderingPaused": false,
+      "screenLocked": false,
+      "errors": [],
+      "scope": "Actual default wallpaper kept advancing after old preview rendered notification was broadcast three times; unlocked visible desktop."
+    },
+    "otherChecks": "Native build, strict signatures, saver lifecycle/shared allocation/in-flight teardown, windowless wallpaper lifecycle, scheduling test and repository consistency passed"
+  }
+}

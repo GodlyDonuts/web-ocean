@@ -63,20 +63,22 @@ import simd
         let temp=FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at:temp) }
         let cache=temp.appendingPathComponent("days.json")
-        let cycle=CelestialCycle(cacheURL:cache);cycle.location=ny
+        // Synthetic fixture data must round-trip even if the test Mac is locked.
+        // Production caches retain file protection by default.
+        let cycle=CelestialCycle(cacheURL:cache,protectCache:false);cycle.location=ny
         let start=Date();_=cycle.state(at:now,zone:zone)
         let calculationMs=Date().timeIntervalSince(start)*1000
         let loopStart=Date()
         for i in 0..<10000 { _=cycle.state(at:now.addingTimeInterval(Double(i)/30),zone:zone) }
         let interpolationMicroseconds=Date().timeIntervalSince(loopStart)*1e6/10000
         precondition(cycle.calculationCount==1 && cycle.cacheWriteCount==1)
-        let reload=CelestialCycle(cacheURL:cache);reload.location=ny;_=reload.state(at:now,zone:zone)
+        let reload=CelestialCycle(cacheURL:cache,protectCache:false);reload.location=ny;_=reload.state(at:now,zone:zone)
         precondition(reload.calculationCount==0 && reload.cacheWriteCount==0)
         _=reload.state(at:now.addingTimeInterval(86400),zone:zone);precondition(reload.calculationCount==1)
         _=reload.state(at:now,zone:zone);precondition(reload.calculationCount==1)
         reload.location=ObserverLocation(latitude:-33.86,longitude:151.2);_=reload.state(at:now,zone:zone);precondition(reload.calculationCount==2)
         try Data("invalid cache".utf8).write(to:cache)
-        let recover=CelestialCycle(cacheURL:cache);recover.location=ny;_=recover.state(at:now,zone:zone)
+        let recover=CelestialCycle(cacheURL:cache,protectCache:false);recover.location=ny;_=recover.state(at:now,zone:zone)
         precondition(recover.calculationCount==1 && recover.day!.isValid)
         precondition(CelestialCycle().state(at:now)==nil)
         precondition(!ObserverLocation(latitude:91,longitude:0).isValid && !ObserverLocation(latitude:0,longitude:.nan).isValid)

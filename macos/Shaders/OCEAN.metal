@@ -37,6 +37,8 @@ struct Frame {
     metal::float4 starX;
     metal::float4 starY;
     metal::float4 starZ;
+    metal::float4 motionPadding[2]; // cloud evolution and weather
+    metal::float4 moonPhaseLight;
 
 };
 struct Medium {
@@ -949,13 +951,22 @@ fragment fsOutput fs(
     metal::float3 foamAmb = (skyHemi * 1.0) + (skyN * 0.3);
     metal::float3 foamAmbN = metal::mix(foamAmb, metal::float3(metal::dot(foamAmb, metal::float3(0.2126, 0.7152, 0.0722))), 0.85);
     metal::float3 foamLit = foamAlb * ((((sunE * metal::max(metal::dot(nrm, Ld), 0.0)) * 0.318) * 0.5) + (foamAmbN * 1.55));
+    // Absorbing deep water should not inherit the sky's entire diffuse fill.
+    // Leave the Fresnel reflection and directional glints intact. The daytime
+    // treatment fades before golden hour and is zero throughout the night.
+    float dayLook=F.celestial.w*metal::smoothstep(0.08,0.30,F.sunDir.y)*(1.0-F.celestial.z);
+    body*=metal::mix(metal::float3(1.0),metal::float3(0.25,0.42,0.50),dayLook);
+    foamLit*=metal::mix(1.0,0.82+0.18*metal::max(nrm.y,0.0),dayLook);
     if (F.celestial.w>0.5 && F.celestial.z>0.001) {
-        metal::float3 key=metal::normalize(metal::float3(-0.8,0.25,-0.55));
+        metal::float3 key=metal::normalize(metal::float3(-0.6,0.32,-0.73));
         float face=metal::max(0.0,metal::dot(nrm,key));
-        body+=metal::float3(0.0035,0.008,0.014)*(0.12+1.2*face)*F.celestial.z;
+        // Deep water absorbs broad diffuse fill. Keep the directional BRDF
+        // and reflected sky intact so moving wave faces catch silver light.
+        body*=1.0-0.65*F.celestial.z;
+        body+=metal::float3(0.0030,0.0045,0.0065)*(0.04+2.0*face*face)*F.celestial.z;
         // Foam scatters the same fill as the water, with neutral diffuse color.
         // Its normal response preserves crest shape instead of a flat gray coat.
-        foamLit+=foamAlb*metal::float3(0.009,0.011,0.014)*(0.25+1.2*face)*F.celestial.z;
+        foamLit+=foamAlb*metal::float3(0.0045,0.0055,0.007)*(0.18+1.2*face)*F.celestial.z;
     }
     // Foam sits on the air side, not on the underside of an overtaking crest.
     foamMask*=metal::smoothstep(-0.1,0.15,metal::dot(nrm,V));

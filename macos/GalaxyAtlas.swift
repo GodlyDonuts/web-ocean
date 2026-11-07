@@ -12,7 +12,7 @@ enum GalaxyAtlas {
         texture.label="immutable Milky Way HDR radiance"
         let data: Data
         if enabled {
-            guard let url=Bundle.main.resourceURL?.appendingPathComponent("Assets/Galaxy/milkyway.r11g11b10f") else { throw OceanFailure(message:"Milky Way asset is missing.") }
+            guard let url=OceanRenderer.resourceBundle.resourceURL?.appendingPathComponent("Assets/Galaxy/milkyway.r11g11b10f") else { throw OceanFailure(message:"Milky Way asset is missing.") }
             data=try Data(contentsOf:url,options:.mappedIfSafe)
         } else { data=Data(repeating:0,count:4) }
         guard data.count==w*h*4,let upload=data.withUnsafeBytes({ device.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared) }),let command=queue.makeCommandBuffer(),let blit=command.makeBlitCommandEncoder() else { throw OceanFailure(message:"Milky Way asset has an invalid size or could not be uploaded.") }

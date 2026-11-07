@@ -10,7 +10,7 @@ source .venv/bin/activate
 python3 -m pip install -r requirements-dev.txt
 ```
 
-Use `zsh macos/build.sh` after changes to Swift, shaders, the manifest or packaged assets. Editing a shader source without rebuilding/copying the app resources does not update a running app's retained pipelines. For final interactive review, reopen the app once after building.
+Use `zsh macos/build.sh` after changes to Swift, shaders, the manifest or packaged assets. Editing a shader source without rebuilding/copying the app resources does not update a running app's retained pipelines. For final interactive review, reopen the app once after building; use `--preview` for a development window.
 
 ## Maintained gates
 
@@ -28,7 +28,13 @@ Except scripts that build explicitly, GPU scripts require `macos/build/Ocean.app
 
 GPU fixtures call the app binary with `--verify`; benchmarks use `--benchmark`. Both modes prohibit activation, create zero `NSWindow`s and read offscreen GPU output. Do not substitute visible app launches in a loop. Deterministic local-coordinate fixtures do not need provider network access or update the user's saved astronomy state. Metal API/shader validation is enabled by the current suite for daylight/weather; night-water enables it itself. Debug validation is not a performance measurement.
 
+The current gate includes `WallpaperMoonTests` and `verify_wallpaper_moon.py`: one shared centered daytime/nighttime arc, real phase geometry, cached night bounds, and actual GPU disk motion. Run CPU tests first to generate its fixture JSON. `verify_celestial_motion.py` separately selects `celestialPath=astronomical` to preserve coverage of the underlying geographic model. See [Moon presentation](wallpaper-moon.md).
+
 ## Captures and interpretation
+
+`CloudMorphologyTests` checks bounded, continuous weather mixtures. `verify_cloud_variety.py` captures ten families plus automatic weather with Metal validation and distinct transmission masks; it is part of the current gate. `verify_volumetric_clouds.py` and `verify_cloud_motion.py` cover clear bypass and animation continuity. See [cloud variety](cloud-variety.md).
+
+`DaylightTimeTests` and `python3 macos/Tests/verify_daylight_time.py` cover held daylight independently of the animation clock, custom time/timezone/DST resolution, and automatic mode. The GPU fixtures use `daylightTime=sunset` or `HH:mm` query inputs; saved user preferences are ignored. See [daylight controls](daylight-controls.md).
 
 Generated artifacts are under ignored `macos/build/` subdirectories. `--query` supplies URL-style `key=value&key=value` settings; quote the whole argument in the shell. Useful deterministic controls include `fixedDt`, `time`, `dayNight`, `latitude`, `longitude`, `timeZone`, `utc`, `heading`, `storm`, `rainParticles`, `renderWidth`, `renderHeight` and `dump`.
 
@@ -49,10 +55,32 @@ Review dawn/day/dusk, moonlit and moonless nights, clear and broken clouds, stor
 
 Reports and movies committed under `docs/` are dated evidence, not automatically refreshed results. Never overwrite an older report with a new run without describing the revision, scene and scope. Fresh verification artifacts stay in `macos/build/` unless intentionally curated for a change.
 
+`verify_silver_night.py --before` captures an explicit saved `macos/build/night-silver/Before.app`; running without that flag compares the rebuilt app's eight scenes, including exact daytime parity. See [silver-night reproduction](silver-night-style.md). The earlier `verify_cinematic_night.py` brightness thresholds describe the brighter historical fill and are not acceptance criteria for this darker reference treatment.
+
 ## Performance
 
 Measure normal unprofiled command-buffer times after warmup, using the same resolution, weather/time, frame count, cadence, power state and baseline/updated ordering. Save an explicit baseline app bundle before changing resources. Run benchmarks sequentially; simultaneous GPU tests contaminate timing. Compare ABBA or alternating runs rather than a single instantaneous diagnostics sample.
 
 `python3 macos/Tests/benchmark.py --help` describes isolated baseline modes. Several preserve historical appearances, so label differences clearly; they are not all equivalent-quality comparisons. Record mean/median/P95, CPU encode time and allocations separately. Whole-system energy, WindowServer behavior and reveal latency need separate measurements. Lower GPU time alone does not prove longer battery life.
 
+`python3 macos/Tests/benchmark_resources.py` records process CPU, physical footprint, wakeup counters and Metal allocation alongside renderer timings without root. `benchmark_covered_desktop.py --app macos/build/Ocean.app --out macos/build/resources-covered` opens one temporary desktop process and requires zero submitted frames before reporting covered-startup usage. See the [dated resource report](resource-usage-2026-11-06.md) for reproduction commands, measured savings and scope limits.
+
 CI deliberately runs native compilation and CPU tests without assuming a hosted GPU. The browser CI job installs npm dependencies and rebuilds the reference artifacts. Real Metal validation and interactive wallpaper behavior require a supported Mac.
+
+## Desktop host regression checks
+
+`PerformancePolicyTests` checks sub-grid visible strips/gaps as well as exact full rectangle coverage. `python3 macos/Tests/test_render_gallery.py` injects failed processes, stale/missing reports, nonfinite timings and invalid GPU diagnostics; any benchmark failure must fail the gallery. `python3 macos/Tests/render_gallery.py` captures the core ocean scenes and validates three benchmarks, with no saved baseline required.
+
+After building, run the offscreen startup/recreated-view fixture with `python3 macos/Tests/verify_wallpaper_lifecycle.py` (also part of `test-current.sh`), or the sizing-only diagnostic:
+
+```sh
+MTL_DEBUG_LAYER=1 MTL_SHADER_VALIDATION=1 macos/build/Ocean.app/Contents/MacOS/Ocean --verify '--query=fixedDt=0&dayNight=0&testSurfaceSizing=1'
+```
+
+The fixture creates a replacement MTKView with an intentionally wrong drawable size while retaining the shared HDR dimensions, and checks that the budget is applied. It creates no window. [Desktop host verification](wallpaper-host.md) distinguishes this test from actual display hot-plug and login behavior. The GPU workflow uses a supported arm64 runner and runs windowless checks; it does not automatically place wallpaper windows on a desktop.
+
+## Regional rendering and system integration
+
+See [regional rendering](regional-rendering.md) for the visible-pixel GPU parity, native screensaver lifecycle and resource benchmark commands. The maintained `test-current.sh` includes these regressions. Automated checks create no windows and do not select/install the screensaver or change the system wallpaper. Interactive visibility, Spaces, WindowServer costs, screen-saver host sandbox behavior and the actual lock-screen image require a real session review.
+
+The native wallpaper compatibility canary is `zsh macos/Tests/test-native-wallpaper.sh` on macOS 26. It exercises real private-runtime encoding without registering or selecting anything. See [live lock-screen validation](live-lock-screen.md#validation).

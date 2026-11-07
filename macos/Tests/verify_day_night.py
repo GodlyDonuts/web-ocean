@@ -35,7 +35,8 @@ for name,settings in cases.items():
  d=json.loads(next(line.removeprefix('Ocean diagnostics: ') for line in process.stdout.splitlines() if line.startswith('Ocean diagnostics: ')))
  assert d['offscreen'] and d['windowCount']==0 and d['activationPolicy']==2 and not d['errors']
  expected=name not in ['fixed_reference','missing_location']
- assert d['dayNightActive']==expected and d['solarCalculations']==int(expected) and d['solarCacheWrites']==0
+ # A night arc may load one adjacent cached solar day for exact rise/set bounds.
+ assert d['dayNightActive']==expected and d['solarCalculations'] in ([1,2] if expected else [0]) and d['solarCacheWrites']==0
  allocated=settings.get('dayNight',1)!=0
  assert d['galaxyAtlasWidth']==(2048 if allocated else 1) and d['starAtlasWidth']==(1024 if allocated else 1) and d['starCount']==(12000 if allocated else 0)
  sun_visibility=struct.unpack('<f',Path(str(target)+'.clouds').read_bytes()[-4:])[0]

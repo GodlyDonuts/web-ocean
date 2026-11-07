@@ -1,0 +1,398 @@
+{
+  "date": "2026-11-06",
+  "baselineCommit": "b6a5ae1e6bf342993881c3f17347cfd7a7d3602a",
+  "scope": "Default camera-visible Moon path, approximate real lunar phases; synthetic NYC coordinates, zero windows/providers/user-cache writes. Short paired resource runs are timing evidence, not a speedup or energy claim.",
+  "CPU": {
+    "cachedArcMicroseconds": 0.10020732879638672,
+    "fixtures": [
+      {
+        "direction": [
+          -0.29921979577711283,
+          0.2629474971122332,
+          -0.9172383155851672
+        ],
+        "illuminatedFraction": 0.0024345182892583916,
+        "name": "new",
+        "phaseLight": [
+          -0.24578096054000395,
+          0.1872023709328324,
+          -0.9510767538706637
+        ],
+        "utc": 1712631600
+      },
+      {
+        "direction": [
+          -0.3026858725215281,
+          0.26176007411984653,
+          -0.9164403560366892
+        ],
+        "illuminatedFraction": 0.5263378048294749,
+        "name": "waxing_quarter",
+        "phaseLight": [
+          0.6414552426461884,
+          -0.6829481084192738,
+          -0.34945250448130344
+        ],
+        "utc": 1713236400
+      },
+      {
+        "direction": [
+          -0.3074572026738991,
+          0.2600926969326114,
+          -0.9153260935460442
+        ],
+        "illuminatedFraction": 0.999604128847106,
+        "name": "full",
+        "phaseLight": [
+          0.3163668970194743,
+          -0.2962131333543373,
+          0.9012046194392676
+        ],
+        "utc": 1713927600
+      },
+      {
+        "direction": [
+          -0.31246946954403615,
+          0.25829939043117534,
+          -0.9141357970814576
+        ],
+        "illuminatedFraction": 0.5294580899097314,
+        "name": "waning_quarter",
+        "phaseLight": [
+          -0.7570358250867213,
+          -0.6375139302832521,
+          0.14308301167527782
+        ],
+        "utc": 1714532400
+      },
+      {
+        "direction": [
+          -0.4945787383416528,
+          0.1470092080591862,
+          -0.8566096919403784
+        ],
+        "illuminatedFraction": 0.7231714538497662,
+        "name": "arc_before",
+        "utc": 1793404850
+      },
+      {
+        "direction": [
+          -0.4611846792227831,
+          0.17777475027154752,
+          -0.8693128492183165
+        ],
+        "illuminatedFraction": 0.7209653936931921,
+        "name": "arc_after",
+        "utc": 1793406650
+      }
+    ],
+    "passed": true
+  },
+  "GPU": {
+    "passed": true,
+    "cases": [
+      {
+        "name": "new",
+        "illuminatedFraction": 0.0024345182892583916,
+        "expectedPixel": [
+          396.79260344618683,
+          115.80240002849416
+        ],
+        "diskEnergyAboveBackground": 0.09123848609924318,
+        "peak": 0.011090148544311522,
+        "errors": []
+      },
+      {
+        "name": "waxing_quarter",
+        "illuminatedFraction": 0.5263378048294749,
+        "expectedPixel": [
+          393.7866447784744,
+          116.60805481275128
+        ],
+        "diskEnergyAboveBackground": 8.601794735717775,
+        "peak": 0.5098623046874999,
+        "errors": [],
+        "measuredPixel": [
+          395.61260469597784,
+          118.04907125792117
+        ]
+      },
+      {
+        "name": "full",
+        "illuminatedFraction": 0.999604128847106,
+        "expectedPixel": [
+          389.63759513598285,
+          117.74293146169055
+        ],
+        "diskEnergyAboveBackground": 23.207472747802736,
+        "peak": 0.7177877502441407,
+        "errors": [],
+        "measuredPixel": [
+          389.52547896739253,
+          117.77372378681773
+        ]
+      },
+      {
+        "name": "waning_quarter",
+        "illuminatedFraction": 0.5294580899097314,
+        "expectedPixel": [
+          385.26493585796743,
+          118.96816906340044
+        ],
+        "diskEnergyAboveBackground": 7.981107235717773,
+        "peak": 0.4772543090820312,
+        "errors": [],
+        "measuredPixel": [
+          383.6665574505617,
+          120.2948085107525
+        ]
+      },
+      {
+        "name": "arc_before",
+        "illuminatedFraction": 0.7231714538497662,
+        "expectedPixel": [
+          214.40048301350805,
+          203.42514519652974
+        ],
+        "diskEnergyAboveBackground": 13.145642282104493,
+        "peak": 0.49139476318359376,
+        "errors": [],
+        "measuredPixel": [
+          212.98408263638166,
+          204.28966863875985
+        ]
+      },
+      {
+        "name": "arc_after",
+        "illuminatedFraction": 0.7209653936931921,
+        "expectedPixel": [
+          247.67327934998661,
+          178.58473165500666
+        ],
+        "diskEnergyAboveBackground": 13.102333773803709,
+        "peak": 0.5218084152221679,
+        "errors": [],
+        "measuredPixel": [
+          246.41246865167648,
+          179.51515964862077
+        ]
+      }
+    ],
+    "scope": "Actual Metal default-path disks, phase-dependent radiance and accelerated 30-minute motion from one UTC anchor and fixed camera. Metal validation enabled. CPU tests separately verify exact phase fraction/bright-limb orientation, whole-night framing and cached rise/set bounds. Zero windows, providers or user-cache writes."
+  },
+  "regressions": {
+    "dayNight": {
+      "passed": true,
+      "cases": 13,
+      "scope": "Synthetic public coordinates only. No network requests, OS location access, windows or user cache writes. All sky/environment/sun readbacks checked; visual fixtures need review."
+    },
+    "astronomicalMotion": {
+      "passed": true,
+      "cases": 4,
+      "scope": "24-hour cached trajectory and actual GPU disk positions/motion. Each late capture runs from the same initial UTC as its early pair for 188 frames, so stale/frozen uniforms or sky cache cannot pass by restarting at the final date. Fixed camera, no windows/network/user-cache writes."
+    },
+    "nightWater": {
+      "passed": true,
+      "cases": 13,
+      "scope": "Actual Metal geometry and camera height-field sampling; API/shader validation enabled. Includes a synthetic low-eye-height submersion fixture, raised crests, foam, rain, daylight, clear and portrait views. No windows, network, location prompts or user-cache writes."
+    },
+    "lifecycle": {
+      "passed": true,
+      "cases": 0,
+      "scope": "No windows; diagnostics before first scene allocation and replacement drawable sizing with unchanged HDR dimensions. Actual OS visibility/login requires interactive testing."
+    }
+  },
+  "resources": {
+    "before": {
+      "noon": {
+        "settings": {
+          "frames": 240,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1793378400,
+          "heading": 180
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.606186992980421,
+          "physicalFootprintMedianMiB": 100.0330810546875,
+          "physicalFootprintPeakMiB": 100.1268310546875,
+          "residentMedianMiB": 49.15625,
+          "processWakeupsPerSecond": 31.69953703861101,
+          "sampleSeconds": 7.097895459039137
+        },
+        "renderer": {
+          "gpuMeanMs": 7.872860422099216,
+          "gpuMedianMs": 6.412375019863248,
+          "gpuP95Ms": 13.70037510059774,
+          "gpuAllocatedBytes": 80150528,
+          "solarCalculations": 1,
+          "samples": 180,
+          "errors": []
+        }
+      },
+      "moonless": {
+        "settings": {
+          "frames": 240,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1794283200,
+          "heading": 270,
+          "clouds": 0.12,
+          "veil": 0.05
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.801767050610004,
+          "physicalFootprintMedianMiB": 99.8143310546875,
+          "physicalFootprintPeakMiB": 99.8299560546875,
+          "residentMedianMiB": 49.09375,
+          "processWakeupsPerSecond": 31.7216207780741,
+          "sampleSeconds": 5.075402708025649
+        },
+        "renderer": {
+          "gpuMeanMs": 7.861538893646664,
+          "gpuMedianMs": 6.817499874159694,
+          "gpuP95Ms": 13.158666668459773,
+          "gpuAllocatedBytes": 80150528,
+          "solarCalculations": 1,
+          "samples": 180,
+          "errors": []
+        }
+      },
+      "storm": {
+        "settings": {
+          "frames": 240,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1794283200,
+          "heading": 270,
+          "storm": 1
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.078529659653295,
+          "physicalFootprintMedianMiB": 121.5174560546875,
+          "physicalFootprintPeakMiB": 121.5330810546875,
+          "residentMedianMiB": 43.515625,
+          "processWakeupsPerSecond": 31.605781093037383,
+          "sampleSeconds": 5.062364999903366
+        },
+        "renderer": {
+          "gpuMeanMs": 10.601931960425443,
+          "gpuMedianMs": 7.390458369627595,
+          "gpuP95Ms": 23.111874936148524,
+          "gpuAllocatedBytes": 86441984,
+          "solarCalculations": 1,
+          "samples": 180,
+          "errors": []
+        }
+      }
+    },
+    "after": {
+      "noon": {
+        "settings": {
+          "frames": 240,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1793378400,
+          "heading": 180
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 4.52139884837706,
+          "physicalFootprintMedianMiB": 99.7205810546875,
+          "physicalFootprintPeakMiB": 99.7518310546875,
+          "residentMedianMiB": 43.140625,
+          "processWakeupsPerSecond": 31.85086199901492,
+          "sampleSeconds": 5.05480824992992
+        },
+        "renderer": {
+          "gpuMeanMs": 8.112114349690577,
+          "gpuMedianMs": 6.759374868124723,
+          "gpuP95Ms": 14.009833335876465,
+          "gpuAllocatedBytes": 80150528,
+          "solarCalculations": 1,
+          "samples": 180,
+          "errors": []
+        }
+      },
+      "moonless": {
+        "settings": {
+          "frames": 240,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1794283200,
+          "heading": 270,
+          "clouds": 0.12,
+          "veil": 0.05
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.303238597478228,
+          "physicalFootprintMedianMiB": 99.8768310546875,
+          "physicalFootprintPeakMiB": 99.8768310546875,
+          "residentMedianMiB": 49.171875,
+          "processWakeupsPerSecond": 32.72667519092859,
+          "sampleSeconds": 5.072314832825214
+        },
+        "renderer": {
+          "gpuMeanMs": 8.148606721725729,
+          "gpuMedianMs": 6.9181667640805244,
+          "gpuP95Ms": 13.784124981611967,
+          "gpuAllocatedBytes": 80150528,
+          "solarCalculations": 2,
+          "samples": 180,
+          "errors": []
+        }
+      },
+      "storm": {
+        "settings": {
+          "frames": 240,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1794283200,
+          "heading": 270,
+          "storm": 1
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 4.833239468296472,
+          "physicalFootprintMedianMiB": 121.7830810546875,
+          "physicalFootprintPeakMiB": 121.8455810546875,
+          "residentMedianMiB": 36.9140625,
+          "processWakeupsPerSecond": 30.616048664534272,
+          "sampleSeconds": 5.32400512509048
+        },
+        "renderer": {
+          "gpuMeanMs": 11.059735188933296,
+          "gpuMedianMs": 7.40137486718595,
+          "gpuP95Ms": 25.877666659653187,
+          "gpuAllocatedBytes": 86441984,
+          "solarCalculations": 2,
+          "samples": 180,
+          "errors": []
+        }
+      }
+    }
+  },
+  "resourceMethod": "One sequential pair of unprofiled 240-frame runs per scene, 60 GPU warmup frames excluded; process samples exclude first 3 seconds. 1280x800, 30 FPS, Apple M1 8 GiB/macOS26.7. Moon display directions intentionally differ. GPU command-buffer execution excludes WindowServer; Metal allocations overlap physical footprint; no watts/battery claim.",
+  "checkedTransitions": [
+    "sunset",
+    "sunrise",
+    "local midnight",
+    "DST rollback"
+  ]
+}

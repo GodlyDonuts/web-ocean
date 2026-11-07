@@ -1,0 +1,199 @@
+{
+  "date": "2026-11-07",
+  "platform": "Apple M1, macOS 26.7",
+  "change": "Higher-Sun daylight fill, cloud-base lighting and photographic contrast; gated away from low-Sun/night scenes",
+  "newPasses": 0,
+  "newTextures": 0,
+  "newTextureSamples": 0,
+  "cloudMarchBudgetChanged": false,
+  "uniformBufferSizeChanged": false,
+  "validation": {
+    "nativeBuildAndStrictSignature": "passed",
+    "dayNightScenes": 13,
+    "cloudFamiliesAndMixture": 11,
+    "nightWaterAndSubmersionScenes": 13,
+    "wallpaperLifecycle": "passed: preallocation diagnostics, rendering, replacement sizing, zero windows",
+    "heldTimeAndAnimationScenes": 6,
+    "repositoryConsistency": "passed"
+  },
+  "matchedCaptures": {
+    "overcast": {
+      "before": {
+        "waterDisplayLumaP10MedianP90": [
+          140.9448,
+          150.9212,
+          175.59959999999998
+        ]
+      },
+      "after": {
+        "waterDisplayLumaP10MedianP90": [
+          83.4238,
+          99.1154,
+          137.99839999999998
+        ]
+      },
+      "meanAbsoluteDisplayDelta": 36.76304571759259,
+      "rendererErrors": []
+    },
+    "golden": {
+      "before": {
+        "waterDisplayLumaP10MedianP90": [
+          49.979,
+          66.219,
+          97.25039999999998
+        ]
+      },
+      "after": {
+        "waterDisplayLumaP10MedianP90": [
+          49.979,
+          66.219,
+          97.25039999999998
+        ]
+      },
+      "meanAbsoluteDisplayDelta": 0.005814814814814815,
+      "rendererErrors": []
+    },
+    "sunset": {
+      "before": {
+        "waterDisplayLumaP10MedianP90": [
+          22.379399999999997,
+          33.4464,
+          54.4422
+        ]
+      },
+      "after": {
+        "waterDisplayLumaP10MedianP90": [
+          22.379399999999997,
+          33.4464,
+          54.43860000000002
+        ]
+      },
+      "meanAbsoluteDisplayDelta": 0.00421875,
+      "rendererErrors": []
+    },
+    "night": {
+      "before": {
+        "waterDisplayLumaP10MedianP90": [
+          8.3702,
+          14.0894,
+          20.298
+        ]
+      },
+      "after": {
+        "waterDisplayLumaP10MedianP90": [
+          8.3702,
+          14.0894,
+          20.298
+        ]
+      },
+      "meanAbsoluteDisplayDelta": 0.001994212962962963,
+      "rendererErrors": []
+    },
+    "storm": {
+      "before": {
+        "waterDisplayLumaP10MedianP90": [
+          76.49239999999999,
+          92.4792,
+          123.53299999999999
+        ]
+      },
+      "after": {
+        "waterDisplayLumaP10MedianP90": [
+          30.170799999999996,
+          45.447599999999994,
+          74.7324
+        ]
+      },
+      "meanAbsoluteDisplayDelta": 47.70514525462963,
+      "rendererErrors": []
+    },
+    "stratus": {
+      "before": {
+        "waterDisplayLumaP10MedianP90": [
+          112.50399999999999,
+          127.9108,
+          151.0958
+        ]
+      },
+      "after": {
+        "waterDisplayLumaP10MedianP90": [
+          55.3268,
+          73.2362,
+          101.929
+        ]
+      }
+    }
+  },
+  "limits": [
+    "Matched still captures do not establish motion quality or exact live host pixels",
+    "Short command-buffer timing is not a power, temperature or battery-life measurement",
+    "A smooth time-dependent artistic look does not reproduce the reference image in every weather condition"
+  ],
+  "gpuComparison": {
+    "order": [
+      "before",
+      "after",
+      "after",
+      "before"
+    ],
+    "framesPerRun": 180,
+    "warmupFramesPerRun": 60,
+    "measuredFramesPerRun": 120,
+    "renderDimensions": [
+      1280,
+      800
+    ],
+    "scene": "Fixed morning dense-stratus fixture, ordinary unprofiled frame command buffers, same host coverage state",
+    "runs": [
+      {
+        "variant": "before",
+        "gpuMeanMs": 7.221092353574932,
+        "cpuThreadEncodeMeanMs": 0.8887815583333335,
+        "gpuAllocatedBytes": 86441984,
+        "errors": []
+      },
+      {
+        "variant": "after",
+        "gpuMeanMs": 7.418568744712199,
+        "cpuThreadEncodeMeanMs": 0.6582374500000024,
+        "gpuAllocatedBytes": 86441984,
+        "errors": []
+      },
+      {
+        "variant": "after",
+        "gpuMeanMs": 7.806736112494643,
+        "cpuThreadEncodeMeanMs": 0.7123937666666691,
+        "gpuAllocatedBytes": 86441984,
+        "errors": []
+      },
+      {
+        "variant": "before",
+        "gpuMeanMs": 7.6905340305529535,
+        "cpuThreadEncodeMeanMs": 0.5473864250000006,
+        "gpuAllocatedBytes": 86441984,
+        "errors": []
+      }
+    ],
+    "beforeMeanMs": 7.4558131920639426,
+    "afterMeanMs": 7.612652428603421
+  },
+  "runtimeInstallation": {
+    "controllerPID": 95230,
+    "extensionPID": 95253,
+    "selectedAndVerifiedByController": true,
+    "runningExecutable": "macos/build/Ocean.app/Contents/PlugIns/OceanLiveWallpaper.appex/Contents/MacOS/OceanLiveWallpaper",
+    "automaticTimeAndWeather": true,
+    "diagnosticPluginRegistrationsRemoved": 3,
+    "remainingRegisteredOceanWallpaperExtensions": 1,
+    "presentationCallbacks": {
+      "scope": "Unlocked native host, temporary 24 FPS control for 12 seconds, restored afterwards; no concurrent validation/benchmark renderers",
+      "presentedBefore": 1,
+      "presentedAfter": 241,
+      "intervalSeconds": 10.044,
+      "rendererErrors": [],
+      "duplicateDrawableErrors": false,
+      "submissionMedianMs": 41.62,
+      "submissionP95Ms": 45.55
+    }
+  }
+}

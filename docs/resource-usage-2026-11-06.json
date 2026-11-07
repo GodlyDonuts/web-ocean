@@ -1,0 +1,364 @@
+{
+  "date": "2026-11-06",
+  "hardware": {
+    "device": "Apple M1",
+    "unifiedMemoryGiB": 8,
+    "macOS": "26.7"
+  },
+  "baselineCommit": "eeafd019da839b38c557e34b01f9cc2e3fe94740",
+  "scope": "Offscreen 1280x800 at 30 FPS, 360 frames, 60 GPU warmup frames; process samples exclude first 3 seconds. One paired run per scene. No active GPU speedup claimed. Excludes WindowServer, power and battery life. CPU 100% is one core; Metal allocations overlap physical footprint.",
+  "active": {
+    "baseline": {
+      "noon": {
+        "settings": {
+          "frames": 360,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1793378400,
+          "heading": 180
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 4.784940114874215,
+          "physicalFootprintMedianMiB": 97.3768310546875,
+          "physicalFootprintPeakMiB": 99.4237060546875,
+          "residentMedianMiB": 40.234375,
+          "processWakeupsPerSecond": 32.93990723822376,
+          "sampleSeconds": 9.13785208389163
+        },
+        "cpuMachTimebase": {
+          "numer": 125,
+          "denom": 3
+        },
+        "renderer": {
+          "device": "Apple M1",
+          "width": 1280,
+          "height": 800,
+          "samples": 300,
+          "gpuMeanMs": 8.340498338608691,
+          "gpuMedianMs": 6.958541693165898,
+          "gpuP95Ms": 14.320750022307038,
+          "cpuThreadEncodeMeanMs": 0.6733518000000016,
+          "gpuAllocatedBytes": 80150528,
+          "profiled": false,
+          "windowCount": 0,
+          "errors": []
+        }
+      },
+      "moonless": {
+        "settings": {
+          "frames": 360,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1794283200,
+          "heading": 270,
+          "clouds": 0.12,
+          "veil": 0.05
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.231103342704477,
+          "physicalFootprintMedianMiB": 97.6424560546875,
+          "physicalFootprintPeakMiB": 99.5955810546875,
+          "residentMedianMiB": 42.9375,
+          "processWakeupsPerSecond": 31.79753188551709,
+          "sampleSeconds": 9.120204707840458
+        },
+        "cpuMachTimebase": {
+          "numer": 125,
+          "denom": 3
+        },
+        "renderer": {
+          "device": "Apple M1",
+          "width": 1280,
+          "height": 800,
+          "samples": 300,
+          "gpuMeanMs": 8.25176749844104,
+          "gpuMedianMs": 7.170041557401419,
+          "gpuP95Ms": 13.043374987319112,
+          "cpuThreadEncodeMeanMs": 0.7117629333333323,
+          "gpuAllocatedBytes": 80150528,
+          "profiled": false,
+          "windowCount": 0,
+          "errors": []
+        }
+      },
+      "storm": {
+        "settings": {
+          "frames": 360,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1794283200,
+          "heading": 270,
+          "storm": 1
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.212966661170091,
+          "physicalFootprintMedianMiB": 119.75177001953125,
+          "physicalFootprintPeakMiB": 121.48614501953125,
+          "residentMedianMiB": 43.828125,
+          "processWakeupsPerSecond": 32.37294611089499,
+          "sampleSeconds": 9.143437207909301
+        },
+        "cpuMachTimebase": {
+          "numer": 125,
+          "denom": 3
+        },
+        "renderer": {
+          "device": "Apple M1",
+          "width": 1280,
+          "height": 800,
+          "samples": 300,
+          "gpuMeanMs": 11.057745824412754,
+          "gpuMedianMs": 7.626583334058523,
+          "gpuP95Ms": 23.908500093966722,
+          "cpuThreadEncodeMeanMs": 0.7791952466666678,
+          "gpuAllocatedBytes": 86441984,
+          "profiled": false,
+          "windowCount": 0,
+          "errors": []
+        }
+      }
+    },
+    "after": {
+      "noon": {
+        "settings": {
+          "frames": 360,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1793378400,
+          "heading": 180
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.378313848499639,
+          "physicalFootprintMedianMiB": 97.61114501953125,
+          "physicalFootprintPeakMiB": 99.59552001953125,
+          "residentMedianMiB": 45.515625,
+          "processWakeupsPerSecond": 33.07056862268548,
+          "sampleSeconds": 9.131986916996539
+        },
+        "cpuMachTimebase": {
+          "numer": 125,
+          "denom": 3
+        },
+        "renderer": {
+          "device": "Apple M1",
+          "width": 1280,
+          "height": 800,
+          "samples": 300,
+          "gpuMeanMs": 7.806904722626011,
+          "gpuMedianMs": 6.434583337977529,
+          "gpuP95Ms": 13.541291700676084,
+          "cpuThreadEncodeMeanMs": 0.7760065333333337,
+          "gpuAllocatedBytes": 80150528,
+          "profiled": false,
+          "windowCount": 0,
+          "errors": []
+        }
+      },
+      "moonless": {
+        "settings": {
+          "frames": 360,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1794283200,
+          "heading": 270,
+          "clouds": 0.12,
+          "veil": 0.05
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.707627608685887,
+          "physicalFootprintMedianMiB": 97.61114501953125,
+          "physicalFootprintPeakMiB": 99.61114501953125,
+          "residentMedianMiB": 49.234375,
+          "processWakeupsPerSecond": 33.44108669798477,
+          "sampleSeconds": 8.91119366697967
+        },
+        "cpuMachTimebase": {
+          "numer": 125,
+          "denom": 3
+        },
+        "renderer": {
+          "device": "Apple M1",
+          "width": 1280,
+          "height": 800,
+          "samples": 300,
+          "gpuMeanMs": 7.70605236524716,
+          "gpuMedianMs": 6.6459584049880505,
+          "gpuP95Ms": 12.435124954208732,
+          "cpuThreadEncodeMeanMs": 0.8443487633333334,
+          "gpuAllocatedBytes": 80150528,
+          "profiled": false,
+          "windowCount": 0,
+          "errors": []
+        }
+      },
+      "storm": {
+        "settings": {
+          "frames": 360,
+          "fixedDt": 0.03333333333333333,
+          "dayNight": 1,
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "timeZone": "America/New_York",
+          "utc": 1794283200,
+          "heading": 270,
+          "storm": 1
+        },
+        "process": {
+          "steadyCPUPercentOneCore": 5.160180858332419,
+          "physicalFootprintMedianMiB": 121.3143310546875,
+          "physicalFootprintPeakMiB": 121.3299560546875,
+          "residentMedianMiB": 49.203125,
+          "processWakeupsPerSecond": 32.45329760835949,
+          "sampleSeconds": 9.151612374931574
+        },
+        "cpuMachTimebase": {
+          "numer": 125,
+          "denom": 3
+        },
+        "renderer": {
+          "device": "Apple M1",
+          "width": 1280,
+          "height": 800,
+          "samples": 300,
+          "gpuMeanMs": 10.034655978282293,
+          "gpuMedianMs": 6.920125102624297,
+          "gpuP95Ms": 22.609666688367724,
+          "cpuThreadEncodeMeanMs": 0.7684330466666656,
+          "gpuAllocatedBytes": 86441984,
+          "profiled": false,
+          "windowCount": 0,
+          "errors": []
+        }
+      }
+    }
+  },
+  "coveredStartup": {
+    "before": {
+      "passed": true,
+      "CPUPercentOneCore": 0.3560221827674559,
+      "physicalFootprintMedianMiB": 18.299072265625,
+      "wakeupsCounterPerSecond": 4.095607881108873,
+      "sampleSeconds": 15.626495958073065,
+      "gpuFrames": 0,
+      "gpuMs": 0,
+      "scope": "Actual covered-desktop startup with fixed reference sky/providers off; scene targets not allocated yet. Retained memory after a previously visible session is not measured here.",
+      "diagnosticSamples": 4,
+      "allPaused": true,
+      "errors": []
+    },
+    "after": {
+      "passed": true,
+      "CPUPercentOneCore": 0.11570587847361787,
+      "physicalFootprintMedianMiB": 18.189697265625,
+      "wakeupsCounterPerSecond": 0.7034747594947115,
+      "sampleSeconds": 15.63666620803997,
+      "gpuFrames": 0,
+      "gpuMs": 0,
+      "scope": "Actual covered-desktop startup with fixed reference sky/providers off; scene targets not allocated yet. Retained memory after a previously visible session is not measured here.",
+      "diagnosticSamples": 4,
+      "allPaused": true,
+      "errors": []
+    }
+  },
+  "verification": {
+    "sceneParity": {
+      "passed": true,
+      "cases": [
+        {
+          "scene": "noon",
+          "settings": {
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1793378400,
+            "heading": 180
+          },
+          "exact": true,
+          "outputs": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "7c3df964497c10033b495bd196a358beb053eaf12c891281646aba8e47e240ff"
+            },
+            "display": {
+              "bytes": 4096000,
+              "sha256": "e94795607acd53b920737df05adb64da6d403c9212dda2ea02849010bad74524"
+            }
+          }
+        },
+        {
+          "scene": "starry_night",
+          "settings": {
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1782014400,
+            "heading": 155,
+            "clouds": 0.12,
+            "veil": 0.05
+          },
+          "exact": true,
+          "outputs": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "3fba8c7b117174a63e5ed4d57588e8b882e2cf821130e12c3c954c4bac5bce70"
+            },
+            "display": {
+              "bytes": 4096000,
+              "sha256": "da71a9cd59e63c1ed4c7c85e8fcb5bb279088a5ac761857cb2d9c798b61557e4"
+            }
+          }
+        },
+        {
+          "scene": "storm_night",
+          "settings": {
+            "dayNight": 1,
+            "latitude": 40.7128,
+            "longitude": -74.006,
+            "timeZone": "America/New_York",
+            "utc": 1794283200,
+            "heading": 270,
+            "storm": 1,
+            "time": 60
+          },
+          "exact": true,
+          "outputs": {
+            "HDR": {
+              "bytes": 8192000,
+              "sha256": "d6eb6be3100e0c35b714b945c6bad485d4798c96d743a73d181dea7e01b654ff"
+            },
+            "display": {
+              "bytes": 4096000,
+              "sha256": "7209aac714f7de5bf24ebb676486ccf5865ec59e4b002f68fc7c5c136497d518"
+            }
+          }
+        }
+      ],
+      "scope": "Matched offscreen HDR/display against saved PR eeafd01 baseline with read-only allocation telemetry; does not establish physical multi-monitor presentation."
+    },
+    "fft": {
+      "passed": true,
+      "cases": 24,
+      "maximumError": 0,
+      "changedValues": 0,
+      "changedBitPatterns": 0
+    },
+    "lifecycle": true
+  }
+}

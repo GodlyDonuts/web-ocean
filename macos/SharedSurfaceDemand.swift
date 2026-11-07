@@ -41,9 +41,10 @@ enum SharedSurfaceDemand {
 
 // Reasons are independent: a wake notification must not clear an inactive session.
 struct SurfaceSuspensionState {
-    enum Reason: Hashable { case systemSleep, displaySleep, inactiveSession }
+    enum Reason: Hashable { case systemSleep, displaySleep, inactiveSession, screenLocked, screenSaver, userPaused }
     private var reasons: Set<Reason> = []
     var isSuspended: Bool { !reasons.isEmpty }
+    func isSuspended(_ reason: Reason) -> Bool { reasons.contains(reason) }
     mutating func set(_ reason: Reason, active: Bool) {
         if active { reasons.insert(reason) } else { reasons.remove(reason) }
     }
