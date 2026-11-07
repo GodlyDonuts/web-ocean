@@ -2,7 +2,7 @@
   "date": "2026-11-07",
   "version": "0.3.0",
   "build": "5",
-  "plannedTag": "v0.3.0-beta.2",
+  "plannedTag": "v0.3.0-beta.3",
   "platform": "Apple M1, macOS 26.7",
   "signing": {
     "kind": "ad-hoc",

@@ -7,7 +7,7 @@ on:
       tag:
         description: Beta tag to package (vX.Y.Z-beta.N)
         required: true
-        default: v0.3.0-beta.2
+        default: v0.3.0-beta.3
 permissions:
   contents: read
 concurrency:
@@ -34,7 +34,6 @@ jobs:
           zsh macos/test-unit.sh
           zsh macos/Tests/test-screensaver.sh
           zsh macos/Tests/test-native-wallpaper.sh
-          python3 macos/Tests/verify_wallpaper_lifecycle.py
           python3 tools/check-repository.py
           python3 tools/test-release-packaging.py
       - name: Package self-contained beta
@@ -43,9 +42,6 @@ jobs:
         with:
           name: ocean-beta
           path: macos/build/releases/*
-      - name: Publish tagged GitHub prerelease
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$RELEASE_TAG" macos/build/releases/* --verify-tag --prerelease --title "Ocean ${RELEASE_TAG#v}" --notes-file docs/releases/BETA.md
+      # Hosted Macs expose Apple Paravirtual device; rendered wave validation
+      # must run on physical Apple silicon against this exact artifact before
+      # publication. CPU, bundle, ABI and remote-surface checks above still run.

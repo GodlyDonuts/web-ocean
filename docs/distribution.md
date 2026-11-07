@@ -1,6 +1,6 @@
 # GitHub distribution
 
-The first distributable is **v0.3.0-beta.2**, Apple silicon, macOS 26+. Consumers download a self-contained DMG, move/install the app to Applications and choose Use Ocean. There are no developer-tool or server requirements for users.
+The first distributable is **v0.3.0-beta.3**, Apple silicon, macOS 26+. Consumers download a self-contained DMG, move/install the app to Applications and choose Use Ocean. There are no developer-tool or server requirements for users.
 
 This is an **ad-hoc-signed, unnotarized community beta**. A development certificate is not a Developer ID distribution certificate. GitHub hosting does not remove Gatekeeper requirements. Release instructions explicitly disclose the first-launch warning and link to Apple’s per-app approval documentation; never recommend disabling Gatekeeper or removing quarantine attributes.
 
@@ -22,14 +22,14 @@ zsh macos/test-unit.sh
 zsh macos/Tests/test-screensaver.sh
 zsh macos/Tests/test-native-wallpaper.sh
 python3 macos/Tests/verify_wallpaper_lifecycle.py
-python3 tools/package-release.py --unsigned-beta --tag v0.3.0-beta.2
+python3 tools/package-release.py --unsigned-beta --tag v0.3.0-beta.3
 ```
 
 Commit source first. Packaging rejects dirty trees by default; `--allow-dirty` exists only for local review and marks the manifest accordingly. The app records hashes of its build inputs. Packaging rejects a stale app when those inputs change. Bundle versions must agree with each other and with the tag. The package includes Ocean.app, an Applications shortcut, a first-read help page and the MIT license. `.sha256` and `.json` sidecars identify the source commit and signing state.
 
 Signing is inside-out, including the embedded saver and native extension with its existing sandbox entitlements. Hardened runtime and strict code-signature checks are applied. No broad code-loading exceptions are added. The DMG is verified after creation.
 
-The `Build Ocean GitHub beta` workflow uses GitHub’s `macos-26` Apple silicon runner, builds/tests/packages, uploads artifacts and publishes a prerelease on a `v*-beta.*` tag. Manual dispatch builds artifacts without publishing. The ordinary validation workflow also uses macOS 26 for the native wallpaper SDK/runtime. Tagged release creation uses a notes file rather than shell-escaped prose.
+The `Build Ocean GitHub beta` workflow uses GitHub’s `macos-26` Apple silicon runner, builds/tests/packages and uploads artifacts on a `v*-beta.*` tag or manual dispatch. It does not publish automatically. Hosted runners expose an Apple Paravirtual GPU that returned empty displacement in the rendered lifecycle fixture; do not interpret hosted ABI/CPU success as visual validation. Before publishing, download the exact CI DMG, verify its checksum and signatures, mount it read-only, and run the rendered lifecycle fixture against that app on physical Apple silicon. Publish the verified DMG and sidecars with `gh release create TAG FILES --verify-tag --prerelease --notes-file docs/releases/BETA.md`. Keep the physical validation report with the release evidence. The ordinary validation workflow also uses macOS 26 for the native wallpaper SDK/runtime. Tagged release creation uses a notes file rather than shell-escaped prose.
 
 Developer signing/notarization is optional future work: `--identity 'Developer ID Application: …' --notary-profile PROFILE` requires an existing certificate/profile, signs and notarizes the app and DMG, and staples both. Stable packages cannot use the unsigned-beta mode. No credentials are stored in the repository. Successful notarization with the private wallpaper compatibility layer has not been established; a script is not proof of Apple acceptance.
 
