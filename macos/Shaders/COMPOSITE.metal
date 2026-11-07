@@ -13,7 +13,7 @@ struct VO {
 };
 struct P {
     metal::float4 p;
-    metal::float4 q;
+    metal::float4 q; // saturation, power, white balance, daytime look weight
     metal::float4 rain; // density, crosswind, continuous phase seconds, mist
     metal::float4 weather; // severity, thunder, night, reserved
 };
@@ -141,14 +141,16 @@ fragment fsOutput fs(
     c=precipitation(c,in.uv,dims,U);
     metal::float3 _e26 = c;
     float _e30 = U.p.x;
-    c = _e26 * _e30;
+    // Expose for the daylight key rather than lifting sky and sea together.
+    // AgX retains the bright reflection while the fill gains a darker range.
+    c = _e26 * (_e30*metal::mix(1.0,0.65,U.q.w));
     metal::float2 d = (in.uv - metal::float2(0.5)) * metal::float2(dims.x / dims.y, 1.0);
     metal::float3 _e42 = c;
     float _e46 = U.p.w;
     c = _e42 * (1.0 - (_e46 * metal::dot(d, d)));
     metal::float3 _e52 = c;
-    float _e56 = U.q.z;
-    float _e62 = U.q.z;
+    float _e56 = metal::mix(U.q.z,-0.04,U.q.w);
+    float _e62 = _e56;
     c = _e52 * metal::float3(1.0 + _e56, 1.0, 1.0 - _e62);
     metal::float3 _e68 = c;
     float lum = metal::dot(_e68, metal::float3(0.2126, 0.7152, 0.0722));
@@ -158,8 +160,8 @@ fragment fsOutput fs(
     metal::float3 _e83 = agx(_e82);
     o_1 = _e83;
     metal::float3 _e85 = o_1;
-    float _e89 = U.q.x;
-    float _e93 = U.q.y;
+    float _e89 = U.q.x+0.04*U.q.w;
+    float _e93 = U.q.y+0.18*U.q.w;
     metal::float3 _e94 = agxLook(_e85, _e89, _e93);
     o_1 = _e94;
     metal::float3 _e95 = o_1;
@@ -202,14 +204,16 @@ fragment fsOutput fs_mirror(
     c=precipitation(c,in.uv,dims,U);
     metal::float3 _e26 = c;
     float _e30 = U.p.x;
-    c = _e26 * _e30;
+    // Expose for the daylight key rather than lifting sky and sea together.
+    // AgX retains the bright reflection while the fill gains a darker range.
+    c = _e26 * (_e30*metal::mix(1.0,0.65,U.q.w));
     metal::float2 d = (in.uv - metal::float2(0.5)) * metal::float2(dims.x / dims.y, 1.0);
     metal::float3 _e42 = c;
     float _e46 = U.p.w;
     c = _e42 * (1.0 - (_e46 * metal::dot(d, d)));
     metal::float3 _e52 = c;
-    float _e56 = U.q.z;
-    float _e62 = U.q.z;
+    float _e56 = metal::mix(U.q.z,-0.04,U.q.w);
+    float _e62 = _e56;
     c = _e52 * metal::float3(1.0 + _e56, 1.0, 1.0 - _e62);
     metal::float3 _e68 = c;
     float lum = metal::dot(_e68, metal::float3(0.2126, 0.7152, 0.0722));
@@ -219,8 +223,8 @@ fragment fsOutput fs_mirror(
     metal::float3 _e83 = agx(_e82);
     o_1 = _e83;
     metal::float3 _e85 = o_1;
-    float _e89 = U.q.x;
-    float _e93 = U.q.y;
+    float _e89 = U.q.x+0.04*U.q.w;
+    float _e93 = U.q.y+0.18*U.q.w;
     metal::float3 _e94 = agxLook(_e85, _e89, _e93);
     o_1 = _e94;
     metal::float3 _e95 = o_1;

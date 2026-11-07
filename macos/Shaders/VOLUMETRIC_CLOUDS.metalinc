@@ -93,6 +93,7 @@ metal::float4 volumeClouds(metal::float3 dir, float pixAng, constant Frame& F,
     if (F.celestial.w>0.5 && F.sunDir.y < -0.0174524) sunlight*=metal::float3(0.72,0.81,1.0);
     metal::float3 zenith=skyAtmo(metal::float3(0,1,0),F,skyLUT,sampC);
     metal::float3 horizon=skyAtmo(metal::normalize(metal::float3(dir.x,0.05,dir.z)),F,skyLUT,sampC);
+    float dayLook=F.celestial.w*metal::smoothstep(0.08,0.30,F.sunDir.y)*(1.0-F.celestial.z);
     float cosTheta=metal::dot(dir,light.xyz);
     float phase=metal::mix(phaseHG(cosTheta,0.35),phaseHG(cosTheta,-0.20),0.35);
     metal::float3 result(0.0);float transmittance=1.0;float visibleOpacity=0.0;
@@ -137,12 +138,14 @@ metal::float4 volumeClouds(metal::float3 dir, float pixAng, constant Frame& F,
         float height=metal::clamp((p.y-cloudBase(F))/cloudDepth(F),0.0,1.0);
         // Less ambient at the dense base gives the banks readable depth.
         float powder=1.0-metal::exp(-density*2.5);
-        metal::float3 ambient=metal::mix(horizon,zenith,0.35+height*0.45)
-            *metal::mix(0.16,0.38,height);
         direct*=metal::mix(1.0,1.0+powder,metal::smoothstep(0.0,0.9,cosTheta));
         float skyDepth=volumeDensity(p+metal::float3(0,0.4,0),F,cloudNoise,false)*0.6
             +volumeDensity(p+metal::float3(0,1.2,0),F,cloudNoise,false)*1.2;
-        ambient=(zenith*0.28+horizon*0.18)*(0.35+0.65*metal::exp(-skyDepth*0.6));
+        // Reuse existing density probes: a sheltered base receives less sky
+        // fill than the upper lobes, rather than lighting the whole deck gray.
+        metal::float3 ambient=(zenith*0.28+horizon*0.18)*(0.35+0.65*metal::exp(-skyDepth*0.6));
+        ambient*=metal::mix(1.0,metal::mix(0.38,1.0,height),dayLook);
+        multiple*=metal::mix(1.0,0.60,dayLook);
         metal::float3 source=sunlight*(phase*direct+multiple)+ambient;
         // Deep rain banks absorb more light and lose warm saturation.
         source=metal::mix(source,metal::dot(source,metal::float3(0.2126,0.7152,0.0722))*metal::float3(0.76,0.84,0.96),F.weather.x*0.65);

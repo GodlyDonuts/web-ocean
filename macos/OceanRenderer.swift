@@ -765,6 +765,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         lightingDate=nil
         frame[32]=staticSun.x;frame[33]=staticSun.y;frame[34]=staticSun.z;frame[35]=staticSun.w
         compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)
+        compositeBuffer.contents().assumingMemoryBound(to:Float.self)[7]=0
         let vectors=frameBuffer.contents().assumingMemoryBound(to:SIMD4<Float>.self)
         vectors[39]=SIMD4(0,-1,0,0)
         vectors[40]=SIMD4(0.004675,0.0045,0,0)
@@ -803,6 +804,9 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             vectors[41]=SIMD4(Float(moon.x),Float(moon.y),Float(moon.z),Float(brightness))
         }
         compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)*Float(1+3*state.night)
+        // Daytime contrast fades out before golden hour; keep the established
+        // sunset and lunar treatment. q.w was reserved in the existing buffer.
+        compositeBuffer.contents().assumingMemoryBound(to:Float.self)[7]=Float(CelestialMath.smooth(0.08,0.30,sun.y)*(1-state.night))
         if let day=celestialCycle.day,lastSolarDayStart != day.start {
             lastSolarDayStart=day.start;onSolarDayChanged?(day)
         }

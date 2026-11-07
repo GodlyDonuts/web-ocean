@@ -951,6 +951,12 @@ fragment fsOutput fs(
     metal::float3 foamAmb = (skyHemi * 1.0) + (skyN * 0.3);
     metal::float3 foamAmbN = metal::mix(foamAmb, metal::float3(metal::dot(foamAmb, metal::float3(0.2126, 0.7152, 0.0722))), 0.85);
     metal::float3 foamLit = foamAlb * ((((sunE * metal::max(metal::dot(nrm, Ld), 0.0)) * 0.318) * 0.5) + (foamAmbN * 1.55));
+    // Absorbing deep water should not inherit the sky's entire diffuse fill.
+    // Leave the Fresnel reflection and directional glints intact. The daytime
+    // treatment fades before golden hour and is zero throughout the night.
+    float dayLook=F.celestial.w*metal::smoothstep(0.08,0.30,F.sunDir.y)*(1.0-F.celestial.z);
+    body*=metal::mix(metal::float3(1.0),metal::float3(0.25,0.42,0.50),dayLook);
+    foamLit*=metal::mix(1.0,0.82+0.18*metal::max(nrm.y,0.0),dayLook);
     if (F.celestial.w>0.5 && F.celestial.z>0.001) {
         metal::float3 key=metal::normalize(metal::float3(-0.6,0.32,-0.73));
         float face=metal::max(0.0,metal::dot(nrm,key));

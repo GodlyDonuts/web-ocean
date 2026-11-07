@@ -6,7 +6,7 @@ A cinematic ocean being developed into a live macOS wallpaper. The current app u
 
 ![Native moonlit ocean](docs/silver-night-preview.png)
 
-[Night lighting and matched comparisons](docs/silver-night-style.md). This capture uses a fixed moonlit fixture; the live scene follows local time, Moon phase and weather.
+[Daytime lighting and matched comparisons](docs/cinematic-daylight.md) · [Night lighting and matched comparisons](docs/silver-night-style.md). This capture uses a fixed moonlit fixture; the live scene follows local time, Moon phase and weather.
 
 ## Current status
 
