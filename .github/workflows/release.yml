@@ -1,0 +1,47 @@
+name: Build Ocean GitHub beta
+on:
+  push:
+    tags: ['v*-beta.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Beta tag to package (vX.Y.Z-beta.N)
+        required: true
+        default: v0.3.0-beta.3
+permissions:
+  contents: read
+concurrency:
+  group: ocean-release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: macos-26
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require Apple silicon and a beta tag
+        run: |
+          test "$(uname -m)" = arm64
+          python3 -c 'import os,re; assert re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+",os.environ["RELEASE_TAG"])'
+      - name: Build app and native integrations
+        run: zsh macos/build.sh
+      - name: Verify product contracts and native bundles
+        run: |
+          zsh macos/test-unit.sh
+          zsh macos/Tests/test-screensaver.sh
+          zsh macos/Tests/test-native-wallpaper.sh
+          python3 tools/check-repository.py
+          python3 tools/test-release-packaging.py
+      - name: Package self-contained beta
+        run: python3 tools/package-release.py --unsigned-beta --tag "$RELEASE_TAG"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ocean-beta
+          path: macos/build/releases/*
+      # Hosted Macs expose Apple Paravirtual device; rendered wave validation
+      # must run on physical Apple silicon against this exact artifact before
+      # publication. CPU, bundle, ABI and remote-surface checks above still run.

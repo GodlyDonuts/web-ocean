@@ -2,7 +2,7 @@
 
 ## Host and state
 
-`macos/main.swift` owns AppKit lifecycle, the MetalKit view and menus. `OceanRenderer.swift` currently owns both shared world state and surface resources. The next architectural split is shared ocean/environment state versus per-display presentation.
+`macos/main.swift` owns AppKit lifecycle, desktop windows/MetalKit views, the status menu and preview window. `PerformancePolicy.swift` makes pure frame-rate/resolution decisions from OS inputs and conservative coverage estimates. `OceanRenderer.swift` owns the shared simulation/HDR state; visible displays receive one composite each through `presentationSurfaces`. This first shared-frame implementation crops a common fixed view rather than independently shading every display. Further separation of environment and surface ownership remains architectural work.
 
 `CelestialCycle.swift` supplies cached daylight and approximate lunar motion. `ObserverLocationProvider.swift` fetches coarse IP location; `WeatherProvider.swift` fetches current weather. Both use disk caches and retry/offline behavior. `Weather.swift` smooths environmental state. `AnimationClock.swift` distinguishes elapsed time from bounded wave phase and accumulated texture/noise advection. Do not use the ten-minute wave phase as the clock for astronomy or provider validity.
 
@@ -48,3 +48,9 @@ Native `.metal` sources are authoritative and hand-edited. The browser `js/wgsl/
 The mesh is viewport-focused with sparse guards, including a near patch extending behind the eye. It is not a surrounding dense world. Whole FFT tiles and offscreen sky directions remain necessary because visible waves, reflections and lighting consume them. Do not crop simulation inputs merely because their coefficients or texels are not directly displayed.
 
 Historical `Tests/Experiments/` sources are comparison candidates and rejected trials. Their existence is not evidence that they are production paths. Refer to the corresponding reports before repeating them.
+
+## Desktop host
+
+See [wallpaper-host.md](wallpaper-host.md) for view rebuilding, drawable budgets, conservative visibility and the remaining real-display verification matrix. Decorative sky events and wildlife introduced in the initial PR have been removed; the scene shader manifest and astronomy remain those of the established main renderer.
+
+The [regional rendering and system integration guide](regional-rendering.md) describes the conservative single-display presentation strips, regional scene shading, retained HDR, native shared-world saver and automatic saver/lock-screen setup.

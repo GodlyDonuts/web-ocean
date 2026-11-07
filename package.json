@@ -21,7 +21,8 @@
     "macos:storm:review": "npm run macos:build && python3 macos/Tests/verify_storm_rework.py",
     "macos:unit": "zsh macos/test-unit.sh",
     "macos:night:test": "npm run macos:build && python3 macos/Tests/verify_night_water.py",
-    "macos:check": "zsh macos/test-current.sh"
+    "macos:check": "zsh macos/test-current.sh",
+    "macos:gallery": "npm run macos:build && python3 macos/Tests/render_gallery.py"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

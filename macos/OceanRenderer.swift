@@ -41,6 +41,33 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     private var rainDepthUnoccluded:MTLDepthStencilState!
     private var rainDepth:MTLDepthStencilState!
     private var rainBuffer:MTLBuffer!
+    var governor = ""
+    var hostLocked=false
+    var hostSaverRendering=false
+    private(set) var submittedFrames=0
+    private(set) var completedFrames=0
+    private(set) var presentedDrawables=0
+    // Manual hosts bypass MTKView's draw lifecycle, so its cached currentDrawable
+    // is not invalidated between callbacks. Acquire a fresh layer drawable instead.
+    var usesLayerDrawables=false
+    private var skyLUTUpdates=0
+    private var tilePresentationVerified=false
+    private var benchmarkTileTargets: [MTLTexture]=[]
+    private var mirrorPipeline: MTLRenderPipelineState!
+    var presentationSurfaces: [MTKView] = []
+    var presentationRegions: [ObjectIdentifier:CGRect] = [:]
+    // OS-confirmed tile visibility, not CGWindow bounding-box guesses.
+    var visibleRegion = RegionalRendering.full
+    private var regionalHistory: MTLTexture?
+    private var historyPipeline: MTLRenderPipelineState!
+    private(set) var shadedFraction = 1.0
+    var snapshotRequested: ((Data,Int,Int)->Void)?
+    static var resourceBundle: Bundle { Bundle(for:OceanRenderer.self) }
+
+    weak var layoutView: MTKView?
+    var pixelBudget: Double = 1280*800
+    private var surfaceSizingVerified = false
+    var horizonUV: Float { Float(0.5*(1-tan(5.5*Double.pi/180)/tan(29*Double.pi/180))) }
     private var compositePipeline: MTLRenderPipelineState!
     private var oceanDepth: MTLDepthStencilState!
     private var skyDepth: MTLDepthStencilState!
@@ -129,6 +156,12 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     private var cycleStartElapsed=0.0
     private var launchSun=SIMD4<Float>(0,0,0,14)
     private var observerTimeZone: TimeZone?
+    private(set) var daylightTime=DaylightTime()
+    private var heldLightingDate: Date?
+    private var heldLightingDay: Range<Double>?
+    private var heldLightingZone: String?
+    private var lightingDate: Date?
+    var daylightTimeZone: TimeZone { options["timeZone"].flatMap(TimeZone.init(identifier:)) ?? observerTimeZone ?? .autoupdatingCurrent }
     private var celestialState: CelestialState?
     private var lastSolarDayStart: Double?
     private var clock = AnimationClock()
@@ -186,6 +219,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         self.clock = AnimationClock(start:Double(options["time"] ?? "") ?? 0,mode:AnimationClock.Mode(rawValue:options["clock"] ?? "") ?? .continuous)
         self.time = clock.waveTime
         self.dayNightEnabled = options["dayNight"] == "1" || (!OceanRunMode.offscreen && options["dayNight"] != "0" && options["sunElev"] == nil)
+        self.daylightTime=options["daylightTime"].flatMap(DaylightTime.init(value:)) ?? DaylightTime()
         self.celestialCycle = CelestialCycle(cacheURL:OceanRunMode.offscreen ? nil : CelestialCycle.supportDirectory.appendingPathComponent("celestial-days.json"))
         self.celestialCycle.heading = Double(options["heading"] ?? "") .flatMap { $0.isFinite ? $0 : nil } ?? 270
         if let lat=Double(options["latitude"] ?? ""),let lon=Double(options["longitude"] ?? "") {
@@ -199,8 +233,9 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         self.skipCloudOctaves = options["skipCloudOctaves"] != "0"
         self.packedJacobian = options["packedJacobian"] != "0"
         self.useSharedLighting = options["sharedLighting"] == "1" && options["perPixelLighting"] != "1"
-        if let level=Double(options["storm"] ?? options["weatherFrom"] ?? ""),level.isFinite {
-            var initial=OceanWeather.storm(level)
+        let fixtureWeather=options["weatherValues"].flatMap(OceanWeather.fixture)
+        let fixtureStorm=Double(options["storm"] ?? options["weatherFrom"] ?? "").flatMap { $0.isFinite ? OceanWeather.storm($0) : nil }
+        if var initial=fixtureWeather ?? fixtureStorm {
             if let heading=Double(options["weatherHeadingFrom"] ?? ""),heading.isFinite,(0...360).contains(heading) { initial.direction=heading }
             self.weatherDynamics=WeatherDynamics(initial);self.weatherActive=true;self.weatherManual=true
             self.cloudEvolutionTime=clock.elapsed
@@ -259,7 +294,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     }
 
     private func createPipelines() throws {
-        guard let root = Bundle.main.resourceURL?.appendingPathComponent("Shaders") else {
+        guard let root = Self.resourceBundle.resourceURL?.appendingPathComponent("Shaders") else {
             throw OceanFailure(message: "The native Metal shaders are missing from the app bundle.")
         }
         let manifest = try JSONDecoder().decode([String: [String]].self, from: Data(contentsOf: root.appendingPathComponent("manifest.json")))
@@ -353,6 +388,25 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         upPipeline = try renderPipeline("BLOOM_UP", additive: true)
         rainPipeline=try renderPipeline("RAIN",samples:4,depth:true,premultiplied:true)
         compositePipeline = try renderPipeline("COMPOSITE", format: .bgra8Unorm)
+        let mirror = MTLRenderPipelineDescriptor()
+        mirror.label = "COMPOSITE mirror"
+        mirror.vertexFunction = libraries["COMPOSITE"]!.makeFunction(name: "vs")
+        mirror.fragmentFunction = libraries["COMPOSITE"]!.makeFunction(name: "fs_mirror")
+        mirror.colorAttachments[0].pixelFormat = .bgra8Unorm
+        mirrorPipeline = try device.makeRenderPipelineState(descriptor: mirror)
+        let historyLibrary=try device.makeLibrary(source:"""
+        #include <metal_stdlib>
+        using namespace metal;
+        vertex float4 historyVS(uint i [[vertex_id]]) { return float4(float2((i<<1)&2,i&2)*2-1,0,1); }
+        fragment float4 historyFS(float4 p [[position]],texture2d<float> t [[texture(0)]]) { return t.read(uint2(p.xy)); }
+        """,options:nil)
+        let historyDescriptor=MTLRenderPipelineDescriptor()
+        historyDescriptor.vertexFunction=historyLibrary.makeFunction(name:"historyVS")
+        historyDescriptor.fragmentFunction=historyLibrary.makeFunction(name:"historyFS")
+        historyDescriptor.colorAttachments[0].pixelFormat = .rgba16Float
+        historyDescriptor.depthAttachmentPixelFormat = .depth32Float
+        historyDescriptor.rasterSampleCount=4
+        historyPipeline=try device.makeRenderPipelineState(descriptor:historyDescriptor)
         let d = MTLDepthStencilDescriptor()
         d.depthCompareFunction = .greater; d.isDepthWriteEnabled = true
         oceanDepth = device.makeDepthStencilState(descriptor: d)
@@ -400,7 +454,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         galaxyAtlas=try GalaxyAtlas.make(device:device,queue:queue,enabled:dayNightEnabled)
         let stars=try StarField.make(device:device,queue:queue,enabled:dayNightEnabled,atlasSize:options["starAtlasReference"] == "1" ? 2048 : 1024)
         starAtlas=stars.atlas;starCatalogue=stars.catalogue;starCount=stars.count
-        frameBuffer = try buffer(544+AnimationClock.cloudShiftCount*16, "frame")
+        frameBuffer = try buffer(576+AnimationClock.cloudShiftCount*16, "frame")
         displacementBounds = try buffer(16,"displacement guard bounds")
         partialBounds = try buffer(16*16*cascades*16,"partial displacement bounds",privateStorage:true)
         simBuffer = try buffer(224, "spectrum parameters")
@@ -419,7 +473,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         h0 = try buffer(bytes, "initial spectrum", privateStorage: true)
         // Allocate the second sea state only for local/manual weather, not
         // legacy offscreen reference captures.
-        if !OceanRunMode.offscreen || options["storm"] != nil || options["weatherFrom"] != nil {
+        if !OceanRunMode.offscreen || weatherManual {
             seaTarget=try buffer(bytes,"weather target spectrum",privateStorage:true)
             weatherSimBuffer=try buffer(224,"weather target parameters")
             seaResponseBuffer=try buffer(16,"sea relaxation")
@@ -529,7 +583,10 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             s[16+c] = c < cascades-1 ? (2 * .pi * 6)/cascadeLengths[c+1] : (.pi*Float(n)/cascadeLengths[c])*0.98
         }
         s[40] = wind; s[41] = windDirection; s[42] = 90000; s[43] = 3.3
-        s[44] = weatherActive ? Float(1.8+weatherDynamics.current.severity*8) : value("swellHs", 1.8); s[45] = 94*d2r; s[46] = sqrt(9.81*2 * .pi/120); s[47] = 48
+        // Remote swell is independent of the user's local rain and wind. This
+        // is an idealized offshore background, not a marine forecast.
+        s[44] = max(0,value("swellHs",1.8)); s[45] = 94*d2r
+        s[46] = 2 * .pi / min(25,max(4,value("swellPeriod",11))); s[47] = 48
         s[48] = value("choppy", 1.25); s[49] = 0.0012; s[50] = 600; s[51] = 1
         s[52] = time; s[53] = dt; s[54] = 2.2; s[55] = 1
         write(s, to: simBuffer)
@@ -585,7 +642,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         localWeather=adjusted
         if !weatherManual { setWeather(adjusted) }
     }
-    func followLocalWeather() { weatherManual=false;if let value=localWeather { setWeather(value) } }
+    func followLocalWeather() { weatherManual=false;setWeather(localWeather ?? .fair) }
     func previewStorm(_ value:Double) { weatherManual=true;setWeather(.storm(value)) }
     private func setWeather(_ value:OceanWeather) {
         guard value.isValid,value != weatherDynamics.target else { return }
@@ -595,7 +652,8 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             cloudDrift = -SIMD2(cos(a),sin(a))*(Double(self.value("windSpeed",7))*0.001*clock.elapsed)
             weatherDetailDrift=SIMD2(cos(a),sin(a))*(Double(Float(0.0004))*clock.elapsed)
         }
-        weatherActive=true;weatherDynamics.setTarget(value);weatherTargetDirty=true
+        weatherTargetDirty = weatherTargetDirty || !value.hasSameWind(as:weatherDynamics.target)
+        weatherActive=true;weatherDynamics.setTarget(value)
     }
     private func updateWeather(dt:Double) {
         if let to=Double(options["weatherTo"] ?? ""),!fixtureWeatherChanged,
@@ -615,13 +673,14 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         seaSettling=max(0,seaSettling-dt)
     }
     private func writeWeatherUniforms(dt:Double) {
+        defer { writeCloudMorphology() }
         let frame=frameBuffer.contents().assumingMemoryBound(to:Float.self)
         let post=compositeBuffer.contents().assumingMemoryBound(to:Float.self)
         for i in 8..<16 { post[i]=0 }
         for i in 188..<192 { frame[i]=0 }
         memset(rainBuffer.contents(),0,64)
         guard weatherActive else { return }
-        let w=weatherDynamics.current,severity=w.severity
+        let w=weatherDynamics.current,severity=w.severity,seaSeverity=w.windSeaSeverity
         let formation=max(0,min(1,(w.cloud-0.45)/0.5))
         let growth=severity*formation*formation*(3-2*formation)
         let canopy=max(0,min(1,(w.cloud-0.55)/0.38))
@@ -630,7 +689,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         frame[56]=Float(cos(w.direction*Double.pi/180));frame[57]=Float(sin(w.direction*Double.pi/180));frame[58]=Float(w.wind)
         frame[93]=Float(w.cloud);frame[94]=Float(2.2+severity*2.0)
         frame[74]=Float(max(Double(value("veil",0.36)),w.cloud*0.8))
-        frame[84]=0.36+0.12*value("foam",1)+Float(severity*0.42)
+        frame[84]=0.36+0.12*value("foam",1)+Float(seaSeverity*0.42)
         // Dense marine rain/fog fades the horizon in world distance.
         let fog=Float(w.mist)*0.0025
         frame[88]=(5.802e-3+4.40e-3*value("haze",3))*1e-3+fog
@@ -654,11 +713,19 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         for bucket in 0..<8 { particles[4+bucket]=AnimationClock.fraction(cloudEvolutionTime*Double(20+bucket)/64)*64 }
         particles[12]=post[15];particles[13]=Float(rain)
         let foam=foamBuffer.contents().assumingMemoryBound(to:Float.self)
-        foam[11]=Float(0.22+severity*0.45);foam[12]=0.52+0.16*value("foam",1)-Float(severity*0.28)
+        foam[11]=Float(0.22+seaSeverity*0.45);foam[12]=0.52+0.16*value("foam",1)-Float(seaSeverity*0.28)
         foam[32]=frame[56]*Float(w.wind)*0.03;foam[33]=frame[57]*Float(w.wind)*0.03
         if let seaResponseBuffer {
             write([Float(1-exp(-dt/90)),0,0,0],to:seaResponseBuffer)
         }
+    }
+    private func writeCloudMorphology() {
+        let f=frameBuffer.contents().assumingMemoryBound(to:Float.self)
+        let kind=CloudMorphology.Kind(rawValue:options["cloudType"] ?? "auto") ?? .automatic
+        let w=weatherActive ? weatherDynamics.current : OceanWeather(rain:0,cloud:Double(f[93]),wind:Double(f[58]),direction:118,thunder:0,mist:0)
+        if let coverage=CloudMorphology.coverage(kind) { f[93]=coverage.low;f[74]=coverage.high }
+        if kind == .cumulonimbus { f[191]=1 }
+        frameBuffer.contents().assumingMemoryBound(to:SIMD4<Float>.self)[49]=CloudMorphology.weights(w,kind:kind)
     }
     private func prepareWeatherSpectrum() {
         weatherSpectrumPrepared=false
@@ -668,46 +735,84 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let p=weatherSimBuffer.contents().assumingMemoryBound(to:Float.self)
         let w=weatherDynamics.target
         p[40]=Float(max(0.2,w.wind));p[41]=Float(w.direction*Double.pi/180)
-        p[44]=Float(1.8+w.severity*8);p[43]=Float(3.3+w.severity*0.7)
+        // Retain independent swell height/period and the same JONSWAP peak
+        // shape as startup. Only local wind speed/direction retarget wind sea.
         seaSettling=900
     }
 
     func setObserverLocation(_ location: ObserverLocation?, timeZone: TimeZone? = nil) {
         guard celestialCycle.location != location || observerTimeZone != timeZone else { return }
-        observerTimeZone=timeZone
+        observerTimeZone=timeZone;heldLightingDay=nil
         celestialCycle.location=location;lastSolarDayStart=nil;cacheDirty=true
+    }
+    func setDaylightTime(_ selection: DaylightTime) {
+        guard daylightTime != selection else { return }
+        daylightTime=selection;heldLightingDate=nil;heldLightingDay=nil;cacheDirty=true
+    }
+    private func selectedLightingDate(reference: Date, zone: TimeZone) -> Date {
+        guard daylightTime.mode != .automatic else { return reference }
+        if heldLightingDay?.contains(reference.timeIntervalSince1970) != true || heldLightingZone != zone.identifier {
+            _=celestialCycle.state(at:reference,zone:zone)
+            if let day=celestialCycle.day {
+                heldLightingDate=daylightTime.date(reference:reference,day:day,zone:zone)
+                heldLightingDay=day.start..<day.end;heldLightingZone=zone.identifier;cacheDirty=true
+            }
+        }
+        return heldLightingDate ?? reference
+    }
+    private func daylightDiagnostics() -> [String:Any] {
+        ["daylightTime":daylightTime.value,"daylightHeld":daylightTime.mode != .automatic && heldLightingDate != nil,
+         "lightingUTC":lightingDate.map { $0.timeIntervalSince1970 as Any } ?? NSNull()]
     }
     private func writeCelestialUniforms() {
         let frame=frameBuffer.contents().assumingMemoryBound(to:Float.self)
         let staticSun=launchSun
         celestialState=nil
+        lightingDate=nil
         frame[32]=staticSun.x;frame[33]=staticSun.y;frame[34]=staticSun.z;frame[35]=staticSun.w
         compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)
+        compositeBuffer.contents().assumingMemoryBound(to:Float.self)[7]=0
         let vectors=frameBuffer.contents().assumingMemoryBound(to:SIMD4<Float>.self)
         vectors[39]=SIMD4(0,-1,0,0)
         vectors[40]=SIMD4(0.004675,0.0045,0,0)
         vectors[41]=staticSun;vectors[42]=SIMD4(staticSun.x,staticSun.y,staticSun.z,0.004675)
         vectors[43]=SIMD4(1,0,0,0);vectors[44]=SIMD4(0,1,0,0);vectors[45]=SIMD4(0,0,1,0)
+        vectors[48]=staticSun
         guard dayNightEnabled else { return }
         let rate=Double(options["cycleRate"] ?? "").flatMap { $0.isFinite && $0>0 && $0<=86400 ? $0 : nil } ?? 1
-        let date=cycleAnchor.map { $0.addingTimeInterval((clock.elapsed-cycleStartElapsed)*rate) } ?? Date()
-        let zone=options["timeZone"].flatMap(TimeZone.init(identifier:)) ?? observerTimeZone ?? .autoupdatingCurrent
+        let reference=cycleAnchor.map { $0.addingTimeInterval((clock.elapsed-cycleStartElapsed)*rate) } ?? Date()
+        let zone=daylightTimeZone
+        let date=selectedLightingDate(reference:reference,zone:zone)
         guard let state=celestialCycle.state(at:date,zone:zone) else { return }
+        lightingDate=date
         celestialState=state
+        let astronomical=options["celestialPath"] == "astronomical"
+        let bodies=astronomical ? nil : celestialCycle.wallpaperBodies(at:date,zone:zone,horizontalTangent:Double(frame[20]))
+        let sun=bodies?.sun ?? state.sun
+        let apparentSun=bodies?.sun ?? state.apparentSun
+        let moon = astronomical || options["moonPath"] == "astronomical" ? state.moon : bodies?.moon ?? state.moon
+        let phaseLight=WallpaperSky.phaseLight(state:state,displayedMoon:moon)
+        vectors[48]=SIMD4(Float(phaseLight.x),Float(phaseLight.y),Float(phaseLight.z),0)
         for i in 0..<3 {
             let axis=state.skyBasis[i];vectors[43+i]=SIMD4(Float(axis.x),Float(axis.y),Float(axis.z),0)
         }
-        vectors[8]=SIMD4(Float(state.sun.x),Float(state.sun.y),Float(state.sun.z),14)
-        vectors[39]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(state.moonIllumination))
+        vectors[8]=SIMD4(Float(sun.x),Float(sun.y),Float(sun.z),14)
+        vectors[39]=SIMD4(Float(moon.x),Float(moon.y),Float(moon.z),Float(state.moonIllumination))
         vectors[40]=SIMD4(Float(state.sunRadius),Float(state.moonRadius),Float(state.night),1)
-        vectors[42]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),Float(state.sunRadius))
+        vectors[42]=SIMD4(Float(apparentSun.x),Float(apparentSun.y),Float(apparentSun.z),Float(state.sunRadius))
         if state.sunAltitude > -1 {
-            vectors[41]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),14)
+            vectors[41]=SIMD4(Float(apparentSun.x),Float(apparentSun.y),Float(apparentSun.z),14)
         } else {
-            let brightness=0.12*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,state.moon.y)
-            vectors[41]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(brightness))
+            // Photographic lunar key: real phase and the displayed horizon gate the
+            // source. Strong specular light against restrained sky fill gives
+            // a broken silver path instead of a uniformly blue sea.
+            let brightness=0.35*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,moon.y)
+            vectors[41]=SIMD4(Float(moon.x),Float(moon.y),Float(moon.z),Float(brightness))
         }
         compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)*Float(1+3*state.night)
+        // Daytime contrast fades out before golden hour; keep the established
+        // sunset and lunar treatment. q.w was reserved in the existing buffer.
+        compositeBuffer.contents().assumingMemoryBound(to:Float.self)[7]=Float(CelestialMath.smooth(0.08,0.30,sun.y)*(1-state.night))
         if let day=celestialCycle.day,lastSolarDayStart != day.start {
             lastSolarDayStart=day.start;onSolarDayChanged?(day)
         }
@@ -771,9 +876,13 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             layout = ViewportLayout(pointWidth:testWidth,pointHeight:testHeight,backingScale:1)
         } else {
             layout = ViewportLayout(pointWidth:Double(view.bounds.width),pointHeight:Double(view.bounds.height),
-                                    backingScale:Double(view.window?.backingScaleFactor ?? 2))
+                                    backingScale:Double(view.window?.backingScaleFactor ?? 2),pixelBudget:pixelBudget)
         }
         let w = layout.width, h = layout.height
+        // A replacement MTKView still needs sizing even when shared resources
+        // already have the right dimensions (display mode changes/hot-plug).
+        let drawableSize = CGSize(width:w,height:h)
+        if view.drawableSize != drawableSize { view.drawableSize = drawableSize }
         guard w != width || h != height else { return }
         if indexBuffer == nil || columns != layout.columns || rows != layout.rows {
             columns = layout.columns; rows = layout.rows
@@ -781,11 +890,12 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         }
         width = w; height = h
         uniformsDirty = true
-        view.drawableSize = CGSize(width: w, height: h)
+        offscreenDisplay=nil;benchmarkTileTargets=[]
         if OceanRunMode.offscreen {
             offscreenDisplay = try texture(w,h,"offscreen display",format:.bgra8Unorm,renderOnly:true)
         }
         hdr = try texture(w, h, "HDR scene", renderOnly: true)
+        regionalHistory=nil
         msaa = try texture(w, h, "transient MSAA", samples: 4, transient: true)
         depth = try texture(w, h, "transient depth", format: .depth32Float, samples: 4, transient: true)
         cachedSky = try texture(max(1,w/2), max(1,h/2), "cached sky", renderOnly: true)
@@ -801,20 +911,59 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) { cacheDirty = true }
 
     func draw(in view: MTKView) {
-        guard !isPaused, gate.wait(timeout: .now()) == .success else { return }
+        let snapshotOnly=isPaused && snapshotRequested != nil
+        guard (!isPaused || snapshotOnly), gate.wait(timeout: .now()) == .success else { return }
         var committed = false
         defer { if !committed { gate.signal() } }
-        do { try updateSize(view) } catch { record(error.localizedDescription); return }
+        do { try updateSize(layoutView ?? view) } catch { record(error.localizedDescription); return }
         let drawable: CAMetalDrawable?
-        let display: MTLTexture
-        if OceanRunMode.offscreen {
+        var display: MTLTexture
+        var acquiredRegions: [CGRect]=[]
+        var surfaceDrawables: [CAMetalDrawable] = []
+        if OceanRunMode.offscreen || snapshotOnly {
             drawable = nil
+            if offscreenDisplay == nil {
+                do { offscreenDisplay=try texture(width,height,"snapshot display",format:.bgra8Unorm,renderOnly:true) }
+                catch { record(error.localizedDescription); return }
+            }
             guard let target = offscreenDisplay else { return }
             display = target
+        } else if !presentationSurfaces.isEmpty {
+            drawable = nil
+            for surface in presentationSurfaces {
+                if let region=presentationRegions[ObjectIdentifier(surface)],let layer=surface.layer as? CAMetalLayer {
+                    let visible=RegionalRendering.output(region,width:width,height:height)
+                    let rect=RegionalRendering.tileCrop(region,width:width,height:height)
+                    let size=rect.size
+                    // Paused secondary MTKViews don't run their draw/layout path.
+                    // Synchronize the actual layer before raw drawable acquisition.
+                    if surface.drawableSize != size { surface.drawableSize=size }
+                    if layer.drawableSize != size { layer.drawableSize=size }
+                    layer.framebufferOnly=false
+                    layer.contentsRect=CGRect(x:(visible.minX-rect.minX)/rect.width,y:0,width:visible.width/rect.width,height:1)
+                }
+                let next = surface === view && !usesLayerDrawables
+                    ? surface.currentDrawable : (surface.layer as? CAMetalLayer)?.nextDrawable()
+                if let next {
+                    surfaceDrawables.append(next)
+                    if let region=presentationRegions[ObjectIdentifier(surface)] { acquiredRegions.append(region) }
+                }
+            }
+            guard let first = surfaceDrawables.first else { return }
+            if !presentationRegions.isEmpty {
+                if offscreenDisplay == nil {
+                    do { offscreenDisplay=try texture(width,height,"shared tile display",format:.bgra8Unorm,renderOnly:true) }
+                    catch { record(error.localizedDescription);return }
+                }
+                display=offscreenDisplay!
+            } else { display = first.texture }
         } else {
-            guard let next = view.currentDrawable else { return }
+            guard let next = usesLayerDrawables ? (view.layer as? CAMetalLayer)?.nextDrawable() : view.currentDrawable else { return }
             drawable = next
             display = next.texture
+        }
+        if verificationEnabled && options["testSurfaceSizing"] == "1" && !surfaceSizingVerified {
+            do { try verifySurfaceSizing() } catch { record(error.localizedDescription); return }
         }
         let descriptor = MTLCommandBufferDescriptor()
         if diagnostics { descriptor.errorOptions = .encoderExecutionStatus }
@@ -898,6 +1047,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
                 c = next
             }
             dispatch("SKYVIEW_LUT", c, [.buffer(frameBuffer),.texture(trans),.texture(multipleScatter),.sampler(clampSampler),.texture(skyLUT)], groups: groups(256,144))
+            skyLUTUpdates += 1
             dispatch(clock.stableDetails ? "SUN_VIS_STABLE" : "SUN_VIS", c, [.buffer(frameBuffer),.texture(trans),.texture(skyLUT),.sampler(clampSampler),.buffer(sunBuffer),.texture(cloudNoise),.texture(starAtlas),.texture(galaxyAtlas)], groups: MTLSize(width:1,height:1,depth:1))
             lastSky = cadence
         }
@@ -925,6 +1075,31 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             render(command, target: cachedSky, pipeline: visibleSkyPipeline(), label: "visible sky", resources: [.buffer(frameBuffer),.texture(trans),.texture(skyLUT),.sampler(clampSampler),.texture(cloudNoise),.texture(cloudNoise),.texture(starAtlas),.texture(galaxyAtlas)], skyScissor:options["fullSky"] != "1")
             cacheDirty = false; lastCache = cadence; cachedSkyElapsed = clock.elapsed
         }
+        var region=visibleRegion
+        if let values=options["visibleRegion"]?.split(separator:",").compactMap({Double($0)}),values.count==4,
+           frameIndex>1 {
+            region=CGRect(x:values[0],y:values[1],width:values[2],height:values[3])
+        }
+        if let change=Int(options["regionChangeFrame"] ?? ""),frameIndex>=change,
+           let values=options["visibleRegionAfter"]?.split(separator:",").compactMap({Double($0)}),values.count==4 {
+            region=CGRect(x:values[0],y:values[1],width:values[2],height:values[3])
+        }
+        if let reveal=Int(options["revealFrame"] ?? ""),frameIndex>=reveal { region=RegionalRendering.full }
+        // Full first frame initializes retained imagery for immediate reveals.
+        // Shared multi-display cameras currently fail open to a full frame.
+        let outputRegion=RegionalRendering.output(region,width:width,height:height)
+        let support = initialized && width==1280 && height==800 && snapshotRequested == nil && !(options["snapshotPath"] != nil && frameIndex==8) && presentationSurfaces.count<=1 && options["regionalRendering"] != "0"
+            ? RegionalRendering.hdrSupport(output:outputRegion,width:width,height:height,levels: bloomLevels)
+            : CGRect(x:0,y:0,width:width,height:height)
+        shadedFraction=Double(support.width*support.height)/Double(width*height)
+        let partial=shadedFraction<0.85
+        if !partial { shadedFraction=1 }
+        if partial {
+            do {
+                let next=try regionalHistory ?? texture(width,height,"regional HDR history",renderOnly:true)
+                regionalHistory=hdr;hdr=next
+            } catch { record(error.localizedDescription); return }
+        }
         let pass = MTLRenderPassDescriptor()
         pass.colorAttachments[0].texture = msaa
         pass.colorAttachments[0].resolveTexture = hdr
@@ -936,6 +1111,12 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         profiler?.render(pass,label:"ocean and sky")
         guard let r = command.makeRenderCommandEncoder(descriptor: pass) else { return }
         r.label = "Viewport ocean (\(triangleCount) triangles)"
+        if partial,let previous=regionalHistory {
+            r.setRenderPipelineState(historyPipeline);r.setDepthStencilState(rainDepthUnoccluded)
+            r.setFragmentTexture(previous,index:0)
+            r.drawPrimitives(type:.triangle,vertexStart:0,vertexCount:3)
+            r.setScissorRect(MTLScissorRect(x:Int(support.minX),y:Int(support.minY),width:Int(support.width),height:Int(support.height)))
+        }
         let needsGuard = width*2 < height && options["legacyGuard"] != "1"
         r.setRenderPipelineState((clock.stableDetails || weatherActive) ? (needsGuard ? oceanStableGuardPipeline : oceanStablePipeline) : (needsGuard ? oceanGuardPipeline : oceanPipeline)); r.setDepthStencilState(oceanDepth)
         if needsGuard { r.setVertexBuffer(displacementBounds,offset:0,index:13) }
@@ -976,25 +1157,94 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         for m in stride(from: bloomLevels-1, through: 1, by: -1) {
             render(command, target: bloom[m-1], pipeline: upPipeline, label: "bloom up", resources: [.texture(bloom[m]),.sampler(linearSampler),.buffer(bloomUniforms[bloomLevels+m])], load: .load)
         }
-        render(command, target: display, pipeline: compositePipeline, label: "composite", resources: [.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)])
+        if surfaceDrawables.isEmpty || !acquiredRegions.isEmpty {
+            render(command, target: display, pipeline: compositePipeline, label: "composite", resources: [.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)])
+        }
+        if !acquiredRegions.isEmpty {
+            guard encodeTileCopies(command,source:display,targets:zip(surfaceDrawables,acquiredRegions).map { ($0.0.texture,$0.1) }) else { return }
+        } else {
+            for surface in surfaceDrawables { encodeSurfaceComposite(command,target:surface.texture) }
+        }
+        if benchmarkEnabled,let count=Int(options["benchmarkTiles"] ?? ""),(1...4).contains(count),width==1280,height==800 {
+            do {
+                if benchmarkTileTargets.isEmpty { benchmarkTileTargets=try (0..<4).map { try texture($0==0 || $0==3 ? 321 : 322,800,"benchmark presentation \($0)",format:.bgra8Unorm,renderOnly:true) } }
+                let targets=(0..<count).map { (benchmarkTileTargets[$0],CGRect(x:Double($0)/4,y:0,width:0.25,height:1)) }
+                guard encodeTileCopies(command,source:display,targets:targets) else { return }
+            } catch { record(error.localizedDescription);return }
+        }
+        if OceanRunMode.offscreen,options["testTiles"]=="1",width==1280,height==800 {
+            do {
+                var tiles: [(MTLTexture,CGRect)] = []
+                for i in 0..<4 {
+                    let tileWidth = (i==0 || i==3) ? 321 : 322
+                    let tile = try texture(tileWidth,800,"verification tile \(i)",format:.bgra8Unorm,renderOnly:true)
+                    let region = CGRect(x:Double(i)/4,y:0,width:0.25,height:1)
+                    tiles.append((tile,region))
+                }
+                guard encodeTileCopies(command,source:display,targets:tiles) else { return }
+                let stitched=try texture(width,height,"stitched tile verification",format:.bgra8Unorm,renderOnly:true)
+                guard let blit=command.makeBlitCommandEncoder() else { return }
+                for (tile,region) in tiles {
+                    let visible=RegionalRendering.output(region,width:width,height:height)
+                    let padded=RegionalRendering.tileCrop(region,width:width,height:height)
+                    blit.copy(from:tile,sourceSlice:0,sourceLevel:0,sourceOrigin:MTLOrigin(x:Int(visible.minX-padded.minX),y:0,z:0),sourceSize:MTLSize(width:Int(visible.width),height:tile.height,depth:1),to:stitched,destinationSlice:0,destinationLevel:0,destinationOrigin:MTLOrigin(x:Int(region.minX*CGFloat(width)),y:0,z:0))
+                }
+                blit.endEncoding();display=stitched
+            } catch { record(error.localizedDescription);return }
+        }
+        let snapshotRowBytes=(width*4+255)/256*256
+        var snapshot: MTLBuffer?
+        let snapshotCallback=snapshotRequested
+        if snapshotCallback != nil || (options["snapshotPath"] != nil && frameIndex==8) {
+            do {
+                let target=try texture(width,height,"wallpaper snapshot",format:.bgra8Unorm,renderOnly:true)
+                render(command,target:target,pipeline:compositePipeline,label:"snapshot",resources:[.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)])
+                snapshot=try buffer(snapshotRowBytes*height,"wallpaper snapshot readback")
+                if let blit=command.makeBlitCommandEncoder(),let snapshot {
+                    blit.copy(from:target,sourceSlice:0,sourceLevel:0,sourceOrigin:MTLOrigin(x:0,y:0,z:0),sourceSize:MTLSize(width:width,height:height,depth:1),to:snapshot,destinationOffset:0,destinationBytesPerRow:snapshotRowBytes,destinationBytesPerImage:snapshotRowBytes*height)
+                    blit.endEncoding()
+                    snapshotRequested=nil
+                }
+            } catch { record(error.localizedDescription) }
+        }
+        let snapshotWidth=width,snapshotHeight=height
+        let snapshotBuffer=snapshot
         let verify = verificationEnabled && (sequenceFrames.isEmpty ? frameIndex == max(8,min(3600,Int(options["verifyFrame"] ?? "") ?? 8)) : sequenceFrames.contains(frameIndex))
         let readbacks: [Readback]
         do { readbacks = verify ? try encodeReadbacks(command, display:display) : [] }
         catch { record(error.localizedDescription); return }
-        if let drawable { command.present(drawable) }
+        let presenting = surfaceDrawables + (drawable.map { [$0] } ?? [])
+        for surface in presenting {
+            surface.addPresentedHandler { [weak self] _ in
+                DispatchQueue.main.async { self?.presentedDrawables += 1 }
+            }
+            command.present(surface)
+        }
         let profileLabels = profiler?.labels ?? []
         let renderedFrame = frameIndex
         let cpuEncodeMs = benchmarkEnabled ? (CACurrentMediaTime()-now)*1000 : 0
         let threadCPUEncodeMs = benchmarkEnabled ? threadCPUTimeMilliseconds()-cpuThreadStart : 0
+        let frameGate=gate
         command.addCompletedHandler { [weak self] completed in
-            guard let self else { return }
+            // ScreenSaver can release its renderer with a frame in flight.
+            // Keep the semaphore alive and balanced even after teardown.
+            guard let self else { frameGate.signal();return }
             let stageTimes = self.profiler?.resolve(labels: profileLabels) ?? [:]
             let elapsed = (completed.gpuEndTime-completed.gpuStartTime)*1000
             DispatchQueue.main.async {
                 // Keep automated timers from submitting another frame before
                 // completion counters and verification have consumed this one.
-                defer { self.gate.signal() }
+                defer { frameGate.signal() }
+                if completed.status == .completed { self.completedFrames += 1 }
                 if completed.status == .error { self.record(completed.error?.localizedDescription ?? "Metal command failed") }
+                if completed.status == .completed,let snapshotBuffer {
+                    var data=Data(count:snapshotWidth*snapshotHeight*4)
+                    data.withUnsafeMutableBytes { raw in
+                        for row in 0..<snapshotHeight { memcpy(raw.baseAddress!+row*snapshotWidth*4,snapshotBuffer.contents()+row*snapshotRowBytes,snapshotWidth*4) }
+                    }
+                    snapshotCallback?(data,snapshotWidth,snapshotHeight)
+                    if let path=self.options["snapshotPath"] { try? data.write(to:URL(fileURLWithPath:path)) }
+                }
                 if elapsed > 0 { self.gpuMilliseconds = self.gpuMilliseconds == 0 ? elapsed : self.gpuMilliseconds*0.8+elapsed*0.2 }
                 self.profiler?.record(stageTimes, frame:renderedFrame)
                 self.frames += 1
@@ -1007,7 +1257,62 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         }
         initialized = true
         committed = true
-        command.commit()
+        command.commit();submittedFrames += 1
+    }
+
+    private func encodeTileCopies(_ command: MTLCommandBuffer,source: MTLTexture,targets:[(MTLTexture,CGRect)]) -> Bool {
+        guard let blit=command.makeBlitCommandEncoder() else { record("Cannot create tile presentation");return false }
+        blit.label="shared display crops"
+        defer { blit.endEncoding() }
+        for (target,region) in targets {
+            let rect=RegionalRendering.tileCrop(region,width:source.width,height:source.height)
+            guard target.width==Int(rect.width),target.height==Int(rect.height) else { record("Tile drawable \(target.width)x\(target.height) does not match crop \(rect) of \(source.width)x\(source.height)");return false }
+            blit.copy(from:source,sourceSlice:0,sourceLevel:0,sourceOrigin:MTLOrigin(x:Int(rect.minX),y:Int(rect.minY),z:0),sourceSize:MTLSize(width:target.width,height:target.height,depth:1),to:target,destinationSlice:0,destinationLevel:0,destinationOrigin:MTLOrigin(x:0,y:0,z:0))
+        }
+        return true
+    }
+
+    // Aspect-fill mapping of the shared frame. Wider targets crop around the
+    // horizon; narrower targets crop the sides. Equal sizes stay 1:1.
+    static func surfaceMapping(source: SIMD2<Float>, target: SIMD2<Float>, horizon: Float) -> SIMD4<Float> {
+        guard source.x > 0, source.y > 0, target.x > 0, target.y > 0 else { return SIMD4(1,1,0,0) }
+        let a = source.x/source.y, b = target.x/target.y
+        if abs(a-b) < 1e-4 { return SIMD4(1,1,0,0) }
+        if b > a { let k = a/b; return SIMD4(1,k,0,horizon*(1-k)) }
+        let k = b/a; return SIMD4(k,1,0.5*(1-k),0)
+    }
+
+    private func encodeSurfaceComposite(_ command: MTLCommandBuffer, target: MTLTexture) {
+        if target.width == width && target.height == height {
+            render(command, target: target, pipeline: compositePipeline, label: "composite", resources: [.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)])
+            return
+        }
+        let p = MTLRenderPassDescriptor()
+        p.colorAttachments[0].texture = target
+        p.colorAttachments[0].loadAction = .dontCare; p.colorAttachments[0].storeAction = .store
+        guard let e = command.makeRenderCommandEncoder(descriptor: p) else { record("Cannot create surface pass"); return }
+        e.label = "surface composite"
+        e.setRenderPipelineState(mirrorPipeline)
+        bind([.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)], to: e)
+        var mapping = OceanRenderer.surfaceMapping(source: SIMD2(Float(width),Float(height)), target: SIMD2(Float(target.width),Float(target.height)), horizon: horizonUV)
+        e.setFragmentBytes(&mapping, length: MemoryLayout<SIMD4<Float>>.size, index: 4)
+        e.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+        e.endEncoding()
+    }
+
+    // Exercise the unchanged-resource-size path using a newly created view.
+    // No NSWindow/drawable acquisition is needed by this verification fixture.
+    private func verifySurfaceSizing() throws {
+        let priorWidth=width,priorHeight=height
+        let replacement=MTKView(frame:CGRect(x:0,y:0,width:width,height:height),device:device)
+        replacement.autoResizeDrawable=false;replacement.isPaused=true
+        replacement.drawableSize=CGSize(width:width*3,height:height*3)
+        try updateSize(replacement)
+        guard width==priorWidth && height==priorHeight && replacement.drawableSize==CGSize(width:width,height:height) else {
+            throw OceanFailure(message:"Recreated surface bypassed the shared pixel budget")
+        }
+        surfaceSizingVerified=true
+        print("PASS: replacement surface retains the shared drawable budget with unchanged HDR dimensions.")
     }
 
     private func visibleSkyPipeline() -> MTLRenderPipelineState {
@@ -1063,6 +1368,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         var outputs: [Readback] = []
         var sources: [(String,MTLTexture,Int,Int)] = [("displacement",disp,cascades,0),("slopes",deriv,cascades,0),("moments",moments,cascades,0),("HDR",hdr,1,0),("display",display,1,0)]
         if options["captureDisplayOnly"] == "1" && !sequenceFrames.isEmpty { sources=[("display",display,1,0)] }
+        if options["testTiles"]=="1",let source=offscreenDisplay { sources.append(("tile source",source,1,0)) }
         if options["dumpMips"] == "1" {
             for (name,tex) in [("displacement",disp!),("slopes",deriv!),("moments",moments!)] {
                 for level in 1..<tex.mipmapLevelCount { sources.append((name+" mip\(level)",tex,cascades,level)) }
@@ -1109,6 +1415,13 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     }
 
     private func verify(_ outputs: [Readback]) {
+        if let source=outputs.first(where:{$0.name=="tile source"}),let stitched=outputs.first(where:{$0.name=="display"}) {
+            guard source.width==stitched.width,source.height==stitched.height else { record("Tile reconstruction dimensions changed");exit(1) }
+            for row in 0..<source.height {
+                guard memcmp(source.buffer.contents()+row*source.rowBytes,stitched.buffer.contents()+row*stitched.rowBytes,source.width*4)==0 else { record("Tile presentation changed source pixels");exit(1) }
+            }
+            tilePresentationVerified=true
+        }
         if let path = verificationDumpPath {
             for output in outputs where (output.name == "HDR" && options["captureDisplayOnly"] != "1") || output.name == "display" {
                 var packed = Data()
@@ -1213,12 +1526,13 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         guard !benchmarkTimes.isEmpty, errors.isEmpty else { record("Benchmark failed or did not warm up"); exit(1) }
         let times = benchmarkTimes.sorted(), cpu = benchmarkCPUTimes.sorted(), threadCPU = benchmarkThreadCPUTimes.sorted()
         guard threadCPU.count == times.count, threadCPU.allSatisfy({$0.isFinite && $0 > 0}) else { record("Benchmark thread CPU clock failed"); exit(1) }
-        let report: [String:Any] = ["device":device.name,"width":width,"height":height,"triangles":triangleCount,"indexBits":indexType == .uint16 ? 16 : 32,"indexBytes":indexBuffer.length,
+        var report: [String:Any] = ["device":device.name,"tilePresentationVerified":tilePresentationVerified,"skyLUTUpdates":skyLUTUpdates,"saverRenderingPaused":hostSaverRendering,"screenLocked":hostLocked,"shadedFraction":shadedFraction,"gpuAllocatedBytes":device.currentAllocatedSize,"width":width,"height":height,"triangles":triangleCount,"indexBits":indexType == .uint16 ? 16 : 32,"indexBytes":indexBuffer.length,
             "cpuThreadEncodeMedianMs":threadCPU[threadCPU.count/2],"cpuThreadEncodeMeanMs":threadCPU.reduce(0,+)/Double(threadCPU.count),
             "cpuEncodeMedianMs":cpu[cpu.count/2],"cpuEncodeMeanMs":cpu.reduce(0,+)/Double(cpu.count),
             "renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"offscreen":OceanRunMode.offscreen,"windowCount":NSApp.windows.count,"activationPolicy":NSApp.activationPolicy().rawValue,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps, "mipmapRounding":mipmapRounding.rawValue, "dayNightActive":celestialState != nil,"solarCalculations":celestialCycle.calculationCount,"solarCacheWrites":celestialCycle.cacheWriteCount,"galaxyAtlasWidth":galaxyAtlas.width,"galaxyAtlasHeight":galaxyAtlas.height,"starCount":starCount,"starAtlasWidth":starAtlas.width,"starAtlasHeight":starAtlas.height,"sunAltitude":celestialState?.sunAltitude ?? Double(value("sunElev",2.6)),"moonIllumination":celestialState?.moonIllumination ?? 0,"weatherActive":weatherActive,"weatherDetailPhase":(60..<63).map { frameBuffer.contents().assumingMemoryBound(to:Float.self)[$0] },"rain":weatherDynamics.current.rain,"weatherCloud":weatherDynamics.current.cloud,"weatherWind":weatherDynamics.current.wind,"weatherSeverity":weatherDynamics.current.severity,"weatherThunder":weatherDynamics.current.thunder,"seaSettling":seaSettling,"volumetricClouds":options["volumetricClouds"] != "0","cloudNoiseBytes":CloudNoise.size*CloudNoise.size*CloudNoise.size*4,"cloudCacheWidth":cachedSky.width,"cloudCacheHeight":cachedSky.height,"verboseBindings":options["verboseBindings"] == "1", "samples":times.count,"gpuMedianMs":times[times.count/2],"gpuMeanMs":times.reduce(0,+)/Double(times.count),
             "gpuP95Ms":times[min(times.count-1,Int(Double(times.count)*0.95))],
             "gpuStagesMs":profiler?.averageMilliseconds ?? [:],"profiled":profiler != nil,"errors":errors]
+        report.merge(daylightDiagnostics()) { _,new in new }
         do {
             let data = try JSONSerialization.data(withJSONObject:report,options:[.prettyPrinted,.sortedKeys])
             if let path = options["report"] { try data.write(to:URL(fileURLWithPath:path)) }
@@ -1237,9 +1551,10 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let now = CACurrentMediaTime()
         let fps = Double(frames-diagnosticFrames)/max(0.001,now-diagnosticTime)
         diagnosticFrames = frames; diagnosticTime = now
-        let data: [String: Any] = ["physicalGuard":width*2 < height && options["legacyGuard"] != "1","guardBoundsVerified":verifiedGuardBounds,"renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"offscreen":OceanRunMode.offscreen,"windowCount":NSApp.windows.count,"activationPolicy":NSApp.activationPolicy().rawValue,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps,"mipmapRounding":mipmapRounding.rawValue,"dayNightActive":celestialState != nil,"solarCalculations":celestialCycle.calculationCount,"solarCacheWrites":celestialCycle.cacheWriteCount,"galaxyAtlasWidth":galaxyAtlas.width,"galaxyAtlasHeight":galaxyAtlas.height,"starCount":starCount,"starAtlasWidth":starAtlas.width,"starAtlasHeight":starAtlas.height,"sunAltitude":celestialState?.sunAltitude ?? Double(value("sunElev",2.6)),"moonIllumination":celestialState?.moonIllumination ?? 0,"weatherActive":weatherActive,"weatherDetailPhase":(60..<63).map { frameBuffer.contents().assumingMemoryBound(to:Float.self)[$0] },"rain":weatherDynamics.current.rain,"weatherCloud":weatherDynamics.current.cloud,"weatherWind":weatherDynamics.current.wind,"weatherSeverity":weatherDynamics.current.severity,"weatherThunder":weatherDynamics.current.thunder,"seaSettling":seaSettling,"volumetricClouds":options["volumetricClouds"] != "0","cloudNoiseBytes":CloudNoise.size*CloudNoise.size*CloudNoise.size*4,"cloudCacheWidth":cachedSky.width,"cloudCacheHeight":cachedSky.height,"renderer":"Metal", "device":device.name, "fps":(fps*10).rounded()/10,
-            "gpuMs":(gpuMilliseconds*100).rounded()/100, "frames":frames, "paused":isPaused,
+        var data: [String: Any] = ["physicalGuard":width*2 < height && options["legacyGuard"] != "1","guardBoundsVerified":verifiedGuardBounds,"renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"offscreen":OceanRunMode.offscreen,"windowCount":NSApp.windows.count,"activationPolicy":NSApp.activationPolicy().rawValue,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps,"mipmapRounding":mipmapRounding.rawValue,"dayNightActive":celestialState != nil,"solarCalculations":celestialCycle.calculationCount,"solarCacheWrites":celestialCycle.cacheWriteCount,"galaxyAtlasWidth":galaxyAtlas.width,"galaxyAtlasHeight":galaxyAtlas.height,"starCount":starCount,"starAtlasWidth":starAtlas.width,"starAtlasHeight":starAtlas.height,"sunAltitude":celestialState?.sunAltitude ?? Double(value("sunElev",2.6)),"moonIllumination":celestialState?.moonIllumination ?? 0,"weatherActive":weatherActive,"weatherDetailPhase":frames>0 ? (60..<63).map { frameBuffer.contents().assumingMemoryBound(to:Float.self)[$0] } : [Float](repeating:0,count:3),"rain":weatherDynamics.current.rain,"weatherCloud":weatherDynamics.current.cloud,"weatherWind":weatherDynamics.current.wind,"weatherSeverity":weatherDynamics.current.severity,"weatherThunder":weatherDynamics.current.thunder,"seaSettling":seaSettling,"volumetricClouds":options["volumetricClouds"] != "0","cloudNoiseBytes":CloudNoise.size*CloudNoise.size*CloudNoise.size*4,"cloudCacheWidth":cachedSky?.width ?? 0,"cloudCacheHeight":cachedSky?.height ?? 0,"renderer":"Metal", "device":device.name,"tilePresentationVerified":tilePresentationVerified,"skyLUTUpdates":skyLUTUpdates,"saverRenderingPaused":hostSaverRendering,"screenLocked":hostLocked,"shadedFraction":shadedFraction,"gpuAllocatedBytes":device.currentAllocatedSize, "fps":(fps*10).rounded()/10,
+            "gpuMs":(gpuMilliseconds*100).rounded()/100, "frames":frames, "paused":isPaused, "governor":governor,
             "width":width, "height":height, "triangles":triangleCount,"indexBits":indexType == .uint16 ? 16 : 32,"indexBytes":indexBuffer?.length ?? 0, "errors":errors, "gpuStagesMs":profiler?.averageMilliseconds ?? [:]]
+        data.merge(daylightDiagnostics()) { _,new in new }
         if let encoded = try? JSONSerialization.data(withJSONObject: data, options: .sortedKeys), let text = String(data: encoded, encoding: .utf8) {
             print("Ocean diagnostics: \(text)"); fflush(stdout)
         }

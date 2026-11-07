@@ -1,0 +1,151 @@
+{
+  "date": "2026-11-07",
+  "platform": "Apple M1, macOS 26.7",
+  "nativeExtensionPoint": "com.apple.wallpaper",
+  "nativeProvider": "local.wallpaper.ocean.live",
+  "shaderMathChanged": false,
+  "setup": {
+    "automaticSelectionObserved": true,
+    "settingsDescription": "Ocean / Live Metal ocean",
+    "desktopAndIdleProviderVerified": true,
+    "runningExtensionVerified": true,
+    "strictCodeSignatureVerified": true
+  },
+  "validation": {
+    "existingCPUSuites": 17,
+    "additionalNativeStoreTests": "passed again against final controller source",
+    "nativeRuntimeABI": "passed: context allocation/coding, snapshot layout/encoder, settings wire decoding, correct bootstrap",
+    "legacySaverLifecycle": "passed",
+    "windowlessWallpaperLifecycle": "passed"
+  },
+  "lockedRenderingObserved": {
+    "framesBefore": 10045,
+    "framesAfter": 10166,
+    "intervalSeconds": 5,
+    "targetFPS": 24,
+    "onBattery": true,
+    "scope": "Actual locked native extension, controller renderer paused. Submission count is not proof of display pacing."
+  },
+  "visualReview": {
+    "initialDedicatedNativeHost": "User confirmed Ocean is visible and moving on lock screen, then reported severe judder after transition",
+    "pacingFix": "Installed; user confirmed: It stays smooth now, after a requested 15-second lock-screen check.",
+    "finalLockScreenConfirmed": true,
+    "followupRegression": "User reported freezing after Control-Command-Q or lid-close/wake despite the earlier short pacing check.",
+    "freshDrawableUserResult": "For both after 1.5 second a tiny black flash happens. But the rest of it is good now.",
+    "finalUserResult": "No flash; both stay smooth"
+  },
+  "pacingProbe": {
+    "seconds": 16,
+    "requestedFPS": 24,
+    "samples": [
+      {
+        "medianMs": 41.66779154911637,
+        "p95Ms": 42.22945845685899,
+        "maxMs": 43.1489166803658
+      },
+      {
+        "medianMs": 41.67495830915868,
+        "p95Ms": 42.20787505619228,
+        "maxMs": 42.65458323061466
+      },
+      {
+        "medianMs": 41.66895826347172,
+        "p95Ms": 42.206916725263,
+        "maxMs": 43.974916683509946
+      }
+    ],
+    "scope": "Actual native render submissions on this Mac; one bounded temporary control override, restored afterwards. Not display-refresh or energy measurements."
+  },
+  "compatibilityLimits": [
+    "Private macOS XPC/wire interfaces require revalidation after OS updates",
+    "No physical multi-display/Space/hotplug tests for the native host",
+    "Older macOS uses legacy saver/static lock fallback",
+    "No temperature, power or battery-life reduction measured"
+  ],
+  "finalRuntime": {
+    "controllerPID": 92358,
+    "extensionPID": 92370,
+    "coveredDesktopControlFPS": 0,
+    "oldDesktopRendererSubmittedFrames": 28,
+    "installedAndRunning": true,
+    "visualPacingConfirmation": "User confirmed no flash and smooth playback on both keyboard-lock and lid-wake paths after removal of the delayed layer replacement."
+  },
+  "finalLockedRuntimeSamples": [
+    {
+      "frames": 476,
+      "locked": true,
+      "targetFPS": 24,
+      "surfaces": 1
+    },
+    {
+      "frames": 684,
+      "locked": true,
+      "targetFPS": 24,
+      "surfaces": 1
+    }
+  ],
+  "lockWakeRecovery": {
+    "installed": true,
+    "controllerPID": 89902,
+    "extensionPID": 89915,
+    "changes": [
+      "Recognize explicit locked host presentation, including delayed/missed session events",
+      "Ignore stale desktop/host suspension only for an awake locked display; actual sleeping/offline display never renders",
+      "Handle hostDidWake with immediate and delayed presentation recovery",
+      "Rebuild Metal views/layers without changing the context IDs already hosted by macOS",
+      "Recover on geometry, awake and host pause/resume transitions; preserve omitted host-update fields",
+      "Hardware display-state polling cached for 0.5 seconds"
+    ],
+    "tests": {
+      "stateCases": "passed: awake locked overrides, unconditional sleep stop, event ordering and idempotent transitions",
+      "actualPresentation": "passed: twelve real Metal-view replacements, stable context, one layer, correct device/geometry and no windows",
+      "nativeABIAndBootstrap": "passed",
+      "strictSignatures": "passed"
+    },
+    "longLiveValidation": "Completed by user; failed on both keyboard-lock and lid-wake paths",
+    "userResult": "Failed: keyboard lock plays about two seconds then freezes; lid reopen plays about three seconds then freezes and becomes very choppy."
+  },
+  "drawableCorrection": {
+    "cause": "Core Animation reports each CAMetalLayerDrawable can only be presented once; manual hosts reused MTKView.currentDrawable despite releaseDrawables.",
+    "changes": [
+      "Fresh CAMetalLayer.nextDrawable acquisition for every manually driven native/saver surface",
+      "Preserve normal MTKView delegate acquisition for the app",
+      "Separate submitted, successful GPU completion and actual drawable presentation counters; mirror renderer errors to host logs"
+    ],
+    "visualValidation": "User confirmed both keyboard-lock and lid-wake playback is good, except for a tiny black flash about 1.5 seconds after the transition. No specific watch duration was confirmed.",
+    "installed": true,
+    "controllerPID": 91255,
+    "extensionPID": 91260,
+    "probe": {
+      "scope": "Unlocked native remote presentation with bounded 35-second playback-control override, original control restored. Not physical lock/wake validation.",
+      "samples": [
+        {
+          "submitted": 183,
+          "completed": 182,
+          "presented": 182
+        },
+        {
+          "submitted": 907,
+          "completed": 906,
+          "presented": 906
+        }
+      ],
+      "intervalSeconds": 30.164,
+      "presentedPerSecond": 24.0,
+      "rendererErrors": [],
+      "duplicateDrawableErrorsObserved": false
+    },
+    "buildAndStrictSignatures": "passed",
+    "nativeABIAndRemoteSurfaceRecovery": "passed",
+    "cpuSuites": "All 19 passed",
+    "legacySaverLifecycle": "passed: load/start/stop/restart, shared allocation, in-flight teardown, zero windows"
+  },
+  "transitionFlashCorrection": {
+    "change": "Remove unconditional +2-second layer replacement; retain immediate event-driven recovery. Replacing an already healthy layer can briefly expose the empty new surface.",
+    "visualValidation": "User confirmed: No flash; both stay smooth (keyboard lock and lid wake). Brief check; no exact duration confirmed.",
+    "installed": true,
+    "controllerPID": 92358,
+    "extensionPID": 92370,
+    "buildAndStrictSignatures": "passed"
+  }
+}

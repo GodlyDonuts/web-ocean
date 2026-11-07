@@ -7,15 +7,21 @@
 - [Native architecture and shader ownership](architecture.md)
 - [Testing, captures, CI and performance methodology](testing.md)
 - [Handoff validation, 4 November 2026](validation-2026-11-04.md)
+- [Resource usage and covered-desktop optimization, 6 November 2026](resource-usage-2026-11-06.md)
 - [Detailed engineering roadmap and decision gates](engineering-roadmap.md)
 
 ## Implemented behavior
 
 - [Local daylight, Moon and remote night sky](day-night-cycle.md)
+- [Choose a daylight preset or custom time](daylight-controls.md)
+- [Shared centered Sun/Moon arc and real phases](wallpaper-moon.md)
 - [Weather providers, continuous storm state and idealized sea mapping](dynamic-weather.md)
 - [Volumetric clouds and measurements](volumetric-clouds.md)
+- [Cloud families and automatic weather mixtures](cloud-variety.md)
 - [Cinematic night illumination](cinematic-night-lighting.md)
+- [Silver moonlight and deeper night water](silver-night-style.md)
 - [Camera waterline, overtaking storm waves and night foam](night-water-fix.md)
+- [Desktop wallpaper host and validation limits](wallpaper-host.md)
 - [Visibility diagnostic](../macos/Diagnostics/README.md)
 - [Galaxy asset attribution](../macos/Assets/Galaxy/CREDITS.md)
 - [Imported research and scope](../research/README.md)
@@ -25,3 +31,7 @@
 Dated JSON reports preserve GPU readbacks, scene settings, bounds and benchmark scope. PNG and MP4 files are curated native captures or browser reference images; filenames identify the feature/revision. The [archived renderer notes](renderer-history.md) preserve detailed optimization decisions and original measurements. They include older commands and appearances: use the testing guide to select current gates.
 
 Recent visual evidence: [star/cloud integration](night-sky-integration-comparison.png), [storm-water correction](night-water-comparison.png), [storm formation](storm-formation.mp4) and [rain motion](storm-rain-motion.mp4).
+
+- [Regional rendering, native screensaver and lock-screen still](regional-rendering.md) — visibility evidence, bloom support, retained imagery, installation and validation.
+
+- [Live lock screen](live-lock-screen.md): native macOS wallpaper extension, lifecycle, automatic selection/restore and ABI checks.

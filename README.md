@@ -2,34 +2,53 @@
 
 A cinematic ocean being developed into a live macOS wallpaper. The current app uses **Swift, AppKit, MetalKit and Metal**, with a fixed view across the water. Waves, volumetric clouds, rain, sunlight, moonlight and stars respond to time and weather.
 
-**Start here:** [developer handoff](docs/handoff.md) · [architecture](docs/architecture.md) · [testing](docs/testing.md) · [next work](docs/engineering-roadmap.md).
+## Get Ocean for Mac
 
-![Native nighttime ocean](docs/night-sky-integration-preview.png)
+**[Download the GitHub beta](https://github.com/GodlyDonuts/web-ocean/releases/tag/v0.3.0-beta.3)** · Apple silicon (M1 or newer) · macOS 26+
+
+Download **Ocean-…-arm64.dmg**, open it, drag Ocean to Applications, then open Ocean and choose **Use Ocean**. No Xcode, Terminal or source-code build is needed. The wave icon in your menu bar opens Ocean Settings; opening Ocean again shows your controls too.
+
+This community beta is **not Apple-notarized**. macOS may block the first launch; only approve a download you trust from this repository, following [Apple’s instructions](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac). Do not disable system security. Intel and older macOS versions are not supported by this beta download.
+
+[Getting started, updates and removal](docs/getting-started.md) · [Privacy](docs/privacy.md) · [Release notes](docs/releases/BETA.md).
+
+**For developers:** [handoff](docs/handoff.md) · [architecture](docs/architecture.md) · [testing](docs/testing.md) · [next work](docs/engineering-roadmap.md) · [packaging releases](docs/distribution.md).
+
+![Native moonlit ocean](docs/silver-night-preview.png)
+
+[Daytime lighting and matched comparisons](docs/cinematic-daylight.md) · [Night lighting and matched comparisons](docs/silver-night-style.md). This capture uses a fixed moonlit fixture; the live scene follows local time, Moon phase and weather.
 
 ## Current status
 
-`main` is the current native Metal implementation. The root HTML/JavaScript renderer is retained as a browser reference. The separate historical `feature/native-macos-wallpaper` branch and its browser-host implementation predate the Metal rewrite.
+The GitHub beta uses the native Metal implementation. The root HTML/JavaScript renderer is retained as a browser reference. The separate historical `feature/native-macos-wallpaper` branch and its browser-host implementation predate the Metal rewrite.
 
 | Capability | Status |
 |---|---|
 | Fixed ocean viewpoint, animated waves, foam and reflections | Implemented |
 | Native Metal rendering, bounded resolution, 30 FPS default | Implemented |
 | Volumetric clouds, scene-space rain, gradual storm transitions | Implemented |
-| Local sunrise/sunset, independent Sun/Moon motion, remote starry sky | Implemented |
+| Ten cloud families across low/middle/high layers, with weather-driven mixtures | Implemented; [appearance and validation](docs/cloud-variety.md) |
+| Shared centered Sun/Moon arc, local sunrise/sunset and real lunar phases | Implemented |
 | Approximate IP location, cached weather and offline fallback | Implemented; no GPS permission prompt |
-| Pause on occlusion, minimization, sleep and inactive session | Implemented for the preview |
+| Desktop windows behind icons, menu bar controls and shared HDR presentation across displays | Implemented on this branch; real display arrangements need manual verification |
+| Adaptive frame rate and resolution for coverage, power and thermal state | Implemented with conservative visibility checks |
+| Pause on occlusion, minimization, lock, screensaver, sleep and inactive session | Implemented |
+| Regional scene shading experiment | GPU pixel checks pass; opt-in pending OS visibility proof |
+| Live desktop, screen saver and lock screen | Native wallpaper extension on macOS 26; legacy saver/still fallback |
+| Screensaver efficiency | Battery/thermal limits and lightweight preview; OS-controlled desktop pause |
 | Storm waves passing the camera and night foam correction | Implemented and GPU-tested |
-| Shared multi-display renderer and regional demand | Planned; pure demand/layout contracts and a diagnostic exist |
-| Installable wallpaper behind desktop icons | **Not yet implemented** in the current Metal app |
+| Shared simulation/HDR across displays | Host implemented; physical multi-monitor verification remains open |
+| Regional rendering demand | Planned; pure demand/layout contracts and a diagnostic exist |
+| Open at Login | Registration control provided; installed/signed bundle behavior needs manual verification |
 
-The objective is a lightweight, continuous wallpaper with real local daylight and weather, a fixed ocean composition, and cinematic nights without city light pollution. Inland weather drives an idealized sea state; it is not a marine swell forecast.
+The objective is a lightweight, continuous wallpaper with real local daylight and weather, a fixed ocean composition, and cinematic nights without city light pollution. Inland wind drives an idealized wind sea over an independent long-period swell; rain alone does not enlarge waves. See [the sea-state audit](docs/sea-state.md). This is not a marine swell forecast.
 
 ## Build and run
 
 Use an Apple silicon Mac with macOS 13+ and Xcode Command Line Tools:
 
 ```sh
-git clone https://github.com/GodlyDonuts/web-ocean.git
+git clone --branch v0.3.0-beta.3 https://github.com/GodlyDonuts/web-ocean.git
 cd web-ocean
 zsh macos/build.sh
 open macos/build/Ocean.app
@@ -37,9 +56,19 @@ open macos/build/Ocean.app
 
 No npm packages, Python, Rust, development server or downloaded assets are required for the native build. Swift builds the app bundle; packaged Metal sources compile into retained pipeline states at startup. The included galaxy asset is ready to use. See its [credits and provenance](macos/Assets/Galaxy/CREDITS.md).
 
-The window supports resizing and macOS full screen. The camera remains fixed. Use the app's weather controls for manual storm previews, or automatic mode for current local weather. Quit with Command-Q.
+The installed app first shows a setup window. Choose Use Ocean to start; the wave icon in the menu bar opens Ocean Settings. It offers pause, local daylight/weather, frame-rate and resolution budgets, display selection, and Open at Login. For the original resizable/full-screen development window, use:
+
+```sh
+macos/build/Ocean.app/Contents/MacOS/Ocean --preview
+```
+
+The camera remains fixed. Use weather controls for manual storm previews or automatic mode for local weather. Quit through the menu bar. See [the desktop host and verification limits](docs/wallpaper-host.md).
+
+To keep a particular look, choose **Daylight → Sunset** or another preset, or use **Custom Time…** for a specific hour/minute. Waves and weather keep moving. The selection is saved; **Follow Local Time** restores automatic daylight. See [daylight time controls](docs/daylight-controls.md).
 
 The preview caps its internal image at approximately 1,024,000 pixels, preserves aspect ratio and defaults to 30 FPS. The standard 1280×800 view uses 98,304 ocean triangles. Wave simulation updates six periodic 256×256 FFT bands; these are reusable wave tiles rather than a fully meshed world. Geometry is concentrated in the viewport with sparse displacement guards, including a near patch behind the camera that prevents holes during overtaking storm waves.
+
+[Measured resource usage on an M1](docs/resource-usage-2026-11-06.md): roughly 5–6% of one CPU core, 97–121 MiB physical footprint and 8–11 ms mean GPU work per frame in offscreen 1280×800/30 FPS fixtures. Backing off covered-desktop polling reduced measured idle CPU from 0.36% to 0.12%, with zero submitted rendering frames. These measurements exclude WindowServer overhead and do not establish battery life.
 
 ## Check the current implementation
 
@@ -60,7 +89,7 @@ For a quick CPU-only check, run `zsh macos/test-unit.sh`. For the broader develo
 
 The app looks up coarse location by public IP through `ipwho.is`, reuses it for astronomy and weather, and caches the result. Weather comes from Open-Meteo. Normal operation can therefore contact those services; neither is required for the deterministic GPU fixtures. No account or API key is required by the current implementation.
 
-Solar timings and hourly celestial samples are cached daily; real UTC drives the sky independently of wave phase. The Moon has its own path and phase. Weather is cached for 15 minutes and transitions continuously; IP location is refreshed infrequently, with a 24-hour cache. Saved state lives under `~/Library/Application Support/OceanWallpaper/`. Offline operation retains available cached state. See [day/night details](docs/day-night-cycle.md) and [weather behavior](docs/dynamic-weather.md).
+Solar timings and hourly celestial samples are cached daily; real UTC drives the sky independently of wave phase. The Sun and Moon repeat the same centered camera arc during day and night, timed to local sunrise/sunset. The Moon keeps its real date-dependent phase; see [celestial presentation](docs/wallpaper-moon.md). Weather is cached for 15 minutes and transitions continuously; IP location is refreshed infrequently, with a 24-hour cache. Saved state lives under `~/Library/Application Support/OceanWallpaper/`. Offline operation retains available cached state. See [day/night details](docs/day-night-cycle.md) and [weather behavior](docs/dynamic-weather.md).
 
 ## Where to work
 
@@ -80,7 +109,7 @@ Solar timings and hourly celestial samples are cached daily; real UTC drives the
 
 ## Continue development
 
-Read [the handoff](docs/handoff.md) before changing render architecture. The next milestone is to separate shared ocean/environment state from display surfaces, validate presentation demand and reveal behavior, then integrate desktop wallpaper windows. Preserve the current fixed view, no-prompt IP location, continuous transitions, bounded GPU work and windowless automated tests.
+Read [the handoff](docs/handoff.md) before changing render architecture. The desktop host now shares one simulation/HDR frame and composites it to visible displays. The next milestone is to validate real multi-display, Space/full-screen and reveal behavior, then improve environment ownership and installed-app lifecycle. Preserve the current fixed view, no-prompt IP location, continuous transitions, bounded GPU work and windowless automated tests.
 
 Current limitations include approximate lunar positioning, procedural resolved stars, approximate cloud multiple scattering, a height-field underwater treatment, and no shoreline or overturning breakers. Startup shader compilation and reduced internal resolution are deliberate tradeoffs. Performance reports in `docs/` identify their scenes and revisions; compare matched before/after runs rather than combining timings from different versions. The latest storm-water correction measured about 10.62 → 10.58 ms mean GPU time in a short M1 comparison; this is not a battery-life claim.
 
@@ -102,3 +131,5 @@ See [contribution guidance](CONTRIBUTING.md) for changes, bug reports and eviden
 ## Origins and license
 
 The original WebGPU renderer was built with Claude Code (Opus 5.5). This project extends it into a native macOS ocean wallpaper. Code is MIT licensed; see [LICENSE](LICENSE). NASA/Gaia-derived imagery has separate [credits and usage guidance](macos/Assets/Galaxy/CREDITS.md). Imported research retains its original files and attribution under [research/](research/README.md).
+
+The [live lock-screen guide](docs/live-lock-screen.md) covers the native wallpaper extension, automatic setup and compatibility. The [integration guide](docs/regional-rendering.md) documents the experimental regional renderer and older macOS fallback.

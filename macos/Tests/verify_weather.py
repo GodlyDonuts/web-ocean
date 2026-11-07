@@ -42,7 +42,9 @@ for name,settings in scenes.items():
  print(f'PASS: {name}, wind {d["weatherWind"]:.2f} m/s, rain {d["rain"]:.3f}, wave-height proxy {hs:.2f} m, zero windows',flush=True)
 levels=['fair','drizzle','rain','thunderstorm','hurricane']
 assert all(results[b]['diagnostics']['rain']>results[a]['diagnostics']['rain'] for a,b in zip(levels,levels[1:]))
-assert heights['hurricane']>heights['fair']*3 and heights['hurricane']>8,heights
+# Wind builds a fetch-limited sea over the independent background swell.
+# Rain no longer adds an artificial 8 m of swell at the extreme preset.
+assert heights['hurricane']>heights['fair']*2.5 and 5<heights['hurricane']<14,heights
 assert heights['transition_before']<heights['transition_middle']<heights['transition_late'],heights
 assert heights['settling']<heights['hurricane']*.6,heights
 assert results['transition_start']['diagnostics']['rain']<.001

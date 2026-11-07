@@ -27,7 +27,11 @@ def run(name,settings):
 for t in [10,30,60,90,120,150]:run(f'after-{t}',{'time':t})
 mask=run('surface-mask',{'time':60,'dbg':9})
 above=(mask[:,:,0]>.99)&(mask[:,:,3]>.99);assert above.sum()>1000,'Fixture must show waves above eye level'
-foam=mask[:,:,1]>.5;assert foam.sum()>100,'Fixture must contain foam'
+# The independent-swell sea has thinner, partially covered foam rather
+# than the old rain-amplified, mostly opaque patches. Require both a
+# substantial area and a strong peak so an empty/flat mask still fails.
+foam=mask[:,:,1]>.25
+assert foam.sum()>1000 and mask[:,:,1].max()>.4,'Fixture must contain structured foam'
 image=np.fromfile(out/'after-60',dtype='<f2').astype(np.float32).reshape(600,960,4)
 assert np.median(image[:,:,:3][above].max(axis=1))>.0005,'Raised wave faces must retain illumination'
 for name,s in [('rain',{'time':60,'rainParticles':1}),('day',{'utc':1793378400}),('clear',{'storm':0,'clouds':0,'veil':0}),('portrait',{'renderWidth':600,'renderHeight':960,'time':60}),('submerged',{'time':60,'testEyeHeight':.25}),('submerged-day',{'time':60,'testEyeHeight':.25,'utc':1793378400})]:run(name,s)

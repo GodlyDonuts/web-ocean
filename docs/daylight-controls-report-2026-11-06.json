@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-06",
+  "baselineCommit": "eadf17607e3affa7089ba4aeb732beefcd4c7b88",
+  "GPU": {
+    "passed": true,
+    "cases": {
+      "sunset_before": {
+        "lightingUTC": 1793397281.7017555,
+        "sunAltitude": -0.8330006285160578,
+        "elapsed": 0.2666666805744171,
+        "solarCalculations": 1,
+        "daylightHeld": true
+      },
+      "sunset_after": {
+        "lightingUTC": 1793397281.7017555,
+        "sunAltitude": -0.8330006285160578,
+        "elapsed": 6.266666993498802,
+        "solarCalculations": 1,
+        "daylightHeld": true
+      },
+      "auto_before": {
+        "lightingUTC": 1793378480.0000043,
+        "sunAltitude": 35.35011205120304,
+        "elapsed": 0.2666666805744171,
+        "solarCalculations": 1,
+        "daylightHeld": false
+      },
+      "auto_after": {
+        "lightingUTC": 1793380280.000098,
+        "sunAltitude": 34.853418547291405,
+        "elapsed": 6.266666993498802,
+        "solarCalculations": 1,
+        "daylightHeld": false
+      },
+      "custom": {
+        "lightingUTC": 1793399400,
+        "sunAltitude": -7.296898930052874,
+        "elapsed": 0.2666666805744171,
+        "solarCalculations": 2,
+        "daylightHeld": true
+      },
+      "midnight": {
+        "lightingUTC": 1793332800,
+        "sunAltitude": -61.68974682182097,
+        "elapsed": 0.2666666805744171,
+        "solarCalculations": 2,
+        "daylightHeld": true
+      }
+    },
+    "animatedWaterPixels": 494533,
+    "scope": "Six actual Metal fixtures: held sunset/custom/midnight, independent animated water, advancing automatic clock, finite HDR and bounded daily calculations. No windows, providers, user preference reads or cache writes."
+  },
+  "CPU": "All 12 CPU suites passed, including DaylightTimeTests. Preset/custom parsing, value roundtrip, DST, daily updates and polar unavailable events checked.",
+  "lifecycle": true,
+  "sharedSkyCycle": true,
+  "nativeUI": {
+    "sunsetAppliedAndVisuallyInspected": true,
+    "custom1830Applied": true,
+    "customPreferenceReadback": "18:30",
+    "cancelRetained1830": true,
+    "automaticRestoredAndVisuallyInspected": true
+  },
+  "scope": "Headless fixtures use synthetic coordinates, zero windows, no provider calls or saved preference reads/writes. Native preview separately exercised the real shared menu/picker and persisted settings; restored automatic mode afterward. No new shader/render passes/timers."
+}
