@@ -43,8 +43,7 @@ struct Frame {
     metal::float4 starZ;
     metal::float4 cloudEvolution;
     metal::float4 weather; // severity, rain, mist, reserved
-    metal::float4 nightFx;
-    metal::float4 eclipse; // lunar shadow direction, uncovered solar fraction
+
 };
 struct Medium {
     metal::float3 ext;
@@ -706,54 +705,11 @@ metal::float3 sunDisk(
     float x_1 = metal::min(ang / diskRadius, 1.0);
     float mu_4 = metal::sqrt(metal::max(1.0 - (x_1 * x_1), 0.0));
     metal::float3 limb = metal::float3(1.0) - (metal::float3(0.397, 0.503, 0.652) * (1.0 - mu_4));
-    // Surface brightness is unchanged in an eclipse; only the uncovered area shrinks.
-    // A 0.01 degree margin of totality is far below a pixel, so fade the disk out
-    // with the CPU's exact uncovered fraction instead of relying on the moon mask.
-    float _e61 = F.celestial.w>0.5
-        ? F.sunDir.w/metal::max(F.eclipse.w,0.0015)*metal::smoothstep(0.002,0.03,F.eclipse.w)
-        : F.sunDir.w;
+    float _e61 = F.sunDir.w;
     float rad = _e61 / 0.00006866147;
-    float moonAng = metal::sqrt(metal::max(2.0*(1.0-metal::dot(dir_5,F.moonDir.xyz)),0.0));
-    float cover = F.celestial.w>0.5 ? metal::smoothstep(F.celestial.y-pix,F.celestial.y+pix,moonAng) : 1.0;
     float _e66 = camR(F);
     metal::float3 _e70 = sampleTrans(_e66, metal::max(dir_5.y, -0.01), transLUT, sampC);
-    // Green flash: as the last limb sinks, dispersion separates a green upper rim.
-    float alt=metal::asin(metal::clamp(_e3.y,-1.0,1.0));
-    float flash=metal::smoothstep(-1.1*diskRadius,-0.8*diskRadius,alt)
-        *(1.0-metal::smoothstep(-0.5*diskRadius,0.1*diskRadius,alt));
-    metal::float3 col=((rad * limb) * edge * cover) * _e70;
-    if (flash>0.0) {
-        // The last sliver is far dimmer than the full disk; keep it in the
-        // tone curve's saturated range so it reads as green, not white.
-        float rise=(dir_5.y-_e3.y)/diskRadius;
-        float rim=metal::smoothstep(-0.2,0.4,rise)*flash;
-        float l=metal::dot(col,metal::float3(0.2126,0.7152,0.0722));
-        col=metal::mix(col,metal::float3(0.08,1.0,0.4)*metal::min(l,2.0),rim);
-    }
-    return col;
-}
-
-// Solar corona, streamers and prominences around the Moon at totality.
-metal::float3 eclipseCorona(metal::float3 dir, constant Frame& F) {
-    if (F.celestial.w<0.5) return metal::float3(0.0);
-    float total=1.0-metal::smoothstep(0.0016,0.02,F.eclipse.w);
-    if (total<0.001) return metal::float3(0.0);
-    metal::float3 c=F.moonDir.xyz;
-    float r=F.celestial.y;
-    float ang=metal::sqrt(metal::max(0.0,2.0*(1.0-metal::dot(dir,c))));
-    if (ang<r*0.98 || ang>r*10.0) return metal::float3(0.0);
-    metal::float3 axis=metal::abs(c.y)>0.99 ? metal::float3(1,0,0) : metal::float3(0,1,0);
-    metal::float3 right=metal::normalize(metal::cross(c,axis)),up=metal::cross(right,c);
-    float pa=metal::atan2(metal::dot(dir,up),metal::dot(dir,right));
-    float x=metal::max(ang-r,0.0)/r;
-    float streamers=0.35+0.65*metal::pow(metal::abs(metal::cos(pa-0.4)),4.0)
-        +0.3*metal::pow(0.5+0.5*metal::sin(pa*11.0+1.3),6.0)
-        +0.2*metal::pow(0.5+0.5*metal::sin(pa*5.0-0.7),4.0);
-    float glow=1.0*metal::exp(-x*2.0)+0.3*streamers*metal::exp(-x*0.5);
-    float q=(ang-r*1.015)/(r*0.012);
-    float rim=metal::exp(-q*q)*metal::pow(0.5+0.5*metal::sin(pa*23.0+2.0),6.0);
-    float inside=metal::smoothstep(r*0.98,r,ang);
-    return total*inside*(metal::float3(0.92,0.96,1.0)*glow+metal::float3(1.0,0.3,0.42)*rim*3.0);
+    return ((rad * limb) * edge) * _e70;
 }
 
 metal::float3 skyRadiance(
@@ -877,7 +833,7 @@ fragment fsOutput fs(
     metal::float3 _e80 = sunDisk(dir_7, F, transLUT, sampC);
     float _e81 = sunT;
     metal::float3 L_1 = ((_e73 * (1.0 - _e71.w)) + cloudColor) + (_e80 * _e81);
-    L_1 += (moonDisk(dir_7,pixAng_2,F,F.eclipse,transLUT,sampC)+eclipseCorona(dir_7,F))*sunT;
+    L_1 += moonDisk(dir_7,pixAng_2,F,transLUT,sampC)*sunT;
     L_1 += celestialStarfield(dir_7,pixAng_2*2.0,F,starAtlas,galaxyAtlas,false)*stellarCloudVisibility(sunT);
     return fsOutput { metal::float4(L_1, sunT) };
 }

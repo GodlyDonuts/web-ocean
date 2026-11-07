@@ -31,8 +31,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     private var prunedStableCachePipeline: MTLRenderPipelineState?
     private var specializedSkyAAMask = 3
     private var lastSkyAAMask = 3
-    private(set) var nightEffects = NightEffects.Levels()
-    var governor = ""
     private var oceanGuardPipeline: MTLRenderPipelineState!
     private var oceanPipeline: MTLRenderPipelineState!
     private var skyPipeline: MTLRenderPipelineState!
@@ -43,20 +41,14 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     private var rainDepthUnoccluded:MTLDepthStencilState!
     private var rainDepth:MTLDepthStencilState!
     private var rainBuffer:MTLBuffer!
-    private var compositePipeline: MTLRenderPipelineState!
+    var governor = ""
     private var mirrorPipeline: MTLRenderPipelineState!
-    private var shaftsPipeline: MTLRenderPipelineState!
-    private var birdsPipeline: MTLRenderPipelineState!
-    private var birdBuffer: MTLBuffer!
-    private(set) var flockSize = 0
-    private var shaftsBuffer: MTLBuffer!
-    private(set) var shaftsActive = false
-    // Wallpaper presentation: the layout view sizes the shared HDR frame; every
-    // visible surface receives a composite of that one frame.
     var presentationSurfaces: [MTKView] = []
     weak var layoutView: MTKView?
     var pixelBudget: Double = 1280*800
+    private var surfaceSizingVerified = false
     var horizonUV: Float { Float(0.5*(1-tan(5.5*Double.pi/180)/tan(29*Double.pi/180))) }
+    private var compositePipeline: MTLRenderPipelineState!
     private var oceanDepth: MTLDepthStencilState!
     private var skyDepth: MTLDepthStencilState!
     private var clampSampler: MTLSamplerState!
@@ -285,9 +277,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             let sourceURL = name == "OCEAN" && options["referenceOcean"] != nil
                     ? URL(fileURLWithPath:options["referenceOcean"]!) : root.appendingPathComponent(name + ".metal")
             var source = try String(contentsOf: sourceURL, encoding: .utf8)
-            if source.contains("#include \"AURORA.metalinc\"") {
-                source=source.replacingOccurrences(of:"#include \"AURORA.metalinc\"",with:try String(contentsOf:root.appendingPathComponent("AURORA.metalinc"),encoding:.utf8))
-            }
             if source.contains("#include \"WATER_VIEW.metalinc\"") {
                 source=source.replacingOccurrences(of:"#include \"WATER_VIEW.metalinc\"",with:try String(contentsOf:root.appendingPathComponent("WATER_VIEW.metalinc"),encoding:.utf8))
             }
@@ -369,8 +358,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         }
         downPipeline = try renderPipeline("BLOOM_DOWN")
         upPipeline = try renderPipeline("BLOOM_UP", additive: true)
-        shaftsPipeline = try renderPipeline("SHAFTS", additive: true)
-        birdsPipeline = try renderPipeline("BIRDS", samples: 4, depth: true, premultiplied: true)
         rainPipeline=try renderPipeline("RAIN",samples:4,depth:true,premultiplied:true)
         compositePipeline = try renderPipeline("COMPOSITE", format: .bgra8Unorm)
         let mirror = MTLRenderPipelineDescriptor()
@@ -426,7 +413,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         galaxyAtlas=try GalaxyAtlas.make(device:device,queue:queue,enabled:dayNightEnabled)
         let stars=try StarField.make(device:device,queue:queue,enabled:dayNightEnabled,atlasSize:options["starAtlasReference"] == "1" ? 2048 : 1024)
         starAtlas=stars.atlas;starCatalogue=stars.catalogue;starCount=stars.count
-        frameBuffer = try buffer(608+AnimationClock.cloudShiftCount*16, "frame")
+        frameBuffer = try buffer(544+AnimationClock.cloudShiftCount*16, "frame")
         displacementBounds = try buffer(16,"displacement guard bounds")
         partialBounds = try buffer(16*16*cascades*16,"partial displacement bounds",privateStorage:true)
         simBuffer = try buffer(224, "spectrum parameters")
@@ -434,8 +421,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         atmoBuffer = try buffer(16, "atmosphere parameters")
         rainBuffer=try buffer(64,"world rain advection")
         compositeBuffer = try buffer(64, "tone mapping and precipitation")
-        shaftsBuffer = try buffer(32, "sun shafts")
-        birdBuffer = try buffer(32, "seabird flock")
         sizesBuffer = try buffer(128, "shader buffer sizes")
         // Runtime arrays have explicit, CPU-validated indices. This metadata is
         // retained by the migrated Metal function signatures, but is not read.
@@ -499,43 +484,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
     }
 
     private func value(_ name: String, _ fallback: Float) -> Float { Float(options[name] ?? "") ?? fallback }
-
-    /// Schedules a seabird flock and writes its uniforms; returns the bird count, or nil when none is flying.
-    private func currentFlock() -> Int? {
-        flockSize = 0
-        let altitude = celestialState?.sunAltitude ?? Double(value("sunElev", 2.6))
-        let severity = weatherActive ? weatherDynamics.current.severity : 0
-        let time = cycleAnchor.map { $0.addingTimeInterval(clock.elapsed-cycleStartElapsed).timeIntervalSince1970 }
-            ?? (dayNightEnabled ? Date().timeIntervalSince1970 : clock.elapsed)
-        guard let flock = Wildlife.flock(time: time, sunAltitude: altitude, severity: severity, override: Double(options["birds"] ?? "")) else { return nil }
-        let light = Float(min(max((altitude + 4) / 14, 0.05), 1))
-        write([Float(flock.crossSeconds), Float(flock.seed), Float(flock.direction), Float(clock.elapsed.truncatingRemainder(dividingBy: 4096)),
-               0.10*light, 0.10*light, 0.11*light, 0.95], to: birdBuffer)
-        flockSize = flock.count
-        return flock.count
-    }
-
-    /// Screen-space sun for crepuscular rays, or nil when the pass would add nothing.
-    private func sunShafts() -> [Float]? {
-        shaftsActive = false
-        let strength = value("shafts", 1)
-        guard strength.isFinite, strength > 0, bloomLevels > 2 else { return nil }
-        let v = frameBuffer.contents().assumingMemoryBound(to: SIMD4<Float>.self)
-        let d = SIMD3(v[42].x, v[42].y, v[42].z), r = SIMD3(v[5].x, v[5].y, v[5].z)
-        let u = SIMD3(v[6].x, v[6].y, v[6].z), f = SIMD3(v[7].x, v[7].y, v[7].z)
-        let z = simd_dot(d, f) / max(simd_dot(f, f), 1e-6)
-        guard d.y > -0.01, z > 0.05 else { return nil }
-        let x = simd_dot(d, r) / max(simd_dot(r, r), 1e-6) / z, y = simd_dot(d, u) / max(simd_dot(u, u), 1e-6) / z
-        let su = (x + 1) / 2, sv = (1 - y) / 2
-        let edge = max(0, max(-su, su - 1), max(-sv, 0))
-        let fade = max(0, 1 - edge / 0.6)
-        guard fade > 0.001 else { return nil }
-        shaftsActive = true
-        // Bloom reaches the image as bloom*0.125*mix weight; undo that so strength is in scene units.
-        let uncovered: Float = v[40].w > 0.5 ? min(1, v[49].w * 20) : 1
-        let gain = strength * fade * uncovered / max(0.125 * max(value("bloom", 0.1), 0.02), 1e-3) * 2.2
-        return [su, sv, gain, horizonUV, Float(width) / Float(max(height, 1)), value("shaftThreshold", 0.9), 0.965, v[48].y]
-    }
 
     private func writeUniforms(dt: Float) {
         if cacheUniforms && !uniformsDirty {
@@ -742,39 +690,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         observerTimeZone=timeZone
         celestialCycle.location=location;lastSolarDayStart=nil;cacheDirty=true
     }
-    private(set) var waterspoutStrength = 0.0
-    private(set) var noctilucent = 0.0
-    private(set) var cometBrightness = 0.0
-    private func writeStormEvents() {
-        let vectors=frameBuffer.contents().assumingMemoryBound(to:SIMD4<Float>.self)
-        let time = cycleAnchor.map { $0.addingTimeInterval(clock.elapsed-cycleStartElapsed).timeIntervalSince1970 }
-            ?? (dayNightEnabled ? Date().timeIntervalSince1970 : clock.elapsed)
-        let severity = weatherActive ? weatherDynamics.current.severity : 0
-        let spout = StormEvents.waterspout(time: time, severity: severity, override: Double(options["spout"] ?? ""))
-        waterspoutStrength = spout?.x ?? 0
-        let s = spout ?? .zero
-        vectors[38] = SIMD4(Float(s.x), Float(s.y), Float(s.z), Float(noctilucent))
-    }
-    private func writeNightEffects() {
-        let vectors=frameBuffer.contents().assumingMemoryBound(to:SIMD4<Float>.self)
-        let t=Float(clock.elapsed.truncatingRemainder(dividingBy:65536))
-        guard let state=celestialState,state.night>0.001 else { vectors[48]=SIMD4(0,t,0,0); vectors[50].w=0; noctilucent=0; cometBrightness=0; return }
-        let rate=Double(options["cycleRate"] ?? "").flatMap { $0.isFinite && $0>0 && $0<=86400 ? $0 : nil } ?? 1
-        let date=cycleAnchor.map { $0.addingTimeInterval((clock.elapsed-cycleStartElapsed)*rate) } ?? Date()
-        let zone=options["timeZone"].flatMap(TimeZone.init(identifier:)) ?? observerTimeZone ?? .autoupdatingCurrent
-        let levels=NightEffects.levels(date:date,zone:zone,latitude:celestialCycle.location?.latitude,
-                                       aurora:Double(options["aurora"] ?? ""),meteors:Double(options["meteors"] ?? ""),bioluminescence:Double(options["bio"] ?? ""))
-        nightEffects=levels
-        if let comet=Comets.apparition(night:NightEffects.nightIndex(date,zone:zone),override:Double(options["comet"] ?? "")) {
-            let head=Comets.head(sun:state.apparentSun,comet)
-            cometBrightness=comet.brightness*state.night
-            vectors[50]=SIMD4(Float(head.x),Float(head.y),Float(head.z),Float(cometBrightness))
-            vectors[51]=SIMD4(Float(comet.tailLength),Float(comet.curl),0,0)
-        } else { vectors[50].w=0; cometBrightness=0 }
-        noctilucent=Noctilucent.strength(date:date,zone:zone,latitude:celestialCycle.location?.latitude,sunAltitude:state.sunAltitude,
-                                         override:Double(options["nlc"] ?? ""))*(weatherActive ? 1-weatherDynamics.current.severity : 1)
-        vectors[48]=SIMD4(Float(levels.aurora),t,Float(levels.meteors),Float(levels.bioluminescence))
-    }
     private func writeCelestialUniforms() {
         let frame=frameBuffer.contents().assumingMemoryBound(to:Float.self)
         let staticSun=launchSun
@@ -786,8 +701,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         vectors[40]=SIMD4(0.004675,0.0045,0,0)
         vectors[41]=staticSun;vectors[42]=SIMD4(staticSun.x,staticSun.y,staticSun.z,0.004675)
         vectors[43]=SIMD4(1,0,0,0);vectors[44]=SIMD4(0,1,0,0);vectors[45]=SIMD4(0,0,1,0)
-        vectors[49]=SIMD4(0,-1,0,1)
-        vectors[50]=SIMD4(0,-1,0,0)
         guard dayNightEnabled else { return }
         let rate=Double(options["cycleRate"] ?? "").flatMap { $0.isFinite && $0>0 && $0<=86400 ? $0 : nil } ?? 1
         let date=cycleAnchor.map { $0.addingTimeInterval((clock.elapsed-cycleStartElapsed)*rate) } ?? Date()
@@ -797,21 +710,17 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         for i in 0..<3 {
             let axis=state.skyBasis[i];vectors[43+i]=SIMD4(Float(axis.x),Float(axis.y),Float(axis.z),0)
         }
-        // Eclipses: sunlight scales with the uncovered solar area; totality darkens to night.
-        let sunlight=max(1-state.solarObscuration,0.0015)
-        let dark=max(state.night,0.9*CelestialMath.smooth(0.985,1,state.solarObscuration))
-        vectors[49]=SIMD4(Float(state.lunarShadow.x),Float(state.lunarShadow.y),Float(state.lunarShadow.z),Float(sunlight))
-        vectors[8]=SIMD4(Float(state.sun.x),Float(state.sun.y),Float(state.sun.z),Float(14*sunlight))
-        vectors[39]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(state.moonIllumination*(1-0.97*state.lunarUmbra)))
-        vectors[40]=SIMD4(Float(state.sunRadius),Float(state.moonRadius),Float(dark),1)
+        vectors[8]=SIMD4(Float(state.sun.x),Float(state.sun.y),Float(state.sun.z),14)
+        vectors[39]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(state.moonIllumination))
+        vectors[40]=SIMD4(Float(state.sunRadius),Float(state.moonRadius),Float(state.night),1)
         vectors[42]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),Float(state.sunRadius))
         if state.sunAltitude > -1 {
-            vectors[41]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),Float(14*sunlight))
+            vectors[41]=SIMD4(Float(state.apparentSun.x),Float(state.apparentSun.y),Float(state.apparentSun.z),14)
         } else {
-            let brightness=0.12*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,state.moon.y)*(1-0.999*state.lunarUmbra)
+            let brightness=0.12*pow(state.moonIllumination,1.5)*state.night*CelestialMath.smooth(-0.01,0.08,state.moon.y)
             vectors[41]=SIMD4(Float(state.moon.x),Float(state.moon.y),Float(state.moon.z),Float(brightness))
         }
-        compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)*Float(1+3*dark)
+        compositeBuffer.contents().assumingMemoryBound(to:Float.self)[0]=value("exposure",1.35)*Float(1+3*state.night)
         if let day=celestialCycle.day,lastSolarDayStart != day.start {
             lastSolarDayStart=day.start;onSolarDayChanged?(day)
         }
@@ -878,6 +787,10 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
                                     backingScale:Double(view.window?.backingScaleFactor ?? 2),pixelBudget:pixelBudget)
         }
         let w = layout.width, h = layout.height
+        // A replacement MTKView still needs sizing even when shared resources
+        // already have the right dimensions (display mode changes/hot-plug).
+        let drawableSize = CGSize(width:w,height:h)
+        if view.drawableSize != drawableSize { view.drawableSize = drawableSize }
         guard w != width || h != height else { return }
         if indexBuffer == nil || columns != layout.columns || rows != layout.rows {
             columns = layout.columns; rows = layout.rows
@@ -885,7 +798,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         }
         width = w; height = h
         uniformsDirty = true
-        view.drawableSize = CGSize(width: w, height: h)
         if OceanRunMode.offscreen {
             offscreenDisplay = try texture(w,h,"offscreen display",format:.bgra8Unorm,renderOnly:true)
         }
@@ -931,6 +843,9 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
             drawable = next
             display = next.texture
         }
+        if verificationEnabled && options["testSurfaceSizing"] == "1" && !surfaceSizingVerified {
+            do { try verifySurfaceSizing() } catch { record(error.localizedDescription); return }
+        }
         let descriptor = MTLCommandBufferDescriptor()
         if diagnostics { descriptor.errorOptions = .encoderExecutionStatus }
         guard let command = queue.makeCommandBuffer(descriptor: descriptor) else { record("Cannot allocate command buffer"); return }
@@ -950,7 +865,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         writeUniforms(dt: dt)
         writeTemporalUniforms(updateClouds:!initialized || cacheDirty || cadence-lastCache >= 0.125 || cadence-lastEnvironment >= 0.1 || cadence-lastSky >= 0.25)
         writeCelestialUniforms()
-        writeNightEffects(); writeStormEvents()
         writeWeatherUniforms(dt:weatherStep)
         prepareWeatherSpectrum()
         profiler?.beginFrame()
@@ -1078,11 +992,6 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
                 r.drawPrimitives(type:.triangle,vertexStart:0,vertexCount:3,instanceCount:starCount)
             }
         }
-        if let flock = currentFlock(), !(verificationEnabled && options["skyOnly"] == "1") {
-            r.setRenderPipelineState(birdsPipeline); r.setDepthStencilState(rainDepth)
-            r.setVertexBuffer(frameBuffer,offset:0,index:0); r.setVertexBuffer(birdBuffer,offset:0,index:1); r.setFragmentBuffer(birdBuffer,offset:0,index:1)
-            r.drawPrimitives(type:.triangle,vertexStart:0,vertexCount:18,instanceCount:flock)
-        }
         if weatherActive,weatherDynamics.current.rain>0.001,options["rainParticles"] != "0",!(verificationEnabled && options["skyOnly"] == "1") {
             r.setRenderPipelineState(rainPipeline);r.setDepthStencilState(options["rainOcclusion"] == "0" ? rainDepthUnoccluded : rainDepth)
             r.setVertexBuffer(frameBuffer,offset:0,index:0);r.setVertexBuffer(rainBuffer,offset:0,index:1)
@@ -1094,17 +1003,13 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         for m in 0..<bloomLevels {
             render(command, target: bloom[m], pipeline: downPipeline, label: "bloom down", resources: [.texture(m == 0 ? hdr : bloom[m-1]),.sampler(linearSampler),.buffer(bloomUniforms[m])])
         }
-        if let shafts = sunShafts() {
-            write(shafts, to: shaftsBuffer)
-            render(command, target: bloom[2], pipeline: shaftsPipeline, label: "sun shafts", resources: [.texture(bloom[1]),.sampler(linearSampler),.buffer(shaftsBuffer)], load: .load)
-        }
         for m in stride(from: bloomLevels-1, through: 1, by: -1) {
             render(command, target: bloom[m-1], pipeline: upPipeline, label: "bloom up", resources: [.texture(bloom[m]),.sampler(linearSampler),.buffer(bloomUniforms[bloomLevels+m])], load: .load)
         }
         if surfaceDrawables.isEmpty {
             render(command, target: display, pipeline: compositePipeline, label: "composite", resources: [.texture(hdr),.texture(bloom[0]),.sampler(linearSampler),.buffer(compositeBuffer)])
         }
-        for surface in surfaceDrawables { encodeSurfaceComposite(command, target: surface.texture) }
+        for surface in surfaceDrawables { encodeSurfaceComposite(command,target:surface.texture) }
         let verify = verificationEnabled && (sequenceFrames.isEmpty ? frameIndex == max(8,min(3600,Int(options["verifyFrame"] ?? "") ?? 8)) : sequenceFrames.contains(frameIndex))
         let readbacks: [Readback]
         do { readbacks = verify ? try encodeReadbacks(command, display:display) : [] }
@@ -1165,6 +1070,21 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         e.setFragmentBytes(&mapping, length: MemoryLayout<SIMD4<Float>>.size, index: 4)
         e.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
         e.endEncoding()
+    }
+
+    // Exercise the unchanged-resource-size path using a newly created view.
+    // No NSWindow/drawable acquisition is needed by this verification fixture.
+    private func verifySurfaceSizing() throws {
+        let priorWidth=width,priorHeight=height
+        let replacement=MTKView(frame:CGRect(x:0,y:0,width:width,height:height),device:device)
+        replacement.autoResizeDrawable=false;replacement.isPaused=true
+        replacement.drawableSize=CGSize(width:width*3,height:height*3)
+        try updateSize(replacement)
+        guard width==priorWidth && height==priorHeight && replacement.drawableSize==CGSize(width:width,height:height) else {
+            throw OceanFailure(message:"Recreated surface bypassed the shared pixel budget")
+        }
+        surfaceSizingVerified=true
+        print("PASS: replacement surface retains the shared drawable budget with unchanged HDR dimensions.")
     }
 
     private func visibleSkyPipeline() -> MTLRenderPipelineState {
@@ -1373,7 +1293,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let report: [String:Any] = ["device":device.name,"width":width,"height":height,"triangles":triangleCount,"indexBits":indexType == .uint16 ? 16 : 32,"indexBytes":indexBuffer.length,
             "cpuThreadEncodeMedianMs":threadCPU[threadCPU.count/2],"cpuThreadEncodeMeanMs":threadCPU.reduce(0,+)/Double(threadCPU.count),
             "cpuEncodeMedianMs":cpu[cpu.count/2],"cpuEncodeMeanMs":cpu.reduce(0,+)/Double(cpu.count),
-            "renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"offscreen":OceanRunMode.offscreen,"windowCount":NSApp.windows.count,"activationPolicy":NSApp.activationPolicy().rawValue,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps, "mipmapRounding":mipmapRounding.rawValue, "dayNightActive":celestialState != nil,"solarCalculations":celestialCycle.calculationCount,"solarCacheWrites":celestialCycle.cacheWriteCount,"galaxyAtlasWidth":galaxyAtlas.width,"galaxyAtlasHeight":galaxyAtlas.height,"starCount":starCount,"starAtlasWidth":starAtlas.width,"starAtlasHeight":starAtlas.height,"sunAltitude":celestialState?.sunAltitude ?? Double(value("sunElev",2.6)),"moonIllumination":celestialState?.moonIllumination ?? 0,"weatherActive":weatherActive,"sunShafts":shaftsActive,"birds":flockSize,"solarObscuration":celestialState?.solarObscuration ?? 0,"lunarUmbra":celestialState?.lunarUmbra ?? 0,"waterspout":waterspoutStrength,"noctilucent":noctilucent,"comet":cometBrightness,"aurora":nightEffects.aurora,"meteorRate":nightEffects.meteors,"bioluminescence":nightEffects.bioluminescence,"weatherDetailPhase":(60..<63).map { frameBuffer.contents().assumingMemoryBound(to:Float.self)[$0] },"rain":weatherDynamics.current.rain,"weatherCloud":weatherDynamics.current.cloud,"weatherWind":weatherDynamics.current.wind,"weatherSeverity":weatherDynamics.current.severity,"weatherThunder":weatherDynamics.current.thunder,"seaSettling":seaSettling,"volumetricClouds":options["volumetricClouds"] != "0","cloudNoiseBytes":CloudNoise.size*CloudNoise.size*CloudNoise.size*4,"cloudCacheWidth":cachedSky.width,"cloudCacheHeight":cachedSky.height,"verboseBindings":options["verboseBindings"] == "1", "samples":times.count,"gpuMedianMs":times[times.count/2],"gpuMeanMs":times.reduce(0,+)/Double(times.count),
+            "renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"offscreen":OceanRunMode.offscreen,"windowCount":NSApp.windows.count,"activationPolicy":NSApp.activationPolicy().rawValue,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps, "mipmapRounding":mipmapRounding.rawValue, "dayNightActive":celestialState != nil,"solarCalculations":celestialCycle.calculationCount,"solarCacheWrites":celestialCycle.cacheWriteCount,"galaxyAtlasWidth":galaxyAtlas.width,"galaxyAtlasHeight":galaxyAtlas.height,"starCount":starCount,"starAtlasWidth":starAtlas.width,"starAtlasHeight":starAtlas.height,"sunAltitude":celestialState?.sunAltitude ?? Double(value("sunElev",2.6)),"moonIllumination":celestialState?.moonIllumination ?? 0,"weatherActive":weatherActive,"weatherDetailPhase":(60..<63).map { frameBuffer.contents().assumingMemoryBound(to:Float.self)[$0] },"rain":weatherDynamics.current.rain,"weatherCloud":weatherDynamics.current.cloud,"weatherWind":weatherDynamics.current.wind,"weatherSeverity":weatherDynamics.current.severity,"weatherThunder":weatherDynamics.current.thunder,"seaSettling":seaSettling,"volumetricClouds":options["volumetricClouds"] != "0","cloudNoiseBytes":CloudNoise.size*CloudNoise.size*CloudNoise.size*4,"cloudCacheWidth":cachedSky.width,"cloudCacheHeight":cachedSky.height,"verboseBindings":options["verboseBindings"] == "1", "samples":times.count,"gpuMedianMs":times[times.count/2],"gpuMeanMs":times.reduce(0,+)/Double(times.count),
             "gpuP95Ms":times[min(times.count-1,Int(Double(times.count)*0.95))],
             "gpuStagesMs":profiler?.averageMilliseconds ?? [:],"profiled":profiler != nil,"errors":errors]
         do {
@@ -1394,7 +1314,7 @@ final class OceanRenderer: NSObject, MTKViewDelegate {
         let now = CACurrentMediaTime()
         let fps = Double(frames-diagnosticFrames)/max(0.001,now-diagnosticTime)
         diagnosticFrames = frames; diagnosticTime = now
-        let data: [String: Any] = ["physicalGuard":width*2 < height && options["legacyGuard"] != "1","guardBoundsVerified":verifiedGuardBounds,"renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"offscreen":OceanRunMode.offscreen,"windowCount":NSApp.windows.count,"activationPolicy":NSApp.activationPolicy().rawValue,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps,"mipmapRounding":mipmapRounding.rawValue,"dayNightActive":celestialState != nil,"solarCalculations":celestialCycle.calculationCount,"solarCacheWrites":celestialCycle.cacheWriteCount,"galaxyAtlasWidth":galaxyAtlas.width,"galaxyAtlasHeight":galaxyAtlas.height,"starCount":starCount,"starAtlasWidth":starAtlas.width,"starAtlasHeight":starAtlas.height,"sunAltitude":celestialState?.sunAltitude ?? Double(value("sunElev",2.6)),"moonIllumination":celestialState?.moonIllumination ?? 0,"weatherActive":weatherActive,"sunShafts":shaftsActive,"birds":flockSize,"solarObscuration":celestialState?.solarObscuration ?? 0,"lunarUmbra":celestialState?.lunarUmbra ?? 0,"waterspout":waterspoutStrength,"noctilucent":noctilucent,"comet":cometBrightness,"aurora":nightEffects.aurora,"meteorRate":nightEffects.meteors,"bioluminescence":nightEffects.bioluminescence,"weatherDetailPhase":(60..<63).map { frameBuffer.contents().assumingMemoryBound(to:Float.self)[$0] },"rain":weatherDynamics.current.rain,"weatherCloud":weatherDynamics.current.cloud,"weatherWind":weatherDynamics.current.wind,"weatherSeverity":weatherDynamics.current.severity,"weatherThunder":weatherDynamics.current.thunder,"seaSettling":seaSettling,"volumetricClouds":options["volumetricClouds"] != "0","cloudNoiseBytes":CloudNoise.size*CloudNoise.size*CloudNoise.size*4,"cloudCacheWidth":cachedSky.width,"cloudCacheHeight":cachedSky.height,"renderer":"Metal", "device":device.name, "fps":(fps*10).rounded()/10,
+        let data: [String: Any] = ["physicalGuard":width*2 < height && options["legacyGuard"] != "1","guardBoundsVerified":verifiedGuardBounds,"renderTextureUsage":(([hdr,cachedSky] as [MTLTexture?]).compactMap { $0 }+bloom).map { $0.usage.rawValue },"offscreen":OceanRunMode.offscreen,"windowCount":NSApp.windows.count,"activationPolicy":NSApp.activationPolicy().rawValue,"narrowTextureUsage":options["narrowTextureUsage"] != "0","specializedSkyAAMask":specializedSkyAAMask,"skyAAMask":lastSkyAAMask,"fusedEvolution":fusedEvolution,"spectrumBufferBytes":(specA?.length ?? 0)+(specB?.length ?? 0),"sharedCubic":options["sharedCubic"] != "0","skipCloudOctaves":skipCloudOctaves,"cachedSkyElapsed":cachedSkyElapsed,"clockMode":clock.mode.rawValue,"elapsed":clock.elapsed,"stableDetails":clock.stableDetails,"packedJacobian":packedJacobian,"fusedMips":fusedMipmaps,"mipmapRounding":mipmapRounding.rawValue,"dayNightActive":celestialState != nil,"solarCalculations":celestialCycle.calculationCount,"solarCacheWrites":celestialCycle.cacheWriteCount,"galaxyAtlasWidth":galaxyAtlas.width,"galaxyAtlasHeight":galaxyAtlas.height,"starCount":starCount,"starAtlasWidth":starAtlas.width,"starAtlasHeight":starAtlas.height,"sunAltitude":celestialState?.sunAltitude ?? Double(value("sunElev",2.6)),"moonIllumination":celestialState?.moonIllumination ?? 0,"weatherActive":weatherActive,"weatherDetailPhase":(60..<63).map { frameBuffer.contents().assumingMemoryBound(to:Float.self)[$0] },"rain":weatherDynamics.current.rain,"weatherCloud":weatherDynamics.current.cloud,"weatherWind":weatherDynamics.current.wind,"weatherSeverity":weatherDynamics.current.severity,"weatherThunder":weatherDynamics.current.thunder,"seaSettling":seaSettling,"volumetricClouds":options["volumetricClouds"] != "0","cloudNoiseBytes":CloudNoise.size*CloudNoise.size*CloudNoise.size*4,"cloudCacheWidth":cachedSky.width,"cloudCacheHeight":cachedSky.height,"renderer":"Metal", "device":device.name, "fps":(fps*10).rounded()/10,
             "gpuMs":(gpuMilliseconds*100).rounded()/100, "frames":frames, "paused":isPaused, "governor":governor,
             "width":width, "height":height, "triangles":triangleCount,"indexBits":indexType == .uint16 ? 16 : 32,"indexBytes":indexBuffer?.length ?? 0, "errors":errors, "gpuStagesMs":profiler?.averageMilliseconds ?? [:]]
         if let encoded = try? JSONSerialization.data(withJSONObject: data, options: .sortedKeys), let text = String(data: encoded, encoding: .utf8) {

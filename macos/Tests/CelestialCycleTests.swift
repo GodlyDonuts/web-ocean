@@ -82,17 +82,6 @@ import simd
         precondition(!ObserverLocation(latitude:91,longitude:0).isValid && !ObserverLocation(latitude:0,longitude:.nan).isValid)
         let north=CelestialMath.scene(SIMD3(0,0,1),heading:0),west=CelestialMath.scene(SIMD3(-1,0,0),heading:270)
         precondition(simd_length(north-SIMD3(0,0,-1))<1e-10 && simd_length(west-SIMD3(0,0,-1))<1e-10)
-        func eclipseState(_ iso: String, _ place: ObserverLocation) -> CelestialState {
-            let t=ISO8601DateFormatter().date(from:iso)!.timeIntervalSince1970
-            return CelestialMath.state(CelestialMath.sample(t),at:t,location:place,heading:270)
-        }
-        let bilbao=ObserverLocation(latitude:43.26,longitude:-2.93)
-        let spain=eclipseState("2026-08-12T18:27:35Z",bilbao),dallas=eclipseState("2024-04-08T18:42:05Z",ObserverLocation(latitude:32.7767,longitude:-96.797))
-        let newYork=eclipseState("2024-04-08T19:25:25Z",ObserverLocation(latitude:40.7128,longitude:-74.006)),lunar=eclipseState("2026-03-03T11:35:00Z",ObserverLocation(latitude:39.10,longitude:-94.58))
-        let ordinary=eclipseState("2026-08-20T18:00:00Z",bilbao)
-        print("Eclipses: Bilbao 2026 \(spain.solarObscuration), Dallas 2024 \(dallas.solarObscuration), New York 2024 \(newYork.solarObscuration), Kansas City lunar 2026 \(lunar.lunarUmbra)")
-        precondition(spain.solarObscuration>0.999 && dallas.solarObscuration>0.999 && newYork.solarObscuration>0.75 && newYork.solarObscuration<0.97)
-        precondition(lunar.lunarUmbra>0.99 && ordinary.solarObscuration==0 && ordinary.lunarUmbra==0 && spain.lunarUmbra==0)
         print("PASS: offline events, NOAA cross-check, DST, polar cases, 1,920 interpolated states, moon phases, heading, disk cache/recovery and 10,000 frames with one calculation/write.")
         print("Daily calculation + write: \(calculationMs) ms; cached frame: \(interpolationMicroseconds) µs; interpolation errors sun \(maxSolarError)°, moon \(maxLunarError)° (vs same model, not reference ephemeris).")
         print("Synthetic NYC sunrise UTC: \(Date(timeIntervalSince1970:today.sunrise!)), sunset UTC: \(Date(timeIntervalSince1970:today.sunset!))")

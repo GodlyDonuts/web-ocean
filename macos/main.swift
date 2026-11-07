@@ -199,7 +199,10 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func buildSurfaces() {
         guard let device else { return }
-        for surface in surfaces { surface.window.orderOut(nil); surface.window.close() }
+        for surface in surfaces {
+            surface.view.isPaused=true;surface.view.delegate=nil
+            surface.window.orderOut(nil);surface.window.close()
+        }
         surfaces.removeAll()
         let screens = allDisplays ? NSScreen.screens : Array(NSScreen.screens.prefix(1))
         for screen in screens {
@@ -210,6 +213,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window.orderFrontRegardless()
             surfaces.append(WallpaperSurface(screen: screen, window: window, view: view))
         }
+        viewport=surfaces.first?.view
         sizeSecondaryDrawables()
         renderer?.layoutView = surfaces.first?.view
     }

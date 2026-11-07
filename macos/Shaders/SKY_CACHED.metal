@@ -6,7 +6,6 @@
 
 using metal::uint;
 #include "WATER_VIEW.metalinc"
-#include "AURORA.metalinc"
 
 
 struct VO {
@@ -58,36 +57,5 @@ fragment fsOutput fs(
     float volume=metal::max(below,water[0].z);
     if (F[17].w>7.5 && F[17].w<8.5) volume=0.0;
     metal::float3 color=metal::mix(_e4.xyz,waterVolumeRadiance(F[40].z,ray.y,water[0].y),volume);
-    float night=F[40].w>0.5 ? F[40].z : 0.0;
-    if (night>0.001 && volume<0.999 && ray.y>0.0) {
-        // Full-rate night events over the 8 Hz cloud cache; its alpha is the
-        // view-ray cloud transmission, so clouds occlude curtains and meteors.
-        float jitter=fxHash(pos.xy+metal::float2(metal::fmod(F[17].z,64.0)*7.31,0.0));
-        float pixAng=2.0*metal::length(F[6].xyz)*F[9].w;
-        metal::float3 fx=auroraRadiance(ray,F[48],night,16,jitter)+meteorRadiance(ray,F[48],night,pixAng,F[7].xyz)
-            +cometRadiance(ray,F[50],F[51],metal::normalize(F[42].xyz));
-        color+=fx*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
-    }
-    if (F[18].z>0.05 && volume<0.999 && ray.y>0.0) {
-        metal::float3 halo=iceHalo(ray,metal::normalize(F[41].xyz),F[18].z);
-        color+=_e4.xyz*halo*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
-    }
-    // By night the dominant light is the moon: the same optics give a faint moonbow.
-    float bowNight=F[40].w>0.5 ? F[40].z : 0.0;
-    float bowRain=metal::smoothstep(0.03,0.3,F[47].y)*(1.0-0.75*F[47].x)*(bowNight>0.5 ? 0.7 : 1.0-bowNight);
-    if (bowRain>0.001 && volume<0.999 && ray.y>0.0) {
-        metal::float3 bow=rainbow(ray,metal::normalize(bowNight>0.5 ? F[41].xyz : F[42].xyz),bowRain);
-        color=metal::max(color+_e4.xyz*bow*(1.0-volume),metal::float3(0.0));
-    }
-    if (F[38].w>0.001 && volume<0.999 && ray.y>0.0) {
-        float nlc=noctilucent(ray,F[42].xyz,F[48].y,2.0*metal::length(F[6].xyz)*F[9].w)*F[38].w;
-        float lum=metal::dot(_e4.xyz,metal::float3(0.2126,0.7152,0.0722));
-        color+=metal::float3(0.3,0.62,1.0)*(lum*5.0+0.0006)*nlc*metal::clamp(_e4.w,0.0,1.0)*(1.0-volume);
-    }
-    if (F[38].x>0.001 && volume<0.999) {
-        float spout=waterspout(ray,F[38],F[48].y)*(1.0-volume);
-        float lum=metal::dot(_e4.xyz,metal::float3(0.2126,0.7152,0.0722));
-        color=metal::mix(color,lum*metal::float3(0.30,0.32,0.36)+metal::float3(0.002),spout);
-    }
     return fsOutput { metal::float4(color,1.0) };
 }

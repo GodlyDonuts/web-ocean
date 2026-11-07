@@ -19,4 +19,3 @@ run_unit ViewportMeshTests macos/ViewportMesh.swift
 run_unit DisplayDemandTests macos/Diagnostics/DisplayTileLayout.swift macos/SharedSurfaceDemand.swift
 run_unit AnimationClockTests macos/AnimationClock.swift
 run_unit PerformancePolicyTests macos/PerformancePolicy.swift
-run_unit NightEffectsTests macos/NightEffects.swift

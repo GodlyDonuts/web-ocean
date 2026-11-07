@@ -40,7 +40,6 @@ struct Frame {
     metal::float4 starZ;
     metal::float4 cloudEvolution;
     metal::float4 weather; // severity, rain, mist, reserved
-    metal::float4 nightFx; // aurora, seconds, meteor rate, bioluminescence
 
 };
 struct Medium {
@@ -333,7 +332,6 @@ metal::float2 skyViewUV(
 }
 
 // CELESTIAL_SKY_IMPLEMENTATION
-#include "AURORA.metalinc"
 metal::float3 skyAtmo(
     metal::float3 dir_1,
     constant Frame& F,
@@ -731,7 +729,6 @@ metal::float3 skyRadiance(
     metal::float3 _e20 = L_1;
     L_1 = (_e20 * (1.0 - _e19.w)) + _e19.xyz;
     L_1 += celestialStarfield(dir_6,pixAng_1,F,starAtlas,galaxyAtlas,true)*stellarCloudVisibility(sunT_1);
-    L_1 += auroraRadiance(dir_6,F.nightFx,F.celestial.w>0.5 ? F.celestial.z : 0.0,6,0.5)*sunT_1;
     if (withSun) {
         metal::float3 _e27 = L_1;
         metal::float3 _e28 = dir_6;

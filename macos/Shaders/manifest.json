@@ -102,13 +102,5 @@
   ],
   "CAMERA_WATER": [
     "main_"
-  ],
-  "SHAFTS": [
-    "vs",
-    "fs"
-  ],
-  "BIRDS": [
-    "vs",
-    "fs"
   ]
 }
