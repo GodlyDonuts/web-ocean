@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-07",
+  "platform": "Apple M1, macOS 26.7",
+  "nativeExtensionPoint": "com.apple.wallpaper",
+  "nativeProvider": "local.wallpaper.ocean.live",
+  "shaderMathChanged": false,
+  "setup": {
+    "automaticSelectionObserved": true,
+    "settingsDescription": "Ocean / Live Metal ocean",
+    "desktopAndIdleProviderVerified": true,
+    "runningExtensionVerified": true,
+    "strictCodeSignatureVerified": true
+  },
+  "validation": {
+    "existingCPUSuites": 17,
+    "additionalNativeStoreTests": "passed again against final controller source",
+    "nativeRuntimeABI": "passed: context allocation/coding, snapshot layout/encoder, settings wire decoding, correct bootstrap",
+    "legacySaverLifecycle": "passed",
+    "windowlessWallpaperLifecycle": "passed"
+  },
+  "lockedRenderingObserved": {
+    "framesBefore": 10045,
+    "framesAfter": 10166,
+    "intervalSeconds": 5,
+    "targetFPS": 24,
+    "onBattery": true,
+    "scope": "Actual locked native extension, controller renderer paused. Submission count is not proof of display pacing."
+  },
+  "visualReview": {
+    "initialDedicatedNativeHost": "User confirmed Ocean is visible and moving on lock screen, then reported severe judder after transition",
+    "pacingFix": "Timer now runs at selected FPS without a second gate; flushes remote layer transactions; latest visual confirmation pending"
+  },
+  "pacingProbe": {
+    "seconds": 16,
+    "requestedFPS": 24,
+    "samples": [
+      {
+        "medianMs": 41.66779154911637,
+        "p95Ms": 42.22945845685899,
+        "maxMs": 43.1489166803658
+      },
+      {
+        "medianMs": 41.67495830915868,
+        "p95Ms": 42.20787505619228,
+        "maxMs": 42.65458323061466
+      },
+      {
+        "medianMs": 41.66895826347172,
+        "p95Ms": 42.206916725263,
+        "maxMs": 43.974916683509946
+      }
+    ],
+    "scope": "Actual native render submissions on this Mac; one bounded temporary control override, restored afterwards. Not display-refresh or energy measurements."
+  },
+  "compatibilityLimits": [
+    "Private macOS XPC/wire interfaces require revalidation after OS updates",
+    "No physical multi-display/Space/hotplug tests for the native host",
+    "Older macOS uses legacy saver/static lock fallback",
+    "No temperature, power or battery-life reduction measured"
+  ],
+  "finalRuntime": {
+    "controllerPID": 87455,
+    "extensionPID": 87483,
+    "coveredDesktopControlFPS": 0,
+    "oldDesktopRendererSubmittedFrames": 0,
+    "installedAndRunning": true,
+    "visualPacingConfirmation": "pending user reply"
+  }
+}

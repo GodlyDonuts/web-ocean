@@ -45,6 +45,8 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var surfaces: [WallpaperSurface] = []
     private var wallpaperLayoutView: MTKView?
     private var wallpaperUsesTiles=false
+    private var nativePresentationActive=false
+    private var lastNativeEnvironmentRefresh = -Double.infinity
     private let wallpaperIntegration=WallpaperIntegration()
     private var stillTimer: Timer?
     private var refreshingCoverage=false
@@ -231,7 +233,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             surface.view.isPaused=true;surface.view.delegate=nil
             surface.window.orderOut(nil);surface.window.close()
         }
-        surfaces.removeAll();wallpaperLayoutView=nil;wallpaperUsesTiles=false
+        surfaces.removeAll();wallpaperLayoutView=nil;wallpaperUsesTiles=false;nativePresentationActive=false
         let screens = allDisplays ? NSScreen.screens : Array(NSScreen.screens.prefix(1))
         if screens.count==1,let screen=screens.first,options["regionalRendering"] == "1" {
             let layout=ViewportLayout(pointWidth:screen.frame.width,pointHeight:screen.frame.height,
@@ -319,7 +321,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         login.target = self; menu.addItem(login); loginItem = login
         let integration=NSMenuItem(title:"Preparing Ocean screen saver…",action:nil,keyEquivalent:"")
         menu.addItem(integration);integrationStatus=integration
-        for (title,action) in [("Update Lock Screen Image",#selector(enableSystemWallpaper)),
+        for (title,action) in [("Refresh Lock Screen",#selector(enableSystemWallpaper)),
                                ("Restore Previous Wallpaper and Screen Saver",#selector(restoreSystemWallpaper)),
                                ("Repair Screen Saver Setup",#selector(installScreenSaver))] {
             let command=NSMenuItem(title:title,action:action,keyEquivalent:"")
@@ -345,10 +347,15 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
             self?.integrationStatus?.title=text
             if CommandLine.arguments.contains("--diagnostics") { print("Ocean integration: \(text)") }
         }
+        wallpaperIntegration.nativeSetup.onStatus={ [weak self] text in
+            self?.integrationStatus?.title=text
+            if CommandLine.arguments.contains("--diagnostics") { print("Ocean native integration: \(text)") }
+        }
+        wallpaperIntegration.nativeSetup.onReady={ [weak self] in self?.refreshCoverage() }
         refreshCoverage()
         if options["systemIntegration"] != "0" {
             ScreenSaverEnvironment.publishFromApp()
-            wallpaperIntegration.screenSaverSetup.enableIfNeeded()
+            wallpaperIntegration.enableLiveSetup()
             stillTimer=Timer.scheduledTimer(withTimeInterval:900,repeats:true) { [weak self] _ in self?.updateSystemWallpaper() }
             stillTimer?.tolerance=60
             DispatchQueue.main.asyncAfter(deadline:.now()+2) { [weak self] in self?.updateSystemWallpaper() }
@@ -364,6 +371,10 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         updateSystemWallpaper()
     }
     @objc private func updateSystemWallpaper() {
+        if options["systemIntegration"] != "0",NativeWallpaperSetup.moduleURL != nil {
+            // A PNG desktop setter would replace the live extension.
+            ScreenSaverEnvironment.publishFromApp();return
+        }
         guard options["systemIntegration"] != "0",defaults.object(forKey:"OceanSyncSystemWallpaper") as? Bool != false,!suspension.isSuspended,let renderer,renderer.snapshotRequested==nil else { return }
         renderer.snapshotRequested={ [weak self] data,width,height in
             guard let self else { return }
@@ -385,7 +396,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         wallpaperIntegration.restore()
     }
     @objc private func installScreenSaver() {
-        wallpaperIntegration.screenSaverSetup.enableIfNeeded(force:true)
+        wallpaperIntegration.enableLiveSetup(force:true)
     }
 
     private func refreshMenuState() {
@@ -423,6 +434,11 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard OceanRunMode.wallpaper,!refreshingCoverage else { return }
         refreshingCoverage=true;defer { refreshingCoverage=false }
         let now = CACurrentMediaTime()
+        if defaults.bool(forKey:"OceanNativeWallpaper"),!suspension.isSuspended,now-lastNativeEnvironmentRefresh>=60 {
+            lastNativeEnvironmentRefresh=now
+            locationProvider?.refresh();weatherProvider?.refresh()
+            ScreenSaverEnvironment.publishFromApp()
+        }
         if now-lastPowerCheck > 10 {
             lastPowerCheck = now
             if let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
@@ -619,7 +635,7 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         updatePlayback()
         if !suspension.isSuspended,OceanRunMode.wallpaper { updateSystemWallpaper() }
-        if notification.name.rawValue=="com.apple.screenIsUnlocked",OceanRunMode.wallpaper { wallpaperIntegration.screenSaverSetup.refreshRuntimeIfNeeded() }
+        if notification.name.rawValue=="com.apple.screenIsUnlocked",OceanRunMode.wallpaper { wallpaperIntegration.screenSaverSetup.refreshRuntimeIfNeeded();wallpaperIntegration.enableLiveSetup() }
     }
 
     private func updatePlayback() {
@@ -642,6 +658,16 @@ final class OceanApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let fps = decision.framesPerSecond
         renderer.hostLocked=suspension.isSuspended(.screenLocked)
         renderer.hostSaverRendering=suspension.isSuspended(.screenSaver)
+        let nativeActive=options["systemIntegration"] != "0" && NativeWallpaperSetup.moduleURL != nil && wallpaperIntegration.nativeSetup.verified && defaults.bool(forKey:"OceanNativeWallpaper")
+        if nativeActive {
+            LiveWallpaperControl.publish(framesPerSecond:suspension.isSuspended(.userPaused) ? 0 : fps,pixelBudget:decision.pixelBudget)
+            if !nativePresentationActive { for surface in surfaces { surface.window.orderOut(nil) };nativePresentationActive=true }
+            for surface in surfaces { surface.view.isPaused=true }
+            renderer.presentationSurfaces=[];renderer.isPaused=true
+            performanceStatus?.title="Live · native Ocean wallpaper"
+            return
+        }
+        if nativePresentationActive { nativePresentationActive=false;for surface in surfaces { surface.window.orderBack(nil) } }
         let requests = surfaces.enumerated().map { index,surface -> SurfaceDemandRequest in
             let id = (surface.screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? 0
             let osVisible = surface.window.occlusionState.contains(.visible)

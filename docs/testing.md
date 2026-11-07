@@ -82,3 +82,5 @@ The fixture creates a replacement MTKView with an intentionally wrong drawable s
 ## Regional rendering and system integration
 
 See [regional rendering](regional-rendering.md) for the visible-pixel GPU parity, native screensaver lifecycle and resource benchmark commands. The maintained `test-current.sh` includes these regressions. Automated checks create no windows and do not select/install the screensaver or change the system wallpaper. Interactive visibility, Spaces, WindowServer costs, screen-saver host sandbox behavior and the actual lock-screen image require a real session review.
+
+The native wallpaper compatibility canary is `zsh macos/Tests/test-native-wallpaper.sh` on macOS 26. It exercises real private-runtime encoding without registering or selecting anything. See [live lock-screen validation](live-lock-screen.md#validation).

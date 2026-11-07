@@ -33,3 +33,5 @@ Dated JSON reports preserve GPU readbacks, scene settings, bounds and benchmark 
 Recent visual evidence: [star/cloud integration](night-sky-integration-comparison.png), [storm-water correction](night-water-comparison.png), [storm formation](storm-formation.mp4) and [rain motion](storm-rain-motion.mp4).
 
 - [Regional rendering, native screensaver and lock-screen still](regional-rendering.md) — visibility evidence, bloom support, retained imagery, installation and validation.
+
+- [Live lock screen](live-lock-screen.md): native macOS wallpaper extension, lifecycle, automatic selection/restore and ABI checks.

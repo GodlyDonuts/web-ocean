@@ -1,5 +1,7 @@
 # Regional rendering, screensaver and lock-screen fallback
 
+**macOS 26 update:** the [native wallpaper extension](live-lock-screen.md) now owns live desktop/lock/saver presentation. The still-image and public `.saver` sections below describe the older-OS fallback; they are not the current macOS 26 lock-screen implementation.
+
 An opt-in rendering experiment can skip expensive scene shading outside a conservative visible region. The normal app retains the established single-window host: the unlocked coverage probe did not produce reliable per-strip AppKit visibility changes, so the four-strip path is disabled by default. Enable it only for development with `--query=regionalRendering=1`. This is deliberately an exact-image optimization: it preserves the current cinematic water, clouds, stars and bloom, rather than changing quality when another app covers the desktop.
 
 ## Visibility and rendering

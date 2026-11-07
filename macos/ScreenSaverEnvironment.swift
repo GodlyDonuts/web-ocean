@@ -5,7 +5,8 @@ import ScreenSaver
 // host's sandbox boundary. No sandbox escape, network request or GPS prompt.
 enum ScreenSaverEnvironment {
     static let module="local.wallpaper.ocean.screensaver"
-    struct Saved: Codable {
+    static let wallpaperModule="local.wallpaper.ocean.live"
+    struct Saved: Codable, Equatable {
         var daylightTime: String
         var location: ObserverLocation?
         var timeZoneID: String?
@@ -22,13 +23,22 @@ enum ScreenSaverEnvironment {
         let saved=Saved(daylightTime:UserDefaults.standard.string(forKey:"OceanDaylightTime") ?? "automatic",
                         location:location?.location,timeZoneID:location?.timeZoneID,
                         weather:matching ? weather?.weather : nil,weatherMeasuredAt:matching ? weather?.measuredAt : nil)
-        guard let data=try? JSONEncoder().encode(saved),let defaults=ScreenSaverDefaults(forModuleWithName:module) else { return }
-        defaults.set(data,forKey:"OceanEnvironment");defaults.synchronize()
+        guard let data=try? JSONEncoder().encode(saved) else { return }
+        LiveWallpaperFiles.write(data,name:"environment.json")
+        for domain in [module] {
+            guard let defaults=ScreenSaverDefaults(forModuleWithName:domain) else { continue }
+            defaults.set(data,forKey:"OceanEnvironment");defaults.synchronize()
+        }
     }
     static func read() -> Saved? {
-        guard let defaults=ScreenSaverDefaults(forModuleWithName:module) else { return nil }
+        let domain=Bundle.main.bundleIdentifier==wallpaperModule ? wallpaperModule : module
+        guard let defaults=ScreenSaverDefaults(forModuleWithName:domain) else { return nil }
         defaults.synchronize()
         guard let data=defaults.data(forKey:"OceanEnvironment") else { return nil }
+        return decode(data)
+    }
+    static func readLive() -> Saved? {
+        guard let data=try? Data(contentsOf:LiveWallpaperFiles.directory.appendingPathComponent("environment.json")) else { return nil }
         return decode(data)
     }
     static func decode(_ data: Data) -> Saved? {

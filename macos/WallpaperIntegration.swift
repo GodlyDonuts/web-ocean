@@ -5,13 +5,14 @@ import AppKit
 final class WallpaperIntegration {
     private var writing=false
     let screenSaverSetup=AutomaticScreenSaverSetup()
+    let nativeSetup=NativeWallpaperSetup()
     private var slot=0
     private let queue=DispatchQueue(label:"Ocean.wallpaper-still",qos:.utility)
     var status="System wallpaper has not been updated"
     private var lastStill: (URL,[NSScreen])?
     init() {
         screenSaverSetup.onSelectionReady={ [weak self] in
-            guard let self,let (url,screens)=self.lastStill else { return }
+            guard let self,!UserDefaults.standard.bool(forKey:"OceanNativeWallpaper"),let (url,screens)=self.lastStill else { return }
             // A WallpaperAgent reload can race the asynchronous public desktop
             // setter. Reapply after selection has settled, without another frame.
             for screen in screens {
@@ -62,7 +63,14 @@ final class WallpaperIntegration {
         }
     }
 
-    func restore() { screenSaverSetup.restore() }
+    func enableLiveSetup(force:Bool=false) {
+        if NativeWallpaperSetup.moduleURL != nil { nativeSetup.enable(force:force) }
+        else { screenSaverSetup.enableIfNeeded(force:force) }
+    }
+    func restore() {
+        if UserDefaults.standard.bool(forKey:"OceanNativeWallpaper") { nativeSetup.restore { self.screenSaverSetup.restore() } }
+        else { screenSaverSetup.restore() }
+    }
     private func restoreDesktop() {
         let original=UserDefaults.standard.dictionary(forKey:"OceanPreviousDesktopImages") as? [String:String] ?? [:]
         for screen in NSScreen.screens {

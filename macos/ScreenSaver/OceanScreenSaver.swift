@@ -61,6 +61,7 @@ private final class SaverWorld {
         let now=CACurrentMediaTime();refreshPolicy(at:now)
         guard cadence.shouldSubmit(at:now,framesPerSecond:framesPerSecond) else { return }
         renderer.draw(in:view)
+        view.releaseDrawables()
 
     }
 }
